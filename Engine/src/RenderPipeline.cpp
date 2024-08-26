@@ -9,39 +9,39 @@ RenderPipeline::RenderPipeline()
 
 void RenderPipeline::Initialize()
 {
-	if (!Textures.ScanDirectory("../Engine/Textures"))
-	{
-		std::cout << "ScanDirectory failed reading textures directory..." << std::endl;
-	}
+}
+
+void RenderPipeline::UpdateTime()
+{
 }
 #define STB_IMAGE_IMPLEMENTATION
-void RenderPipeline::Draw()
-{
-	for (auto& object : objects)
-	{
-		object->GetShader()->use();
-		glBindVertexArray(object->GetVAO());
-
-		glm::mat4 model = glm::mat4(1.0f);
-		model = glm::translate(model, object->GetPosition());
-		model = glm::rotate(model, glm::radians(object->GetRotation().x), glm::vec3(1.0f, 0.0f, 0.0f));
-		model = glm::rotate(model, glm::radians(object->GetRotation().y), glm::vec3(0.0f, 1.0f, 0.0f));
-		model = glm::rotate(model, glm::radians(object->GetRotation().z), glm::vec3(0.0f, 0.0f, 1.0f));
-		model = glm::scale(model, object->GetScale());
-
-		object->GetShader()->setMat4("model", model);
-
-		unsigned int textureID;
-		if (Textures.TextureIDs.size() > 0)
-			textureID = Textures.TextureIDs[0];
-		else
-			textureID = 0;
-
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, textureID);
-		glDrawArrays(GL_TRIANGLES, 0, 36);
-	}
-}
+//void RenderPipeline::Draw()
+//{
+//	for (auto& object : objects)
+//	{
+//		object->GetShader()->use();
+//		glBindVertexArray(object->GetVAO());
+//
+//		glm::mat4 model = glm::mat4(1.0f);
+//		model = glm::translate(model, object->GetPosition());
+//		model = glm::rotate(model, glm::radians(object->GetRotation().x), glm::vec3(1.0f, 0.0f, 0.0f));
+//		model = glm::rotate(model, glm::radians(object->GetRotation().y), glm::vec3(0.0f, 1.0f, 0.0f));
+//		model = glm::rotate(model, glm::radians(object->GetRotation().z), glm::vec3(0.0f, 0.0f, 1.0f));
+//		model = glm::scale(model, object->GetScale());
+//
+//		object->GetShader()->setMat4("model", model);
+//
+//		unsigned int textureID;
+//		if (Textures.TextureIDs.size() > 0)
+//			textureID = Textures.TextureIDs[0];
+//		else
+//			textureID = 0;
+//
+//		glActiveTexture(GL_TEXTURE0);
+//		glBindTexture(GL_TEXTURE_2D, textureID);
+//		glDrawArrays(GL_TRIANGLES, 0, 36);
+//	}
+//}
 
 void RenderPipeline::DrawDebugAxes(float length = 1.0f)
 {
@@ -108,7 +108,7 @@ void RenderPipeline::DrawBlankFrame(Shader* inShader)
 
 void RenderPipeline::RenderBackground()
 {
-	glClearColor(.2f, .3f, .3f, 1.0f);
+	glClearColor(.2f, .3f, .3f, .75f);
 	
 }
 

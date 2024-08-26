@@ -1,2 +1,9 @@
-﻿  RenderPipeline.cpp
+﻿  Source.cpp
+C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\src\Source.cpp(102,22): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\src\Source.cpp(228,11): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\src\Source.cpp(229,11): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\src\Source.cpp(233,16): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\src\Source.cpp(234,16): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\src\Source.cpp(235,10): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\src\Source.cpp(236,10): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
   Engine.vcxproj -> C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\x64\Debug\Engine.exe

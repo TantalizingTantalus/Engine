@@ -9,7 +9,6 @@
 
 #include "../Headers/Shader.h"
 #include "../Headers/RObject.h"
-#include "../Headers/TextureLoader.h"
 
 #include <vector>
 #include <iostream>
@@ -17,19 +16,19 @@ class RenderPipeline
 {
 public:
 	RenderPipeline();
-	void Initialize();
+	static void Initialize();
 	void Draw();
 	void DrawTriangle(unsigned int, int, Shader*);
 	void ObjectDrawTest();
 	void RenderDrawFrame(unsigned int, int, Shader*);
 	void DrawBlankFrame(Shader*);
-	void RenderBackground();
+	static void RenderBackground();
 	static void BeginFrame();
 	static void EndFrame(GLFWwindow*);
 	static void DrawDebugAxes(float );
 
+	static void UpdateTime();
 	void AddObject(RObject* object);
 private:
 	std::vector<RObject*> objects;
-	TextureLoader Textures;
 };
