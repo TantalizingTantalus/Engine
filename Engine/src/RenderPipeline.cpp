@@ -81,10 +81,6 @@ void RenderPipeline::DrawTriangle(unsigned int inVAO, int GL_METHOD, Shader* inS
 	glDrawArrays(GL_METHOD, 0, 3);
 }
 
-void RenderPipeline::AddObject(RObject* object)
-{
-	RenderPipeline::objects.push_back(object);
-}
 
 void RenderPipeline::RenderDrawFrame(unsigned int inVAO, int GL_METHOD, Shader* inShader)
 {

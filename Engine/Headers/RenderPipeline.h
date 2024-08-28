@@ -8,7 +8,6 @@
 #include <gl/GL.h>
 
 #include "../Headers/Shader.h"
-#include "../Headers/RObject.h"
 
 #include <vector>
 #include <iostream>
@@ -28,7 +27,5 @@ public:
 	static void DrawDebugAxes(float );
 
 	static void UpdateTime();
-	void AddObject(RObject* object);
 private:
-	std::vector<RObject*> objects;
 };

@@ -37,7 +37,11 @@ public:
     float Yaw;
     float Pitch;
     // camera options
+    
+    const float Max_MoveSpeed = 10.0f;
     float MovementSpeed;
+    float BoostSpeed = 5.0f;
+    const float Min_MoveSpeed = 0.0f;
     float MouseSensitivity;
     float Zoom;
 
@@ -120,6 +124,9 @@ public:
         if (Zoom > 45.0f)
             Zoom = 45.0f;
     }
+
+    float GetMovementSpeed() const { return MovementSpeed; }
+    void SetMovementSpeed(float update) { if (update <= Max_MoveSpeed)MovementSpeed = update; else { MovementSpeed = Max_MoveSpeed; } }
 
 private:
     // custom properties

@@ -5,13 +5,8 @@
 #include "../Headers/Mesh.h"
 #include "../Headers/stb_image.h"
 #include "glm/gtc/matrix_transform.hpp"
+#include "spdlog/spdlog.h"
 
-struct Material {
-	glm::vec3 Diffuse;
-	glm::vec3 Specular;
-	glm::vec3 Ambient;
-	float Shininess;
-};
 
 class Model
 {
@@ -27,10 +22,13 @@ public:
 	void SetRotation(float angle, const glm::vec3& axis) { modelMatrix = glm::rotate(modelMatrix, glm::radians(angle), axis); }
 	void SetPosition(const glm::vec3& pos) { modelMatrix = glm::translate(glm::mat4(1.0f), pos); }
 	void SetScale(const glm::vec3& scl) { modelMatrix = glm::scale(modelMatrix, scl); }
+	void SetModelName(std::string name) { this->modelName = name; }
+	std::string GetModelName() const { return this->modelName; }
 
 	glm::vec3 GetRotation() { return rotation; }
 	glm::vec3 GetPosition() { return position; }
 	glm::vec3 GetScale() { return scale; }
+
 private:
 	glm::mat4 modelMatrix;
 	std::vector<Mesh> meshes;
@@ -45,4 +43,6 @@ private:
 	glm::vec3 rotation;
 	glm::vec3 scale;
 	glm::vec3 position;
+
+	std::string modelName;
 };

@@ -8,6 +8,7 @@ unsigned int TextureFromFile(const char* path, const std::string& directory)
     unsigned int textureID;
     glGenTextures(1, &textureID);
 
+
     int width, height, nrComponents;
     
     unsigned char* data = stbi_load(path, &width, &height, &nrComponents, 0);
@@ -34,7 +35,7 @@ unsigned int TextureFromFile(const char* path, const std::string& directory)
     }
     else
     {
-        std::cout << "Texture failed to load at path: " << path << std::endl;
+        std::cout << "Texture failed to load at path: " << directory << std::endl;
         std::cerr << "FAILURE REASON: " << stbi_failure_reason() << std::endl;
         stbi_image_free(data);
     }
@@ -55,18 +56,20 @@ void Model::Draw(Shader& shader)
 void Model::loadModel(std::string path)
 {
     Assimp::Importer importer;
-    const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_FlipUVs | aiProcess_CalcTangentSpace);
+    const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate |   aiProcess_GenSmoothNormals | aiProcess_FlipUVs |  aiProcess_CalcTangentSpace);
 
     if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
-        std::cerr << "Asset import error: " << importer.GetErrorString() << std::endl;
+        spdlog::error("Asset import error: {}", importer.GetErrorString());
         return;
     }
 
     std::string fileName = path.substr(path.find_last_of('/')+1);
+    this->modelName = fileName;
     directory = path.substr(0, path.find_last_of('/'));
     processNode(scene->mRootNode, scene);
 
-    std::cout << "\"" << fileName << " \" Model loaded successfully" << std::endl;
+    
+    spdlog::info("\"{}\" Model loaded successfully!", fileName);
 }
 
 void Model::processNode(aiNode* node, const aiScene* scene)
@@ -94,7 +97,7 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene)
     for (unsigned int i = 0; i < mesh->mNumVertices; i++)
     {
         Vertex vertex;
-        glm::vec3 vector; // we declare a placeholder vector since assimp uses its own vector class that doesn't directly convert to glm's vec3 class so we transfer the data to this placeholder glm::vec3 first.
+        glm::vec3 vector; 
         // positions
         vector.x = mesh->mVertices[i].x;
         vector.y = mesh->mVertices[i].y;
@@ -112,10 +115,10 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene)
         if (mesh->mTextureCoords[0]) // does the mesh contain texture coordinates?
         {
             glm::vec2 vec;
-            // a vertex can contain up to 8 different texture coordinates. We thus make the assumption that we won't 
-            // use models where a vertex can have multiple texture coordinates so we always take the first set (0).
+            // a vertex can contain up to 8 different texture coordinates. 
             vec.x = mesh->mTextureCoords[0][i].x;
             vec.y = mesh->mTextureCoords[0][i].y;
+
             vertex.TexCoords = vec;
             // tangent
             if (mesh->mTangents && mesh->mBitangents) {
@@ -169,8 +172,8 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene)
     //std::vector<Texture> specularMaps = loadMaterialTextures(material, aiTextureType_SPECULAR, "texture_specular");
     //textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
     //// 3. normal maps
-    //std::vector<Texture> normalMaps = loadMaterialTextures(material, aiTextureType_HEIGHT, "texture_normal");
-    //textures.insert(textures.end(), normalMaps.begin(), normalMaps.end());
+    std::vector<Texture> normalMaps = loadMaterialTextures(material, aiTextureType_HEIGHT, "texture_normal");
+    textures.insert(textures.end(), normalMaps.begin(), normalMaps.end());
     //// 4. height maps
     //std::vector<Texture> heightMaps = loadMaterialTextures(material, aiTextureType_AMBIENT, "texture_height");
     //textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());

@@ -1,9 +1,39 @@
-﻿  Source.cpp
-C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\src\Source.cpp(102,22): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\src\Source.cpp(228,11): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\src\Source.cpp(229,11): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\src\Source.cpp(233,16): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\src\Source.cpp(234,16): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\src\Source.cpp(235,10): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\src\Source.cpp(236,10): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+﻿  Backend.cpp
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.22621.0\shared\minwindef.h(130,1): warning C4005: 'APIENTRY': macro redefinition
+  (compiling source file 'src/Backend.cpp')
+  C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\dependencies\include\glad\glad.h(32,1):
+  see previous definition of 'APIENTRY'
+  
+C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\src\Backend.cpp(90,11): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\src\Backend.cpp(91,11): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\src\Backend.cpp(96,16): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\src\Backend.cpp(97,16): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\src\Backend.cpp(98,10): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\src\Backend.cpp(99,10): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\src\Backend.cpp(221,22): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+  Mesh.cpp
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.22621.0\shared\minwindef.h(130,1): warning C4005: 'APIENTRY': macro redefinition
+  (compiling source file 'src/Mesh.cpp')
+  C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\dependencies\include\glad\glad.h(32,1):
+  see previous definition of 'APIENTRY'
+  
+  Model.cpp
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.22621.0\shared\minwindef.h(130,1): warning C4005: 'APIENTRY': macro redefinition
+  (compiling source file 'src/Model.cpp')
+  C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\dependencies\include\glad\glad.h(32,1):
+  see previous definition of 'APIENTRY'
+  
+  RenderPipeline.cpp
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.22621.0\shared\minwindef.h(130,1): warning C4005: 'APIENTRY': macro redefinition
+  (compiling source file 'src/RenderPipeline.cpp')
+  C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\dependencies\include\glad\glad.h(32,1):
+  see previous definition of 'APIENTRY'
+  
+  Source.cpp
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.22621.0\shared\minwindef.h(130,1): warning C4005: 'APIENTRY': macro redefinition
+  (compiling source file 'src/Source.cpp')
+  C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\dependencies\include\glad\glad.h(32,1):
+  see previous definition of 'APIENTRY'
+  
+  Generating Code...
   Engine.vcxproj -> C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\x64\Debug\Engine.exe

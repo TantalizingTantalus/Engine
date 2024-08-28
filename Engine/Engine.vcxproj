@@ -111,7 +111,7 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\dependencies\include\glad;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\dependencies\imgui;C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\dependencies\include\glad;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -129,7 +129,7 @@
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\dependencies\include\glad;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\dependencies\imgui;C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\dependencies\include\glad;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -141,27 +141,44 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="dependencies\imgui\imgui-master\backends\imgui_impl_glfw.cpp" />
+    <ClCompile Include="dependencies\imgui\imgui-master\backends\imgui_impl_opengl3.cpp" />
+    <ClCompile Include="dependencies\imgui\imgui-master\imgui.cpp" />
+    <ClCompile Include="dependencies\imgui\imgui-master\imgui_demo.cpp" />
+    <ClCompile Include="dependencies\imgui\imgui-master\imgui_draw.cpp" />
+    <ClCompile Include="dependencies\imgui\imgui-master\imgui_tables.cpp" />
+    <ClCompile Include="dependencies\imgui\imgui-master\imgui_widgets.cpp" />
+    <ClCompile Include="src\Backend.cpp" />
     <ClCompile Include="src\glad.c" />
     <ClCompile Include="src\Mesh.cpp" />
     <ClCompile Include="src\Model.cpp" />
     <ClCompile Include="src\ModelManager.cpp" />
     <ClCompile Include="src\RenderPipeline.cpp" />
-    <ClCompile Include="src\RObject.cpp" />
     <ClCompile Include="src\Source.cpp" />
     <ClCompile Include="src\stb.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="dependencies\imgui\imgui-master\backends\imgui_impl_glfw.h" />
+    <ClInclude Include="dependencies\imgui\imgui-master\backends\imgui_impl_opengl3.h" />
+    <ClInclude Include="dependencies\imgui\imgui-master\imconfig.h" />
+    <ClInclude Include="dependencies\imgui\imgui-master\imgui.h" />
+    <ClInclude Include="dependencies\imgui\imgui-master\imgui_internal.h" />
+    <ClInclude Include="dependencies\imgui\imgui-master\imstb_rectpack.h" />
+    <ClInclude Include="dependencies\imgui\imgui-master\imstb_textedit.h" />
+    <ClInclude Include="dependencies\imgui\imgui-master\imstb_truetype.h" />
+    <ClInclude Include="Headers\Backend.h" />
     <ClInclude Include="Headers\Camera.h" />
     <ClInclude Include="Headers\ft2build.h" />
     <ClInclude Include="Headers\Mesh.h" />
     <ClInclude Include="Headers\Model.h" />
     <ClInclude Include="Headers\ModelManager.h" />
     <ClInclude Include="Headers\RenderPipeline.h" />
-    <ClInclude Include="Headers\RObject.h" />
     <ClInclude Include="Headers\Shader.h" />
     <ClInclude Include="Headers\stb_image.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Shaders\borderOutline.frag" />
+    <None Include="Shaders\borderOutline_vertex.vert" />
     <None Include="Shaders\fragment_shader.frag" />
     <None Include="Shaders\vertex_shader.vert" />
   </ItemGroup>
