@@ -7,12 +7,20 @@
       "RelativeMoniker": "D:0:0:{D5DDF2AB-D6F2-4E04-971D-158CA0C5C5DB}|Engine\\Engine.vcxproj|solutionrelative:Engine\\src\\Backend.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{D5DDF2AB-D6F2-4E04-971D-158CA0C5C5DB}|Engine\\Engine.vcxproj|C:\\Users\\Gaevi\\OneDrive\\Documents\\CodePractice\\Engine\\Engine\\Engine\\Headers\\Shader.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
-      "RelativeMoniker": "D:0:0:{D5DDF2AB-D6F2-4E04-971D-158CA0C5C5DB}|Engine\\Engine.vcxproj|solutionrelative:Engine\\Headers\\Shader.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+      "AbsoluteMoniker": "D:0:0:{D5DDF2AB-D6F2-4E04-971D-158CA0C5C5DB}|Engine\\Engine.vcxproj|C:\\Users\\Gaevi\\OneDrive\\Documents\\CodePractice\\Engine\\Engine\\Engine\\Headers\\Mesh.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{D5DDF2AB-D6F2-4E04-971D-158CA0C5C5DB}|Engine\\Engine.vcxproj|solutionrelative:Engine\\Headers\\Mesh.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{D5DDF2AB-D6F2-4E04-971D-158CA0C5C5DB}|Engine\\Engine.vcxproj|C:\\USERS\\GAEVI\\ONEDRIVE\\DOCUMENTS\\CODEPRACTICE\\ENGINE\\ENGINE\\ENGINE\\DEPENDENCIES\\INCLUDE\\SPDLOG\\FMT\\BUNDLED\\CORE.H||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
-      "RelativeMoniker": "D:0:0:{D5DDF2AB-D6F2-4E04-971D-158CA0C5C5DB}|Engine\\Engine.vcxproj|solutionrelative:ENGINE\\DEPENDENCIES\\INCLUDE\\SPDLOG\\FMT\\BUNDLED\\CORE.H||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+      "AbsoluteMoniker": "D:0:0:{D5DDF2AB-D6F2-4E04-971D-158CA0C5C5DB}|Engine\\Engine.vcxproj|C:\\Users\\Gaevi\\OneDrive\\Documents\\CodePractice\\Engine\\Engine\\Engine\\Headers\\Backend.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{D5DDF2AB-D6F2-4E04-971D-158CA0C5C5DB}|Engine\\Engine.vcxproj|solutionrelative:Engine\\Headers\\Backend.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{D5DDF2AB-D6F2-4E04-971D-158CA0C5C5DB}|Engine\\Engine.vcxproj|C:\\Users\\Gaevi\\OneDrive\\Documents\\CodePractice\\Engine\\Engine\\Engine\\Shaders\\fragment_shader.frag||{8B382828-6202-11D1-8870-0000F87579D2}",
+      "RelativeMoniker": "D:0:0:{D5DDF2AB-D6F2-4E04-971D-158CA0C5C5DB}|Engine\\Engine.vcxproj|solutionrelative:Engine\\Shaders\\fragment_shader.frag||{8B382828-6202-11D1-8870-0000F87579D2}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{D5DDF2AB-D6F2-4E04-971D-158CA0C5C5DB}|Engine\\Engine.vcxproj|C:\\Users\\Gaevi\\OneDrive\\Documents\\CodePractice\\Engine\\Engine\\Engine\\Shaders\\vertex_shader.vert||{8B382828-6202-11D1-8870-0000F87579D2}",
+      "RelativeMoniker": "D:0:0:{D5DDF2AB-D6F2-4E04-971D-158CA0C5C5DB}|Engine\\Engine.vcxproj|solutionrelative:Engine\\Shaders\\vertex_shader.vert||{8B382828-6202-11D1-8870-0000F87579D2}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{D5DDF2AB-D6F2-4E04-971D-158CA0C5C5DB}|Engine\\Engine.vcxproj|C:\\Users\\Gaevi\\OneDrive\\Documents\\CodePractice\\Engine\\Engine\\Engine\\Headers\\Model.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
@@ -27,12 +35,16 @@
       "RelativeMoniker": "D:0:0:{D5DDF2AB-D6F2-4E04-971D-158CA0C5C5DB}|Engine\\Engine.vcxproj|solutionrelative:Engine\\src\\Source.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{D5DDF2AB-D6F2-4E04-971D-158CA0C5C5DB}|Engine\\Engine.vcxproj|C:\\Users\\Gaevi\\OneDrive\\Documents\\CodePractice\\Engine\\Engine\\Engine\\Headers\\Backend.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
-      "RelativeMoniker": "D:0:0:{D5DDF2AB-D6F2-4E04-971D-158CA0C5C5DB}|Engine\\Engine.vcxproj|solutionrelative:Engine\\Headers\\Backend.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+      "AbsoluteMoniker": "D:0:0:{D5DDF2AB-D6F2-4E04-971D-158CA0C5C5DB}|Engine\\Engine.vcxproj|C:\\Users\\Gaevi\\OneDrive\\Documents\\CodePractice\\Engine\\Engine\\Engine\\Headers\\Shader.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{D5DDF2AB-D6F2-4E04-971D-158CA0C5C5DB}|Engine\\Engine.vcxproj|solutionrelative:Engine\\Headers\\Shader.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{D5DDF2AB-D6F2-4E04-971D-158CA0C5C5DB}|Engine\\Engine.vcxproj|C:\\Users\\Gaevi\\OneDrive\\Documents\\CodePractice\\Engine\\Engine\\Engine\\Headers\\Camera.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
       "RelativeMoniker": "D:0:0:{D5DDF2AB-D6F2-4E04-971D-158CA0C5C5DB}|Engine\\Engine.vcxproj|solutionrelative:Engine\\Headers\\Camera.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Gaevi\\OneDrive\\Documents\\CodePractice\\Engine\\Engine\\ENGINE\\DEPENDENCIES\\INCLUDE\\SPDLOG\\FMT\\BUNDLED\\CORE.H||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:ENGINE\\DEPENDENCIES\\INCLUDE\\SPDLOG\\FMT\\BUNDLED\\CORE.H||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
     }
   ],
   "DocumentGroupContainers": [
@@ -42,11 +54,48 @@
       "DocumentGroups": [
         {
           "DockedWidth": 317,
-          "SelectedChildIndex": 4,
+          "SelectedChildIndex": 7,
           "Children": [
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 1,
+              "Title": "Mesh.h",
+              "DocumentMoniker": "C:\\Users\\Gaevi\\OneDrive\\Documents\\CodePractice\\Engine\\Engine\\Engine\\Headers\\Mesh.h",
+              "RelativeDocumentMoniker": "Engine\\Headers\\Mesh.h",
+              "ToolTip": "C:\\Users\\Gaevi\\OneDrive\\Documents\\CodePractice\\Engine\\Engine\\Engine\\Headers\\Mesh.h",
+              "RelativeToolTip": "Engine\\Headers\\Mesh.h",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAA4AAAAVAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
+              "WhenOpened": "2024-08-29T15:35:14.996Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "fragment_shader.frag",
+              "DocumentMoniker": "C:\\Users\\Gaevi\\OneDrive\\Documents\\CodePractice\\Engine\\Engine\\Engine\\Shaders\\fragment_shader.frag",
+              "RelativeDocumentMoniker": "Engine\\Shaders\\fragment_shader.frag",
+              "ToolTip": "C:\\Users\\Gaevi\\OneDrive\\Documents\\CodePractice\\Engine\\Engine\\Engine\\Shaders\\fragment_shader.frag",
+              "RelativeToolTip": "Engine\\Shaders\\fragment_shader.frag",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAABoAAAAhAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
+              "WhenOpened": "2024-08-29T14:43:31.98Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "vertex_shader.vert",
+              "DocumentMoniker": "C:\\Users\\Gaevi\\OneDrive\\Documents\\CodePractice\\Engine\\Engine\\Engine\\Shaders\\vertex_shader.vert",
+              "RelativeDocumentMoniker": "Engine\\Shaders\\vertex_shader.vert",
+              "ToolTip": "C:\\Users\\Gaevi\\OneDrive\\Documents\\CodePractice\\Engine\\Engine\\Engine\\Shaders\\vertex_shader.vert",
+              "RelativeToolTip": "Engine\\Shaders\\vertex_shader.vert",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
+              "WhenOpened": "2024-08-29T14:38:09.128Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 10,
               "Title": "core.h",
               "DocumentMoniker": "C:\\Users\\Gaevi\\OneDrive\\Documents\\CodePractice\\Engine\\Engine\\Engine\\dependencies\\include\\spdlog\\fmt\\bundled\\core.h",
               "RelativeDocumentMoniker": "Engine\\dependencies\\include\\spdlog\\fmt\\bundled\\core.h",
@@ -54,38 +103,35 @@
               "RelativeToolTip": "Engine\\dependencies\\include\\spdlog\\fmt\\bundled\\core.h",
               "ViewState": "AQIAAA8KAAAAAAAAAAD4vyAKAAAsAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2024-08-28T17:43:30.093Z",
-              "EditorCaption": ""
+              "WhenOpened": "2024-08-28T17:43:30.093Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 5,
               "Title": "Model.h",
               "DocumentMoniker": "C:\\Users\\Gaevi\\OneDrive\\Documents\\CodePractice\\Engine\\Engine\\Engine\\Headers\\Model.h",
               "RelativeDocumentMoniker": "Engine\\Headers\\Model.h",
               "ToolTip": "C:\\Users\\Gaevi\\OneDrive\\Documents\\CodePractice\\Engine\\Engine\\Engine\\Headers\\Model.h",
               "RelativeToolTip": "Engine\\Headers\\Model.h",
-              "ViewState": "AQIAAA8AAAAAAAAAAAAAAAcAAAAaAAAA",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAABQAAAAbAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2024-08-28T05:10:46.695Z",
-              "EditorCaption": ""
+              "WhenOpened": "2024-08-28T05:10:46.695Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
+              "DocumentIndex": 6,
               "Title": "Model.cpp",
               "DocumentMoniker": "C:\\Users\\Gaevi\\OneDrive\\Documents\\CodePractice\\Engine\\Engine\\Engine\\src\\Model.cpp",
               "RelativeDocumentMoniker": "Engine\\src\\Model.cpp",
               "ToolTip": "C:\\Users\\Gaevi\\OneDrive\\Documents\\CodePractice\\Engine\\Engine\\Engine\\src\\Model.cpp",
               "RelativeToolTip": "Engine\\src\\Model.cpp",
-              "ViewState": "AQIAAL8AAAAAAAAAAAAkwEYAAAAEAAAA",
+              "ViewState": "AQIAAAkAAAAAAAAAAAAAADMAAAAOAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2024-08-28T04:31:39.545Z",
-              "EditorCaption": ""
+              "WhenOpened": "2024-08-28T04:31:39.545Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 8,
               "Title": "Shader.h",
               "DocumentMoniker": "C:\\Users\\Gaevi\\OneDrive\\Documents\\CodePractice\\Engine\\Engine\\Engine\\Headers\\Shader.h",
               "RelativeDocumentMoniker": "Engine\\Headers\\Shader.h",
@@ -93,8 +139,7 @@
               "RelativeToolTip": "Engine\\Headers\\Shader.h",
               "ViewState": "AQIAANcAAAAAAAAAAAAkwG8AAAAxAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2024-08-28T04:15:55.949Z",
-              "EditorCaption": ""
+              "WhenOpened": "2024-08-28T04:15:55.949Z"
             },
             {
               "$type": "Document",
@@ -104,27 +149,14 @@
               "RelativeDocumentMoniker": "Engine\\src\\Backend.cpp",
               "ToolTip": "C:\\Users\\Gaevi\\OneDrive\\Documents\\CodePractice\\Engine\\Engine\\Engine\\src\\Backend.cpp",
               "RelativeToolTip": "Engine\\src\\Backend.cpp",
-              "ViewState": "AQIAABkBAAAAAAAAAAAkwBgBAAA0AAAA",
+              "ViewState": "AQIAAMgAAAAAAAAAAAAkwMYAAABeAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
               "WhenOpened": "2024-08-27T21:49:42.42Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 6,
-              "Title": "Backend.h",
-              "DocumentMoniker": "C:\\Users\\Gaevi\\OneDrive\\Documents\\CodePractice\\Engine\\Engine\\Engine\\Headers\\Backend.h",
-              "RelativeDocumentMoniker": "Engine\\Headers\\Backend.h",
-              "ToolTip": "C:\\Users\\Gaevi\\OneDrive\\Documents\\CodePractice\\Engine\\Engine\\Engine\\Headers\\Backend.h",
-              "RelativeToolTip": "Engine\\Headers\\Backend.h",
-              "ViewState": "AQIAAAMAAAAAAAAAAAAAABAAAAAaAAAA",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2024-08-27T21:49:19.023Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 7,
+              "DocumentIndex": 9,
               "Title": "Camera.h",
               "DocumentMoniker": "C:\\Users\\Gaevi\\OneDrive\\Documents\\CodePractice\\Engine\\Engine\\Engine\\Headers\\Camera.h",
               "RelativeDocumentMoniker": "Engine\\Headers\\Camera.h",
@@ -136,7 +168,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 5,
+              "DocumentIndex": 7,
               "Title": "Source.cpp",
               "DocumentMoniker": "C:\\Users\\Gaevi\\OneDrive\\Documents\\CodePractice\\Engine\\Engine\\Engine\\src\\Source.cpp",
               "RelativeDocumentMoniker": "Engine\\src\\Source.cpp",
@@ -144,8 +176,19 @@
               "RelativeToolTip": "Engine\\src\\Source.cpp",
               "ViewState": "AQIAAAAAAAAAAAAAAAAAAAMAAAAQAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2024-08-25T05:21:24.246Z",
-              "EditorCaption": ""
+              "WhenOpened": "2024-08-25T05:21:24.246Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "Backend.h",
+              "DocumentMoniker": "C:\\Users\\Gaevi\\OneDrive\\Documents\\CodePractice\\Engine\\Engine\\Engine\\Headers\\Backend.h",
+              "RelativeDocumentMoniker": "Engine\\Headers\\Backend.h",
+              "ToolTip": "C:\\Users\\Gaevi\\OneDrive\\Documents\\CodePractice\\Engine\\Engine\\Engine\\Headers\\Backend.h",
+              "RelativeToolTip": "Engine\\Headers\\Backend.h",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAADQAAAAYAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
+              "WhenOpened": "2024-08-27T21:49:19.023Z"
             }
           ]
         }

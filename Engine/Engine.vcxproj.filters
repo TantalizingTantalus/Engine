@@ -121,10 +121,10 @@
     <None Include="Shaders\vertex_shader.vert">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="Shaders\borderOutline.frag">
+    <None Include="Shaders\lightSource.frag">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="Shaders\borderOutline_vertex.vert">
+    <None Include="Shaders\lightSource.vert">
       <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>

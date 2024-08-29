@@ -7,6 +7,9 @@ bool shouldSpin = true;
 bool reverseSpin = false;
 float deltaTime;
 Camera camera;
+glm::mat4 Backend::view = glm::mat4(1.0f);       
+glm::mat4 Backend::projection = glm::mat4(1.0f);
+glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
@@ -36,7 +39,6 @@ void Input_Callback(GLFWwindow* window, int key, int scancode, int action, int m
 			std::cout << "Camera position: \nx: " << camera.Position.x << "\ny: " << camera.Position.y << "\nz: " << camera.Position.z << std::endl;
 			std::cout << "Camera speed: " << camera.MovementSpeed << std::endl;
 		}
-
 
 		break;
 	case GLFW_KEY_SPACE:
@@ -104,6 +106,27 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
 
 void mouse_button_callback(GLFWwindow* window,  int button, int action, int mods)
 {
+	double x, y;
+
+	glfwGetCursorPos(window, &x, &y);
+
+
+
+	glm::vec4 viewport = glm::vec4(0, 0, Backend::width, Backend::height);
+	glm::vec3 winPos = glm::vec3(x, Backend::height - y, 0.0f); // Near plane
+	glm::vec3 nearPoint = glm::unProject(winPos, Backend::view, Backend::projection, viewport);
+	winPos.z = 1.0f; // Far plane
+	glm::vec3 farPoint = glm::unProject(winPos, Backend::view, Backend::projection, viewport);
+
+
+	
+
+
+	if(button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
+	{
+		spdlog::warn("\nMouse Position \nX:{}\nY:{}", x, y);
+		spdlog::warn("Far Point: \nx: {}\ny: {}\nz: {}\nNear Point: \nx: {}\ny: {}\nz: {}\nWindow Position: \nx: {}\ny: {}\nz: \n", farPoint.x, farPoint.y, farPoint.z, nearPoint.x, nearPoint.y, nearPoint.z, winPos.x, winPos.y, winPos.z);
+	}
 
 	if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS)
 	{
@@ -173,7 +196,9 @@ int Backend::Initialize()
 	spdlog::info("Renderer: {}", reinterpret_cast<const char*>(glRenderer));
 
 	Shader shaders("..\\Engine\\Shaders\\vertex_shader.vert", "..\\Engine\\Shaders\\fragment_shader.frag");
+	Shader lightShader("..\\Engine\\Shaders\\lightSource.vert", "..\\Engine\\Shaders\\lightSource.frag");
 	TempShader = shaders;
+	lightCubeShader = lightShader;
 
 	// Initialize IMGUI
 	IMGUI_CHECKVERSION();
@@ -182,7 +207,7 @@ int Backend::Initialize()
 	ImGui_ImplGlfw_InitForOpenGL(window, true);
 	ImGui_ImplOpenGL3_Init("#version 330");
 
-	TempShader.use();
+	
 
 	// Load models to render
 	//Model ourModel("../Engine/Models/blockert.fbx");
@@ -190,10 +215,12 @@ int Backend::Initialize()
 	//Model MonkeyMan("../Engine/Models/Monkey.obj");
 	//Model Building("../Engine/Models/Test.obj");
 	Model Backpack("../Engine/Models/backpack.obj");
+	Model Backpack2("../Engine/Models/Blockert.fbx");
 	//ModelList.push_back(ourModel);
 	//ModelList.push_back(ourModel1);
 	//ModelList.push_back(MonkeyMan);
 	ModelList.push_back(Backpack);
+	ModelList.push_back(Backpack2);
 	//ModelList.push_back(Building);
 
 	return 0;
@@ -239,18 +266,56 @@ int Backend::Update()
 
 		projection = glm::perspective(glm::radians(camera.Zoom), (float)width / (float)height, 0.1f, 100.0f);
 		view = camera.GetViewMatrix();
-		TempShader.setMat4("projection", projection);
-		TempShader.setMat4("view", view);
+		
+		glm::mat4 model = glm::mat4(1.0f);
 
 
 		for (int i = 0; i < ModelList.size(); i++)
 		{
 			Model& modelitem = ModelList[i];
-			modelitem.SetPosition(glm::vec3(-i + .5f, 0.0f, 0.0f));
-			modelitem.SetRotation(-rotationAngle, glm::vec3(0.0f, 1.0f, 0.0f));
-			modelitem.SetScale(glm::vec3(.25f, .25f, .25f));
-			modelitem.Draw(TempShader);
+			
+			//modelitem.Draw(TempShader);
+			if (i > 0)
+			{
+				modelitem.SetPosition(glm::vec3(-2.38f, .92f, 1.9f));
+				//modelitem.SetRotation(-rotationAngle, glm::vec3(0.0f, 1.0f, 0.0f));
+				modelitem.SetScale(glm::vec3(.25f, .25f, .25f));
+
+				glm::mat4 model = glm::mat4(1.0f);
+				lightCubeShader.setMat4("model", model);
+
+				lightCubeShader.use();
+				lightCubeShader.setMat4("projection", projection);
+				lightCubeShader.setMat4("view", view);
+				
+
+				modelitem.Draw(lightCubeShader);
+			}
+			else
+			{
+				modelitem.SetPosition(glm::vec3(-i + .5f, 0.0f, 0.0f));
+				modelitem.SetRotation(-rotationAngle, glm::vec3(0.0f, 1.0f, 0.0f));
+				modelitem.SetScale(glm::vec3(.25f, .25f, .25f));
+
+				glm::mat4 model = glm::mat4(1.0f);
+				TempShader.setMat4("model", model);
+
+				TempShader.use();
+				TempShader.setMat4("projection", projection);
+				TempShader.setMat4("view", view);
+				TempShader.setVec3("lightPos", modelitem.GetPosition());
+				TempShader.setVec3("viewPos", camera.Position);
+				TempShader.setVec3("lightColor", 1.0f, 1.0f, 1.0f);
+				TempShader.setVec3("objectColor", 1.0f, .5f, .31f);
+
+				modelitem.Draw(TempShader);
+			}
+				
 		}
+
+		
+
+		
 
 		DebugWindow(io);
 

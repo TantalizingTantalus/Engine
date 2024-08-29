@@ -30,20 +30,23 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 class Backend
 {
 public:
+	static const int height = 900, width = 1400;
+	static glm::mat4 projection;
+	static glm::mat4 view;
 	Backend();
 	int Initialize();
 	int Update();
 private:
 	void DebugWindow(ImGuiIO& io);
 	int full_height = 1440, full_width = 2560;
-	int height = 900, width = 1400;
+	
 	float lastFrame = 0.0f;
 	float rotationAngle = 0.0f;
 	
 	ImVec4 clear_color = ImVec4(0.21f, 0.21f, 0.21f, .21f);
-	glm::mat4 projection;
-	glm::mat4 view;
+	
 	Shader TempShader; 
+	Shader lightCubeShader;
 
 	GLFWwindow* window;
 	std::vector<Model> ModelList;

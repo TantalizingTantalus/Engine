@@ -177,9 +177,9 @@
     <ClInclude Include="Headers\stb_image.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Shaders\borderOutline.frag" />
-    <None Include="Shaders\borderOutline_vertex.vert" />
     <None Include="Shaders\fragment_shader.frag" />
+    <None Include="Shaders\lightSource.frag" />
+    <None Include="Shaders\lightSource.vert" />
     <None Include="Shaders\vertex_shader.vert" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
