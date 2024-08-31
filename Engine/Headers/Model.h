@@ -17,6 +17,7 @@ public:
 	glm::vec3 rotation;
 	glm::vec3 scale;
 	glm::vec3 position;
+	bool IsLight = false;
 
 	Model(std::string path) : modelMatrix(1.0f)
 	{
@@ -27,19 +28,54 @@ public:
 		DecomposeModelMatrix();
 	}
 	void Draw(Shader& shader);
-	void SetRotation(float angle, const glm::vec3& axis) { modelMatrix = glm::rotate(modelMatrix, glm::radians(angle), axis); }
-	void SetPosition(const glm::vec3& pos) { modelMatrix = glm::translate(glm::mat4(1.0f), pos); }
-	void SetScale(const glm::vec3& scl) { modelMatrix = glm::scale(modelMatrix, scl); }
+	void SetRotation(float angle, const glm::vec3& axis) { rotation = glm::vec3(0.0f); rotation = angle * axis; }
+	void SetPosition(const glm::vec3& pos)
+	{ 
+		position = pos;
+		// Extract the current scale and rotation from the modelMatrix
+		glm::vec3 currentScale = glm::vec3(
+			glm::length(glm::vec3(modelMatrix[0])),
+			glm::length(glm::vec3(modelMatrix[1])),
+			glm::length(glm::vec3(modelMatrix[2]))
+		);
+
+		glm::mat4 rotationMatrix = glm::mat4(
+			glm::vec4(glm::normalize(glm::vec3(modelMatrix[0])), 0.0f),
+			glm::vec4(glm::normalize(glm::vec3(modelMatrix[1])), 0.0f),
+			glm::vec4(glm::normalize(glm::vec3(modelMatrix[2])), 0.0f),
+			glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)
+		);
+
+		// Create a new modelMatrix with the updated position
+		modelMatrix = glm::translate(glm::mat4(1.0f), pos);
+
+		// Reapply the rotation and scale
+		modelMatrix *= rotationMatrix;
+		modelMatrix = glm::scale(modelMatrix, currentScale);
+	}
+	void SetScale(const glm::vec3& scl) { scale = scl; }
 	void SetModelName(std::string name) { this->modelName = name; }
 	std::string GetModelName() const { return this->modelName; }
-	glm::mat4 GetModelMatrix() { return this->modelMatrix; }
+	glm::mat4& GetModelMatrix() { return this->modelMatrix; }
 	void DecomposeModelMatrix()
 	{
 		DecomposeMatrix(modelMatrix, scale, rotation, position);
 	}
-	glm::vec3 GetRotation() { DecomposeModelMatrix(); return rotation; }
-	glm::vec3 GetPosition() { DecomposeModelMatrix(); return position; }
-	glm::vec3 GetScale() { DecomposeModelMatrix(); return scale; }
+	glm::vec3& GetRotation() { DecomposeModelMatrix(); return rotation; }
+	glm::vec3& GetPosition() { DecomposeModelMatrix(); return position; }
+	glm::vec3& GetScale() { DecomposeModelMatrix(); return scale; }
+
+	void UpdateModelMatrix() {
+		// Start with an identity matrix
+		modelMatrix = glm::mat4(1.0f);
+
+		// Apply transformations
+		modelMatrix = glm::translate(modelMatrix, position);                    // Apply translation
+		modelMatrix = glm::rotate(modelMatrix, glm::radians(rotation.x), glm::vec3(1.0f, 0.0f, 0.0f)); // Apply rotation on X axis
+		modelMatrix = glm::rotate(modelMatrix, glm::radians(rotation.y), glm::vec3(0.0f, 1.0f, 0.0f)); // Apply rotation on Y axis
+		modelMatrix = glm::rotate(modelMatrix, glm::radians(rotation.z), glm::vec3(0.0f, 0.0f, 1.0f)); // Apply rotation on Z axis
+		modelMatrix = glm::scale(modelMatrix, scale);                           // Apply scaling
+	}
 
 private:
 	glm::mat4 modelMatrix;
@@ -93,4 +129,5 @@ private:
 	
 	
 	std::string modelName;
+	std::string fileName;
 };

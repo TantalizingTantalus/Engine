@@ -64,7 +64,7 @@ void Model::loadModel(std::string path)
     }
 
     std::string fileName = path.substr(path.find_last_of('/')+1);
-    this->modelName = fileName;
+    this->modelName = fileName.substr(0, fileName.length() - 4);
     directory = path.substr(0, path.find_last_of('/'));
     processNode(scene->mRootNode, scene);
 

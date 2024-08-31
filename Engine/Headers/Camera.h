@@ -20,7 +20,7 @@ const float YAW = -90.0f;
 const float PITCH = 0.0f;
 const float SPEED = 2.5f;
 const float SENSITIVITY = 0.1f;
-const float ZOOM = 45.0f;
+const float ZOOM = 75.0f;
 
 
 // An abstract camera class that processes input and calculates the corresponding Euler Angles, Vectors and Matrices for use in OpenGL
@@ -45,7 +45,21 @@ public:
     float MouseSensitivity;
     float Zoom;
 
-    
+    void LookAtWithYaw(glm::vec3 target) {
+        // Calculate direction to the target
+        glm::vec3 direction = glm::normalize(target - Position);
+
+        // Compute yaw based on the direction
+        Yaw = atan2(direction.z, direction.x) * 180.0f / glm::pi<float>();
+        Pitch = atan2(direction.y, sqrt(direction.x * direction.x + direction.z * direction.z)) * 180.0f / glm::pi<float>();
+
+        // Ensure yaw is between -180 and 180
+        if (Yaw < -180.0f) Yaw += 360.0f;
+        if (Yaw > 180.0f) Yaw -= 360.0f;
+
+        // Update camera vectors
+        updateCameraVectors();
+    }
 
     // constructor with vectors
     Camera(glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f), float yaw = YAW, float pitch = PITCH) : Front(glm::vec3(0.0f, 0.0f, -1.0f)), MovementSpeed(SPEED), MouseSensitivity(SENSITIVITY), Zoom(ZOOM)
@@ -121,18 +135,14 @@ public:
         Zoom -= (float)yoffset;
         if (Zoom < 1.0f)
             Zoom = 1.0f;
-        if (Zoom > 45.0f)
-            Zoom = 45.0f;
+        if (Zoom > 75.0f)
+            Zoom = 75.0f;
     }
 
     float GetMovementSpeed() const { return MovementSpeed; }
     void SetMovementSpeed(float update) { if (update <= Max_MoveSpeed)MovementSpeed = update; else { MovementSpeed = Max_MoveSpeed; } }
 
-private:
-    // custom properties
-    bool freeLook = false;
 
-    // calculates the front vector from the Camera's (updated) Euler Angles
     void updateCameraVectors()
     {
         // calculate the new Front vector
@@ -144,7 +154,17 @@ private:
         // also re-calculate the Right and Up vector
         Right = glm::normalize(glm::cross(Front, WorldUp));  // normalize the vectors, because their length gets closer to 0 the more you look up or down which results in slower movement.
         Up = glm::normalize(glm::cross(Right, Front));
+
+        ViewMatrix = glm::lookAt(Position, Position + Front, Up);
     }
+private:
+    // custom properties
+    bool freeLook = false;
+
+    glm::mat4 ViewMatrix;
+
+    // calculates the front vector from the Camera's (updated) Euler Angles
+    
 };
 #endif
 
