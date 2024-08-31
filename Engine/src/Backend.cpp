@@ -2,6 +2,8 @@
 
 void PollInputs(GLFWwindow* window);
 
+
+// Backend Global variables 
 bool DEBUG_MODE = false;
 bool shouldSpin = true;
 bool reverseSpin = false;
@@ -10,6 +12,23 @@ Camera camera;
 glm::mat4 Backend::view = glm::mat4(1.0f);       
 glm::mat4 Backend::projection = glm::mat4(1.0f);
 glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
+
+void Exit_Application(GLFWwindow* window)
+{
+	std::cout << "Goodbye!" << std::endl;
+
+	glfwSetWindowShouldClose(window, true);
+}
+
+void Hide_UI()
+{
+	DEBUG_MODE = false;
+}
+
+void Show_UI()
+{
+	DEBUG_MODE = true;
+}
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
@@ -36,8 +55,9 @@ void Input_Callback(GLFWwindow* window, int key, int scancode, int action, int m
 	case GLFW_KEY_G:
 		if (action == GLFW_PRESS)
 		{
-			std::cout << "Camera position: \nx: " << camera.Position.x << "\ny: " << camera.Position.y << "\nz: " << camera.Position.z << std::endl;
-			std::cout << "Camera speed: " << camera.MovementSpeed << std::endl;
+			
+			lightPos = camera.Position;
+			spdlog::info("\nUpdated light source position to:\nx: {}\ny: {}\nz: {}\n", lightPos.x, lightPos.y, lightPos.z);
 		}
 
 		break;
@@ -48,14 +68,36 @@ void Input_Callback(GLFWwindow* window, int key, int scancode, int action, int m
 		}
 		break;
 
+	case GLFW_KEY_F11:
+		if (action == GLFW_PRESS)
+		{
+			ToggleFullscreen(window);
+		}
+		break;
+
 	case GLFW_KEY_ESCAPE:
 		if (action == GLFW_PRESS)
 		{
-			std::cout << "Goodbye!" << std::endl;
-
-			glfwSetWindowShouldClose(window, true);
+			Exit_Application(window);
 		}
 		break;
+	}
+}
+
+void ToggleFullscreen(GLFWwindow* window)
+{
+	if (Backend::IsFullscreen)
+	{
+		Backend::IsFullscreen = !Backend::IsFullscreen;
+		spdlog::info(Backend::IsFullscreen);
+		glfwSetWindowMonitor(window, NULL, 100, 100, Backend::width, Backend::height, 0);
+		camera.Zoom = 45.0f;
+	}
+	else {
+		Backend::IsFullscreen = !Backend::IsFullscreen;
+		spdlog::info(Backend::IsFullscreen);
+		glfwSetWindowMonitor(window, glfwGetPrimaryMonitor(), 100, 100, Backend::full_width, Backend::full_height, 0);
+		camera.Zoom = 90.0f;
 	}
 }
 
@@ -110,22 +152,17 @@ void mouse_button_callback(GLFWwindow* window,  int button, int action, int mods
 
 	glfwGetCursorPos(window, &x, &y);
 
-
-
 	glm::vec4 viewport = glm::vec4(0, 0, Backend::width, Backend::height);
 	glm::vec3 winPos = glm::vec3(x, Backend::height - y, 0.0f); // Near plane
 	glm::vec3 nearPoint = glm::unProject(winPos, Backend::view, Backend::projection, viewport);
 	winPos.z = 1.0f; // Far plane
 	glm::vec3 farPoint = glm::unProject(winPos, Backend::view, Backend::projection, viewport);
 
-
 	
-
 
 	if(button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
 	{
-		spdlog::warn("\nMouse Position \nX:{}\nY:{}", x, y);
-		spdlog::warn("Far Point: \nx: {}\ny: {}\nz: {}\nNear Point: \nx: {}\ny: {}\nz: {}\nWindow Position: \nx: {}\ny: {}\nz: \n", farPoint.x, farPoint.y, farPoint.z, nearPoint.x, nearPoint.y, nearPoint.z, winPos.x, winPos.y, winPos.z);
+		// object picker to do
 	}
 
 	if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS)
@@ -144,7 +181,7 @@ int Backend::Initialize()
 {
 	deltaTime = 0.0f;
 	shouldSpin = true;
-
+	Backend::IsFullscreen = false;
 	camera.Position = (glm::vec3(0.0f, 0.0f, 3.0f));
 	projection = glm::perspective(glm::radians(camera.Zoom), (float)width / (float)height, 0.1f, 100.0f);
 	view = camera.GetViewMatrix();
@@ -157,13 +194,26 @@ int Backend::Initialize()
 		return 0;
 	}
 
-	// Create GLFW Window 
-	window = glfwCreateWindow(width, height, "Engine", NULL, NULL);
-	if (!window)
+	if (Backend::IsFullscreen)
 	{
-		spdlog::error("Uh oh something went wrong...");
-		return 0;
+		window = glfwCreateWindow(full_width, full_height, "Engine", glfwGetPrimaryMonitor(), NULL);
+		if (!window)
+		{
+			camera.Zoom = 95;
+			spdlog::error("Uh oh something went wrong...");
+			return 0;
+		}
 	}
+	else {
+		window = glfwCreateWindow(width, height, "Engine", NULL, NULL);
+		if (!window)
+		{
+			camera.Zoom = 45;
+			spdlog::error("Uh oh something went wrong...");
+			return 0;
+		}
+	}
+	
 
 	// Set the current context to the openGL window
 	glfwMakeContextCurrent(window);
@@ -195,7 +245,7 @@ int Backend::Initialize()
 	spdlog::info("OpenGL Version: {}", reinterpret_cast<const char*>(glVersion));
 	spdlog::info("Renderer: {}", reinterpret_cast<const char*>(glRenderer));
 
-	Shader shaders("..\\Engine\\Shaders\\vertex_shader.vert", "..\\Engine\\Shaders\\fragment_shader.frag");
+	Shader shaders("..\\Engine\\Shaders\\LitMaterial_Shader.vert", "..\\Engine\\Shaders\\LitMaterial_Shader.frag");
 	Shader lightShader("..\\Engine\\Shaders\\lightSource.vert", "..\\Engine\\Shaders\\lightSource.frag");
 	TempShader = shaders;
 	lightCubeShader = lightShader;
@@ -213,21 +263,28 @@ int Backend::Initialize()
 	//Model ourModel("../Engine/Models/blockert.fbx");
 	//Model ourModel1("../Engine/Models/Table.obj");
 	//Model MonkeyMan("../Engine/Models/Monkey.obj");
-	//Model Building("../Engine/Models/Test.obj");
-	Model Backpack("../Engine/Models/backpack.obj");
-	Model Backpack2("../Engine/Models/Blockert.fbx");
+	Model Building("../Engine/Models/Test.obj");
+	//Model Backpack("../Engine/Models/backpack.obj");
+	Model LightSourceObj("../Engine/Models/Blockert.fbx");
 	//ModelList.push_back(ourModel);
 	//ModelList.push_back(ourModel1);
 	//ModelList.push_back(MonkeyMan);
-	ModelList.push_back(Backpack);
-	ModelList.push_back(Backpack2);
+	ModelList.push_back(Building);
+	ModelList.push_back(LightSourceObj);
 	//ModelList.push_back(Building);
 
 	return 0;
 }
 int Backend::Update()
 {
+	
 	ImGuiIO& io = ImGui::GetIO(); (void)io;
+	
+	
+
+	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+	
+
 	// Main Loop *CORE*
 	while (!glfwWindowShouldClose(window))
 	{
@@ -277,7 +334,7 @@ int Backend::Update()
 			//modelitem.Draw(TempShader);
 			if (i > 0)
 			{
-				modelitem.SetPosition(glm::vec3(-2.38f, .92f, 1.9f));
+				modelitem.SetPosition(lightPos);
 				//modelitem.SetRotation(-rotationAngle, glm::vec3(0.0f, 1.0f, 0.0f));
 				modelitem.SetScale(glm::vec3(.25f, .25f, .25f));
 
@@ -303,7 +360,7 @@ int Backend::Update()
 				TempShader.use();
 				TempShader.setMat4("projection", projection);
 				TempShader.setMat4("view", view);
-				TempShader.setVec3("lightPos", modelitem.GetPosition());
+				TempShader.setVec3("lightPos", lightPos);
 				TempShader.setVec3("viewPos", camera.Position);
 				TempShader.setVec3("lightColor", 1.0f, 1.0f, 1.0f);
 				TempShader.setVec3("objectColor", 1.0f, .5f, .31f);
@@ -312,10 +369,6 @@ int Backend::Update()
 			}
 				
 		}
-
-		
-
-		
 
 		DebugWindow(io);
 
@@ -329,7 +382,7 @@ int Backend::Update()
 	glfwTerminate();
 	return 0;
 }
-
+bool Backend::IsFullscreen = false;
 Backend::Backend()
 {
 	spdlog::info("Initializing Backend");
@@ -340,28 +393,148 @@ void Backend::DebugWindow(ImGuiIO& io)
 	static float scaleX = 1.0f;
 	static float scaleY = 1.0f;
 	static float scaleZ = 1.0f;
+	
+	ImGuiWindowFlags hiddenWindowFlags = ImGuiWindowFlags_NoBringToFrontOnFocus |                 
+		ImGuiWindowFlags_NoNavFocus |                                                      
+		ImGuiWindowFlags_NoDocking |
+		ImGuiWindowFlags_NoTitleBar |
+		ImGuiWindowFlags_NoResize |
+		ImGuiWindowFlags_NoMove |
+		ImGuiWindowFlags_NoCollapse |
+		ImGuiWindowFlags_MenuBar |
+		ImGuiWindowFlags_NoBackground;
 
-	ImGui::Begin("Debug Window");
-	ImGui::Text("Camera:");
-	ImGui::Text("X position: %.2f", camera.Position.x);
-	ImGui::Text("Y position: %.2f", camera.Position.y);
-	ImGui::Text("Z position: %.2f", camera.Position.z);
-
-	ImGui::Checkbox("Reverse Direction", &reverseSpin);
-	ImGui::Checkbox("Spin Model", &shouldSpin);
-
-	ImGui::SliderFloat("Camera Speed", &camera.MovementSpeed, camera.Min_MoveSpeed, camera.Max_MoveSpeed);
-	//ImGui::ColorEdit1("Viewport Color", (float*)&clear_color);
-	ImGui::ColorEdit3("Viewport Color", (float*)&clear_color);
-
-	const GLubyte* glVersion = glGetString(GL_VERSION);
-	const GLubyte* glRenderer = glGetString(GL_RENDERER);
-	ImGui::Text("GPU: %s", glRenderer);
-	ImGui::Text("Application %.1f FPS", io.Framerate);
-	ImGui::Text("GLFW Version: %s", glfwGetVersionString());
-	ImGui::Text("OpenGL Version: %s", glVersion);
+	
+	ImGui::SetNextWindowPos(ImVec2(0, 0));                                                  
+	ImGui::SetNextWindowSize(ImVec2(float(GetWindowWidth(window)), float(GetWindowHeight(window))));
+	
+	ImGui::Begin("Engine", 0, hiddenWindowFlags);
+	ImGui::DockSpace(ImGui::GetID("Dockspace"), ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_PassthruCentralNode);
+	if (ImGui::BeginMenuBar())
+	{
+		if (ImGui::BeginMenu("File"))
+		{
+			if (ImGui::MenuItem("Open..", "Ctrl+O")) { /* Do stuff */ }
+			if (ImGui::MenuItem("Save", "Ctrl+S")) { /* Do stuff */ }
+			if (ImGui::MenuItem("Close", "'Esc'")) { Exit_Application(window); }
+			ImGui::EndMenu();
+		}
+		if (ImGui::BeginMenu("Edit"))
+		{
+			if (ImGui::MenuItem("Set Light Position to Camera", "'G'")) { lightPos = camera.Position; }
+			ImGui::EndMenu();
+		}
+		if (ImGui::BeginMenu("View"))
+		{
+			if (ImGui::MenuItem("Hide Debug Window", "'H'")) { Hide_UI(); }
+			ImGui::EndMenu();
+		}
+		if (ImGui::BeginMenu("Docs"))
+		{
+			if (ImGui::MenuItem("OpenGL Docs", "'F12'")) { system("start https://learnopengl.com/"); }
+			if (ImGui::MenuItem("ImGui Docs", "'F12+1'")) { system("start https://github.com/ocornut/imgui/wiki"); }
+			if (ImGui::MenuItem("GitHub Page", "'F12+2'")) { system("start https://github.com/TantalizingTantalus/Engine"); }
+			ImGui::EndMenu();
+		}
+		ImGui::EndMenuBar();
+	}
 	ImGui::End();
 
+	{
+		
+		ImGui::Begin("Properties Window");
+		ImGuiInputTextFlags textFlags = ImGuiInputTextFlags_EnterReturnsTrue;
+		for (int i = 0; i < ModelList.size(); i++)
+		{
+			Model& model = ModelList[i];
+			glm::vec3 modelPosition = model.GetPosition();
+			glm::vec3 modelScale = model.GetScale();
+			glm::vec3 modelRotation = model.GetRotation();
+			if (i == selectedDebugModelIndex)
+			{
+				
+				{
+					float x = modelPosition.x, y = modelPosition.y, z = modelPosition.z;
+					ImGui::Text("Position");
+					ImGui::Text("X:\n%.2f", x);
+					ImGui::SameLine();
+					ImGui::Text("Y:\n%.2f", y);
+					ImGui::SameLine();
+					ImGui::Text("Z:\n%.2f", z);
+				}
+
+				{
+					float x = modelRotation.x, y = modelRotation.y, z = modelRotation.z;
+					ImGui::Text("Rotation");
+					ImGui::Text("X:\n%.2f", x);
+					ImGui::SameLine();
+					ImGui::Text("Y:\n%.2f", y);
+					ImGui::SameLine();
+					ImGui::Text("Z:\n%.2f", z);
+				}
+
+				{
+					float x = modelScale.x, y = modelScale.y, z = modelScale.z;
+					ImGui::Text("Scale");
+					ImGui::Text("X:\n%.2f", x);
+					ImGui::SameLine();
+					ImGui::Text("Y:\n%.2f", y);
+					ImGui::SameLine();
+					ImGui::Text("Z:\n%.2f", z);
+				}
+			}
+		}
+		
+		
+		ImGui::End();
+	}
+
+	{
+		ImGui::Begin("Hierarchy");
+		for (int i = 0; i < ModelList.size(); i++)
+		{
+			bool isSelected = (i == selectedDebugModelIndex);
+
+			if (ImGui::Selectable(ModelList[i].GetModelName().c_str(), isSelected))
+			{
+				selectedDebugModelIndex = i; // Update the selected index
+				spdlog::info("{} Selected", ModelList[i].GetModelName());
+			}
+		}
+		ImGui::End();
+	}
+
+	{
+		ImGui::Begin("Debug Window");
+
+		if (ImGui::Button("Toggle Fullscreen Mode"))
+			ToggleFullscreen(window);
+
+
+
+		ImGui::Text("Camera:");
+		ImGui::Text("X position: %.2f", camera.Position.x);
+		ImGui::Text("Y position: %.2f", camera.Position.y);
+		ImGui::Text("Z position: %.2f", camera.Position.z);
+		ImGui::SliderFloat("Camera FOV", &camera.Zoom, 0, 100);
+
+		ImGui::Checkbox("Reverse Direction", &reverseSpin);
+		ImGui::Checkbox("Spin Model", &shouldSpin);
+		//ImGuizmo::SetDrawlist();
+		//ImGuizmo::Manipulate(glm::value_ptr(view), glm::value_ptr(projection), ImGuizmo::TRANSLATE, ImGuizmo::LOCAL, (float*)glm::value_ptr(ModelList[0].GetModelMatrix()));
+		ImGui::SliderFloat("Camera Speed", &camera.MovementSpeed, camera.Min_MoveSpeed, camera.Max_MoveSpeed);
+		//ImGui::ColorEdit1("Viewport Color", (float*)&clear_color);
+		ImGui::ColorEdit3("Viewport Color", (float*)&clear_color);
+
+		const GLubyte* glVersion = glGetString(GL_VERSION);
+		const GLubyte* glRenderer = glGetString(GL_RENDERER);
+		ImGui::Text("GPU: %s", glRenderer);
+		ImGui::Text("Application %.1f FPS", io.Framerate);
+		ImGui::Text("GLFW Version: %s", glfwGetVersionString());
+		ImGui::Text("OpenGL Version: %s", glVersion);
+		ImGui::End();
+	}
+	
 	ImGui::Render();
 
 	if (DEBUG_MODE)

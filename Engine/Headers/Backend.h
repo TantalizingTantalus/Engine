@@ -1,5 +1,7 @@
 #pragma once
 #include "imgui-master/imgui.h"
+#include "imgui-master/imconfig.h"
+#include "ImGuizmo.h"
 #include "imgui-master/backends/imgui_impl_glfw.h"
 #include "imgui-master/backends/imgui_impl_opengl3.h"
 
@@ -25,20 +27,23 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void Input_Callback(GLFWwindow* window, int key, int scancode, int action, int mods);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
-
+void ToggleFullscreen(GLFWwindow* window);
 
 class Backend
 {
 public:
 	static const int height = 900, width = 1400;
+	static const int full_height = 1440, full_width = 2560;
+	static bool IsFullscreen;
 	static glm::mat4 projection;
 	static glm::mat4 view;
 	Backend();
 	int Initialize();
 	int Update();
+	int GetWindowWidth(GLFWwindow* window) { int height, width; glfwGetWindowSize(window, &width, &height); return width; }
+	int GetWindowHeight(GLFWwindow* window) { int height, width; glfwGetWindowSize(window, &width, &height); return height; }
 private:
 	void DebugWindow(ImGuiIO& io);
-	int full_height = 1440, full_width = 2560;
 	
 	float lastFrame = 0.0f;
 	float rotationAngle = 0.0f;
@@ -50,5 +55,6 @@ private:
 
 	GLFWwindow* window;
 	std::vector<Model> ModelList;
+	int selectedDebugModelIndex = -1;
 	bool testbool1 = false;
 };

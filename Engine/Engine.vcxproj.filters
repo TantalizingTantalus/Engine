@@ -60,6 +60,9 @@
     <ClCompile Include="src\Backend.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\ImGuizmo.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Headers\ft2build.h">
@@ -113,12 +116,15 @@
     <ClInclude Include="Headers\Backend.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Headers\ImGuizmo.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Shaders\fragment_shader.frag">
+    <None Include="Shaders\LitMaterial_Shader.frag">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="Shaders\vertex_shader.vert">
+    <None Include="Shaders\LitMaterial_Shader.vert">
       <Filter>Resource Files</Filter>
     </None>
     <None Include="Shaders\lightSource.frag">

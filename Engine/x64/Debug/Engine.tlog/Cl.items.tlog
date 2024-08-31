@@ -7,6 +7,7 @@ C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\dependencies
 C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\dependencies\imgui\imgui-master\imgui_widgets.cpp;C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\x64\Debug\imgui_widgets.obj
 C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\src\Backend.cpp;C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\x64\Debug\Backend.obj
 C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\src\glad.c;C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\x64\Debug\glad.obj
+C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\src\ImGuizmo.cpp;C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\x64\Debug\ImGuizmo.obj
 C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\src\Mesh.cpp;C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\x64\Debug\Mesh.obj
 C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\src\Model.cpp;C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\x64\Debug\Model.obj
 C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\src\ModelManager.cpp;C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\x64\Debug\ModelManager.obj
