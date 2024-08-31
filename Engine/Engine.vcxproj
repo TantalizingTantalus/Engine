@@ -153,8 +153,6 @@
     <ClCompile Include="src\ImGuizmo.cpp" />
     <ClCompile Include="src\Mesh.cpp" />
     <ClCompile Include="src\Model.cpp" />
-    <ClCompile Include="src\ModelManager.cpp" />
-    <ClCompile Include="src\RenderPipeline.cpp" />
     <ClCompile Include="src\Source.cpp" />
     <ClCompile Include="src\stb.cpp" />
   </ItemGroup>
@@ -173,8 +171,6 @@
     <ClInclude Include="Headers\ImGuizmo.h" />
     <ClInclude Include="Headers\Mesh.h" />
     <ClInclude Include="Headers\Model.h" />
-    <ClInclude Include="Headers\ModelManager.h" />
-    <ClInclude Include="Headers\RenderPipeline.h" />
     <ClInclude Include="Headers\Shader.h" />
     <ClInclude Include="Headers\stb_image.h" />
   </ItemGroup>

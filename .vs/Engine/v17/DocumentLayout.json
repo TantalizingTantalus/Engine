@@ -82,8 +82,7 @@
               "RelativeToolTip": "Engine\\Shaders\\lightSource.vert",
               "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
-              "WhenOpened": "2024-08-31T05:50:04.22Z",
-              "EditorCaption": ""
+              "WhenOpened": "2024-08-31T05:50:04.22Z"
             },
             {
               "$type": "Document",
@@ -95,8 +94,7 @@
               "RelativeToolTip": "Engine\\Shaders\\lightSource.frag",
               "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
-              "WhenOpened": "2024-08-31T05:49:44.487Z",
-              "EditorCaption": ""
+              "WhenOpened": "2024-08-31T05:49:44.487Z"
             },
             {
               "$type": "Document",
@@ -144,8 +142,7 @@
               "RelativeToolTip": "Engine\\Shaders\\LitMaterial_Shader.frag",
               "ViewState": "AQIAAAMAAAAAAAAAAAAAAA0AAAAZAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
-              "WhenOpened": "2024-08-29T14:43:31.98Z",
-              "EditorCaption": ""
+              "WhenOpened": "2024-08-29T14:43:31.98Z"
             },
             {
               "$type": "Document",
@@ -157,8 +154,7 @@
               "RelativeToolTip": "Engine\\Shaders\\LitMaterial_Shader.vert",
               "ViewState": "AQIAAAAAAAAAAAAAAAAAABYAAAABAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
-              "WhenOpened": "2024-08-29T14:38:09.128Z",
-              "EditorCaption": ""
+              "WhenOpened": "2024-08-29T14:38:09.128Z"
             },
             {
               "$type": "Document",
@@ -182,8 +178,7 @@
               "RelativeToolTip": "Engine\\Headers\\Model.h",
               "ViewState": "AQIAACcAAAAAAAAAAAAMwEMAAAAAAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2024-08-28T05:10:46.695Z",
-              "EditorCaption": ""
+              "WhenOpened": "2024-08-28T05:10:46.695Z"
             },
             {
               "$type": "Document",
@@ -195,8 +190,7 @@
               "RelativeToolTip": "Engine\\src\\Model.cpp",
               "ViewState": "AQIAAKsAAAAAAAAAAAAAAJ8AAABDAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2024-08-28T04:31:39.545Z",
-              "EditorCaption": ""
+              "WhenOpened": "2024-08-28T04:31:39.545Z"
             },
             {
               "$type": "Document",
@@ -218,7 +212,7 @@
               "RelativeDocumentMoniker": "Engine\\src\\Backend.cpp",
               "ToolTip": "C:\\Users\\Gaevi\\OneDrive\\Documents\\CodePractice\\Engine\\Engine\\Engine\\src\\Backend.cpp",
               "RelativeToolTip": "Engine\\src\\Backend.cpp",
-              "ViewState": "AQIAANwBAAAAAAAAAAAWwPQBAAAsAAAA",
+              "ViewState": "AQIAAAYCAAAAAAAAAAAWwA0CAAAFAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
               "WhenOpened": "2024-08-27T21:49:42.42Z",
               "EditorCaption": ""
@@ -233,8 +227,7 @@
               "RelativeToolTip": "Engine\\Headers\\Backend.h",
               "ViewState": "AQIAAAAAAAAAAAAAAAAAABAAAAAoAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2024-08-27T21:49:19.023Z",
-              "EditorCaption": ""
+              "WhenOpened": "2024-08-27T21:49:19.023Z"
             },
             {
               "$type": "Document",
@@ -246,8 +239,7 @@
               "RelativeToolTip": "Engine\\Headers\\Camera.h",
               "ViewState": "AQIAAG8AAAAAAAAAAAAMwJ4AAAAFAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2024-08-25T19:49:09.117Z",
-              "EditorCaption": ""
+              "WhenOpened": "2024-08-25T19:49:09.117Z"
             },
             {
               "$type": "Document",

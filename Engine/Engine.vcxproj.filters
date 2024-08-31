@@ -18,16 +18,10 @@
     <ClCompile Include="src\glad.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\RenderPipeline.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\Source.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\stb.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\ModelManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Mesh.cpp">
@@ -66,12 +60,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Headers\ft2build.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Headers\ModelManager.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Headers\RenderPipeline.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Headers\Shader.h">

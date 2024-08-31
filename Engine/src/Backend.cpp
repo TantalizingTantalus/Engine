@@ -540,7 +540,6 @@ void Backend::DebugWindow(ImGuiIO& io)
 			if (ImGui::Selectable(ModelList[i].GetModelName().c_str(), isSelected))
 			{
 				selectedDebugModelIndex = i; // Update the selected index
-				spdlog::info("{} Selected", ModelList[i].GetModelName());
 				LoggingWindowEntries.push_back(fmt::format("{} Selected", ModelList[i].GetModelName().c_str()));
 			}
 		}
