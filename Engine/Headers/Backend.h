@@ -2,6 +2,8 @@
 #include "ImGuizmo.h"
 #include "imgui-master/backends/imgui_impl_glfw.h"
 #include "imgui-master/backends/imgui_impl_opengl3.h"
+#include <windows.h>
+#include <commdlg.h>
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -16,6 +18,7 @@
 #include "imgui-master/imgui.h"
 #include "imgui-master/imgui_internal.h"
 
+#include <filesystem>
 #include "spdlog/spdlog.h"
 
 #include <ft2build.h>
@@ -42,6 +45,7 @@ public:
 	int Update();
 	int GetWindowWidth(GLFWwindow* window) { int height, width; glfwGetWindowSize(window, &width, &height); return width; }
 	int GetWindowHeight(GLFWwindow* window) { int height, width; glfwGetWindowSize(window, &width, &height); return height; }
+	Model OpenModelFileDialog();
 private:
 	void DebugWindow(ImGuiIO& io);
 	

@@ -48,8 +48,10 @@ void Model::Draw(Shader& shader)
     shader.setMat4("model", modelMatrix);
 	for (unsigned int i = 0; i < meshes.size(); i++)
 	{
-
-		meshes[i].Draw(shader);
+        if (RenderModel)
+        {
+		    meshes[i].Draw(shader);
+        }
 	}
 }
 

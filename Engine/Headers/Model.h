@@ -77,7 +77,11 @@ public:
 		modelMatrix = glm::scale(modelMatrix, scale);                           // Apply scaling
 	}
 
+	bool& GetVisible() { return this->RenderModel; }
+	void SetVisible(const bool inFlag) { this->RenderModel = inFlag; }
+
 private:
+	bool RenderModel = true;
 	glm::mat4 modelMatrix;
 	std::vector<Mesh> meshes;
 	std::vector<Texture> textures_loaded;

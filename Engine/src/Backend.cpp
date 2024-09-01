@@ -3,7 +3,7 @@
 void PollInputs(GLFWwindow* window);
 
 
-// Backend Global variables 
+//																							Backend Global variables 
 bool DEBUG_MODE = true;
 bool shouldSpin = true;
 bool reverseSpin = false;
@@ -17,206 +17,19 @@ Model* DebugSelectedObj;
 // Session logging vector
 std::vector<std::string> LoggingWindowEntries;
 
-void LookAtObject(glm::vec3& ObjPosition)
-{
-	
-	glm::vec3 zoffset = glm::vec3(0,0, 3.0f);
-	
-	if (camera.Position != (ObjPosition - zoffset))
-	{
-		camera.Position = glm::vec3(ObjPosition.x, ObjPosition.y, ObjPosition.z - zoffset.z);
-		camera.LookAtWithYaw(ObjPosition);
-		camera.Pitch = -15.0f;
-		camera.updateCameraVectors();
-	}
-}
-
-void Exit_Application(GLFWwindow* window)
-{
-	std::cout << "Goodbye!" << std::endl;
-
-	glfwSetWindowShouldClose(window, true);
-}
-
-void Hide_UI()
-{
-	DEBUG_MODE = false;
-}
-
-void Show_UI()
-{
-	DEBUG_MODE = true;
-}
-
-void framebuffer_size_callback(GLFWwindow* window, int width, int height)
-{
-	glViewport(0, 0, width, height);
-}
-
-void Input_Callback(GLFWwindow* window, int key, int scancode, int action, int mods)
-{
-	if (camera.GetFreeLook())
-		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-	else
-		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-
-	switch (key)
-	{
-		// Enable/disable debug window
-	case GLFW_KEY_H:
-		if (action == GLFW_PRESS)
-		{
-			DEBUG_MODE = !DEBUG_MODE;
-		}
-		break;
-		// Hotkey to re-locate directional light
-	case GLFW_KEY_G:
-		if (action == GLFW_PRESS)
-		{
-			//DirectionalLightObject->SetScale(DirectionalLightObject->GetScale());
-			DirectionalLightObject->SetPosition(camera.Position);
-
-		}
-
-		break;
-		// Stop the models from spinning 
-	case GLFW_KEY_SPACE:
-		if (action == GLFW_PRESS)
-		{
-			shouldSpin = !shouldSpin;
-		}
-		break;
-		// Fullscreen hotkey
-	case GLFW_KEY_F11:
-		if (action == GLFW_PRESS)
-		{
-			ToggleFullscreen(window);
-		}
-		break;
-		// Stop the models from spinning 
-	case GLFW_KEY_F:
-		if (action == GLFW_PRESS)
-		{
-			
-			if (DebugSelectedObj == nullptr)
-				spdlog::info("Debug Selected Object is empty (null)");
-			else
-			{
-				glm::vec3 ObjPosition = DebugSelectedObj->GetPosition();
-				if (camera.Position != ObjPosition)
-				{
-					glm::vec3 ObjPosition = DebugSelectedObj->GetPosition();
-					LookAtObject(ObjPosition);
-				}
-					
-				
-			}
-				
-		}
-		break;
-		// Quit out of program
-	case GLFW_KEY_ESCAPE:
-		if (action == GLFW_PRESS)
-		{
-			Exit_Application(window);
-		}
-		break;
-	}
-}
-
-void ToggleFullscreen(GLFWwindow* window)
-{
-	if (Backend::IsFullscreen)
-	{
-		Backend::IsFullscreen = !Backend::IsFullscreen;
-		spdlog::info(Backend::IsFullscreen);
-		glfwSetWindowMonitor(window, NULL, 100, 100, Backend::width, Backend::height, 0);
-		camera.Zoom = 45.0f;
-	}
-	else {
-		Backend::IsFullscreen = !Backend::IsFullscreen;
-		spdlog::info(Backend::IsFullscreen);
-		glfwSetWindowMonitor(window, glfwGetPrimaryMonitor(), 100, 100, Backend::full_width, Backend::full_height, 0);
-		camera.Zoom = 90.0f;
-	}
-}
-
-void PollInputs(GLFWwindow* window)
-{
-
-	if (camera.GetFreeLook())
-	{
-		if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
-			camera.SetMovementSpeed(camera.BoostSpeed);
-		if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-			camera.ProcessKeyboard(FORWARD, deltaTime);
-		if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-			camera.ProcessKeyboard(BACKWARD, deltaTime);
-		if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-			camera.ProcessKeyboard(LEFT, deltaTime);
-		if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-			camera.ProcessKeyboard(RIGHT, deltaTime);
-		if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_RELEASE)
-			camera.SetMovementSpeed(camera.GetMovementSpeed());
-	}
-
-	glfwSetKeyCallback(window, Input_Callback);
-
-}
-
-void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
-	static float lastX = 0, lastY = 0;
-	static bool firstMouse = true;
-
-	if (firstMouse) {
-		lastX = xpos;
-		lastY = ypos;
-		firstMouse = false;
-	}
+//																								 Function protos
+std::string WideStringToString(const std::wstring& wstr);
+void Task_AlignDirLight();
+void LookAtObject(glm::vec3& ObjPosition);
+void Task_FocusObject();
+void Exit_Application(GLFWwindow* window);
+void Hide_UI();
+void Show_UI();
+void ToggleFullscreen(GLFWwindow* window);
+void PollInputs(GLFWwindow* window);
 
 
-	float xoffset = xpos - lastX;
-	float yoffset = lastY - ypos;
-	lastX = xpos;
-	lastY = ypos;
-
-	if (camera.GetFreeLook())
-		camera.ProcessMouseMovement(xoffset, yoffset);
-
-
-}
-
-void mouse_button_callback(GLFWwindow* window,  int button, int action, int mods)
-{
-	double x, y;
-
-	glfwGetCursorPos(window, &x, &y);
-
-	glm::vec4 viewport = glm::vec4(0, 0, Backend::width, Backend::height);
-	glm::vec3 winPos = glm::vec3(x, Backend::height - y, 0.0f); // Near plane
-	glm::vec3 nearPoint = glm::unProject(winPos, Backend::view, Backend::projection, viewport);
-	winPos.z = 1.0f; // Far plane
-	glm::vec3 farPoint = glm::unProject(winPos, Backend::view, Backend::projection, viewport);
-
-	
-
-	if(button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
-	{
-		// object picker to do
-	}
-
-	if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS)
-	{
-		camera.SetFreeLook(true);
-		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-	}
-	else if (action == GLFW_RELEASE)
-	{
-		camera.SetFreeLook(false);
-		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-	}
-}
-
+//																									Main Logic
 int Backend::Initialize()
 {
 	deltaTime = 0.0f;
@@ -226,7 +39,7 @@ int Backend::Initialize()
 	projection = glm::perspective(glm::radians(camera.Zoom), (float)width / (float)height, 0.1f, 100.0f);
 	view = camera.GetViewMatrix();
 	spdlog::info("Initializing GLFW");
-
+	
 	// Initialize GLFW
 	if (!glfwInit())
 	{
@@ -301,12 +114,12 @@ int Backend::Initialize()
 
 	// Load models to render
 	
-	Model ourModel1("../Engine/Models/Table.obj");
-	Model MonkeyMan("../Engine/Models/Monkey.obj");
-	Model Building("../Engine/Models/Building.obj");
+	//Model ourModel1("../Engine/Models/Table.obj");
+	//Model MonkeyMan("../Engine/Models/Monkey.obj");
+	//Model Building("../Engine/Models/Building.obj");
 	Model Backpack("../Engine/Models/backpack.obj");
 	Model LightSourceObj("../Engine/Models/Light_Cube.fbx");
-	ourModel1.SetScale(glm::vec3(.25f, .25f, .25f));
+	/*ourModel1.SetScale(glm::vec3(.25f, .25f, .25f));
 	ourModel1.UpdateModelMatrix();
 	ModelList.push_back(ourModel1);
 
@@ -316,11 +129,12 @@ int Backend::Initialize()
 
 	Building.SetScale(glm::vec3(.25f, .25f, .25f));
 	Building.UpdateModelMatrix();
-	ModelList.push_back(Building);
+	ModelList.push_back(Building);*/
 
 	LightSourceObj.SetScale(glm::vec3(0.25f, 0.25f, 0.25f));
 	LightSourceObj.UpdateModelMatrix();
 	LightSourceObj.IsLight = true;
+	LightSourceObj.SetVisible(false);
 	ModelList.push_back(LightSourceObj);
 
 	Backpack.SetScale(glm::vec3(.25f, .25f, .25f));
@@ -405,9 +219,11 @@ int Backend::Update()
 
 			if (!modelitem.IsLight) {
 
-				modelitem.SetRotation(-rotationAngle, glm::vec3(0.0f, 1.0f, 0.0f));
-				modelitem.UpdateModelMatrix();
-
+				if (shouldSpin)
+				{
+					modelitem.SetRotation(-rotationAngle, glm::vec3(0.0f, 1.0f, 0.0f));
+					modelitem.UpdateModelMatrix();
+				}
 				TempShader.use();
 				TempShader.setMat4("model", modelitem.GetModelMatrix());
 				TempShader.setMat4("projection", projection);
@@ -439,6 +255,8 @@ Backend::Backend()
 	spdlog::info("Initializing Backend");
 }
 
+ //																									Definitions
+
 void Backend::DebugWindow(ImGuiIO& io)
 {
 	static float scaleX = 1.0f;
@@ -467,14 +285,19 @@ void Backend::DebugWindow(ImGuiIO& io)
 	{
 		if (ImGui::BeginMenu("File"))
 		{
-			if (ImGui::MenuItem("Open..", "Ctrl+O")) { spdlog::info("ToDo: Add opening models"); }
+			if (ImGui::MenuItem("Open..", "Ctrl+O")) 
+			{ 
+				Model newModel = OpenModelFileDialog(); 
+				ModelList.push_back(newModel);
+			}
 			if (ImGui::MenuItem("Save", "Ctrl+S")) { spdlog::info("ToDo: Save scene? Maybe, no solid plans yet."); }
 			if (ImGui::MenuItem("Close", "'Esc'")) { Exit_Application(window); }
 			ImGui::EndMenu();
 		}
 		if (ImGui::BeginMenu("Edit"))
 		{
-			if (ImGui::MenuItem("Set Light Position to Camera", "'G'")) { DirectionalLightObject->SetPosition(camera.Position); DirectionalLightObject->UpdateModelMatrix(); }
+			if (ImGui::MenuItem("Set Light Position to Camera", "'G'")) { Task_AlignDirLight(); }
+			if (ImGui::MenuItem("Focus Camera to Selected", "'F'")) { Task_FocusObject(); }
 			ImGui::EndMenu();
 		}
 		if (ImGui::BeginMenu("View"))
@@ -506,8 +329,13 @@ void Backend::DebugWindow(ImGuiIO& io)
 			glm::vec3& modelRotation = model.GetRotation();
 			if (i == selectedDebugModelIndex)
 			{
-				ImGui::Text("Model Name:");
-				ImGui::Text(model.GetModelName().c_str());
+				ImGui::Text("Model Name: ");
+				char test[12];
+				strcpy_s(test, model.GetModelName().c_str());
+				if (ImGui::InputText(" ", test, IM_ARRAYSIZE(test)))
+				{
+					DebugSelectedObj->SetModelName(std::string(test));
+				}
 
 				DebugSelectedObj = &model;
 				ImGui::Text("Position");
@@ -527,7 +355,7 @@ void Backend::DebugWindow(ImGuiIO& io)
 			}
 		}
 		
-		
+		ImGui::AlignTextToFramePadding();
 		ImGui::End();
 	}
 
@@ -543,6 +371,7 @@ void Backend::DebugWindow(ImGuiIO& io)
 				LoggingWindowEntries.push_back(fmt::format("{} Selected", ModelList[i].GetModelName().c_str()));
 			}
 		}
+		ImGui::AlignTextToFramePadding();
 		ImGui::End();
 	}
 
@@ -587,12 +416,300 @@ void Backend::DebugWindow(ImGuiIO& io)
 		}
 		ImGui::End();
 	}
+
+	{
+		ImGui::Begin("File Viewer");
+		
+		
+		ImGui::End();
+	}
 	
 	ImGui::Render();
 
 	if (DEBUG_MODE)
 	{
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+	}
+}
+
+void Show_UI()
+{
+	DEBUG_MODE = true;
+}
+
+void Hide_UI()
+{
+	DEBUG_MODE = false;
+}
+
+std::string WideStringToString(const std::wstring& wstr)
+{
+	// Convert wstring to string
+	std::string str(wstr.begin(), wstr.end());
+	return str;
+}
+
+Model Backend::OpenModelFileDialog()
+{
+	// Buffer to hold the file name
+	wchar_t fileName[MAX_PATH] = L"";
+	std::string logMsg;
+
+	// Initialize OPENFILENAME structure
+	OPENFILENAME ofn;
+	ZeroMemory(&ofn, sizeof(ofn));
+	ofn.lStructSize = sizeof(ofn);
+	ofn.hwndOwner = nullptr;  // If you have a window handle, pass it here
+	ofn.lpstrFile = fileName;
+	ofn.nMaxFile = sizeof(fileName) / sizeof(fileName[0]);  // Adjust for wide characters
+	ofn.lpstrFilter = L"All Files\0*.*\0Text Files\0*.TXT\0";
+	ofn.nFilterIndex = 1;
+	ofn.lpstrFileTitle = nullptr;
+	ofn.nMaxFileTitle = 0;
+	ofn.lpstrInitialDir = nullptr;
+	ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
+
+	// Display the Open dialog box
+	if (GetOpenFileName(&ofn) == TRUE)
+	{
+		std::string ofnName = WideStringToString(ofn.lpstrFile);
+		std::filesystem::path path(ofnName);
+		std::string extName = path.filename().string();
+		
+
+		// extTemp example value: ".obj", ".fbx"
+		std::string extTemp = extName.substr(extName.length() - 4);
+
+		// extName example value: "Backpack", "Cube"
+		extName = extName.substr(0, extName.length() - 4);
+
+		// Search if name exists
+		for (int i = 0; i < ModelList.size(); i++)
+		{
+			// If it does, increment name
+			if (ModelList[i].GetModelName() == extName)
+			{
+				extName = fmt::format("{}({})", extName, (i + 1));
+			}
+		}
+
+		logMsg = fmt::format("Successfully loaded file: {}{}", extName, extTemp);
+		spdlog::info(logMsg);
+		LoggingWindowEntries.push_back(logMsg);
+
+		// Load Model
+		Model loadedModel(ofnName);
+		loadedModel.SetModelName(extName);
+		return loadedModel;
+	}
+	else
+	{
+		logMsg = "Open file selection cancelled";
+		spdlog::info(logMsg);
+		LoggingWindowEntries.push_back(logMsg);
+	}
+}
+
+void framebuffer_size_callback(GLFWwindow* window, int width, int height)
+{
+	glViewport(0, 0, width, height);
+}
+
+void Task_AlignDirLight()
+{
+	DirectionalLightObject->SetPosition(camera.Position);
+	DirectionalLightObject->UpdateModelMatrix();
+}
+
+void Exit_Application(GLFWwindow* window)
+{
+	std::cout << "Goodbye!" << std::endl;
+
+	glfwSetWindowShouldClose(window, true);
+}
+
+void ToggleFullscreen(GLFWwindow* window)
+{
+	if (Backend::IsFullscreen)
+	{
+		Backend::IsFullscreen = !Backend::IsFullscreen;
+		spdlog::info(Backend::IsFullscreen);
+		glfwSetWindowMonitor(window, NULL, 100, 100, Backend::width, Backend::height, 0);
+		camera.Zoom = 45.0f;
+	}
+	else {
+		Backend::IsFullscreen = !Backend::IsFullscreen;
+		spdlog::info(Backend::IsFullscreen);
+		glfwSetWindowMonitor(window, glfwGetPrimaryMonitor(), 100, 100, Backend::full_width, Backend::full_height, 0);
+		camera.Zoom = 90.0f;
+	}
+}
+
+void LookAtObject(glm::vec3& ObjPosition)
+{
+
+	glm::vec3 zoffset = glm::vec3(0, 0, 3.0f);
+
+	if (camera.Position != (ObjPosition - zoffset))
+	{
+		camera.Position = glm::vec3(ObjPosition.x, ObjPosition.y, ObjPosition.z - zoffset.z);
+		camera.LookAtWithYaw(ObjPosition);
+		camera.Pitch = -15.0f;
+		camera.updateCameraVectors();
+	}
+}
+
+void Task_FocusObject()
+{
+	if (DebugSelectedObj == nullptr)
+	{
+		LoggingWindowEntries.push_back("Debug Selected Object is empty (null)");
+	}
+	else
+	{
+		glm::vec3 ObjPosition = DebugSelectedObj->GetPosition();
+		if (camera.Position != ObjPosition)
+		{
+			glm::vec3 ObjPosition = DebugSelectedObj->GetPosition();
+			LookAtObject(ObjPosition);
+			std::string message = std::format("Focused '{}' Object", DebugSelectedObj->GetModelName());
+			LoggingWindowEntries.push_back(message);
+		}
+
+
+	}
+}
+
+void PollInputs(GLFWwindow* window)
+{
+
+	if (camera.GetFreeLook())
+	{
+		if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+			camera.SetMovementSpeed(camera.BoostSpeed);
+		if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+			camera.ProcessKeyboard(FORWARD, deltaTime);
+		if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+			camera.ProcessKeyboard(BACKWARD, deltaTime);
+		if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+			camera.ProcessKeyboard(LEFT, deltaTime);
+		if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+			camera.ProcessKeyboard(RIGHT, deltaTime);
+		if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_RELEASE)
+			camera.SetMovementSpeed(camera.GetMovementSpeed());
+	}
+
+	glfwSetKeyCallback(window, Input_Callback);
+
+}
+
+void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
+	static float lastX = 0, lastY = 0;
+	static bool firstMouse = true;
+
+	if (firstMouse) {
+		lastX = xpos;
+		lastY = ypos;
+		firstMouse = false;
+	}
+
+
+	float xoffset = xpos - lastX;
+	float yoffset = lastY - ypos;
+	lastX = xpos;
+	lastY = ypos;
+
+	if (camera.GetFreeLook())
+		camera.ProcessMouseMovement(xoffset, yoffset);
+
+
+}
+
+void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
+{
+	double x, y;
+
+	glfwGetCursorPos(window, &x, &y);
+
+	glm::vec4 viewport = glm::vec4(0, 0, Backend::width, Backend::height);
+	glm::vec3 winPos = glm::vec3(x, Backend::height - y, 0.0f); // Near plane
+	glm::vec3 nearPoint = glm::unProject(winPos, Backend::view, Backend::projection, viewport);
+	winPos.z = 1.0f; // Far plane
+	glm::vec3 farPoint = glm::unProject(winPos, Backend::view, Backend::projection, viewport);
+
+
+
+	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
+	{
+		// object picker to do
+	}
+
+	if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS)
+	{
+		camera.SetFreeLook(true);
+		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	}
+	else if (action == GLFW_RELEASE)
+	{
+		camera.SetFreeLook(false);
+		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+	}
+}
+
+void Input_Callback(GLFWwindow* window, int key, int scancode, int action, int mods)
+{
+	if (camera.GetFreeLook())
+		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	else
+		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+
+	switch (key)
+	{
+		// Enable/disable debug window
+	case GLFW_KEY_H:
+		if (action == GLFW_PRESS && !ImGui::IsAnyItemActive())
+		{
+			DEBUG_MODE = !DEBUG_MODE;
+		}
+		break;
+		// Hotkey to re-locate directional light
+	case GLFW_KEY_G:
+		if (action == GLFW_PRESS && !ImGui::IsAnyItemActive())
+		{
+
+			Task_AlignDirLight();
+
+		}
+
+		break;
+		// Stop the models from spinning 
+	case GLFW_KEY_SPACE:
+		if (action == GLFW_PRESS && !ImGui::IsAnyItemActive())
+		{
+			shouldSpin = !shouldSpin;
+		}
+		break;
+		// Fullscreen hotkey
+	case GLFW_KEY_F11:
+		if (action == GLFW_PRESS && !ImGui::IsAnyItemActive())
+		{
+			ToggleFullscreen(window);
+		}
+		break;
+		// Stop the models from spinning 
+	case GLFW_KEY_F:
+		if (action == GLFW_PRESS && !ImGui::IsAnyItemActive())
+		{
+			Task_FocusObject();
+		}
+		break;
+		// Quit out of program
+	case GLFW_KEY_ESCAPE:
+		if (action == GLFW_PRESS && !ImGui::IsAnyItemActive())
+		{
+			Exit_Application(window);
+		}
+		break;
 	}
 }
 
