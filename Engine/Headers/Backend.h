@@ -20,10 +20,10 @@
 
 #include <filesystem>
 #include "spdlog/spdlog.h"
+#include <map>
 
 #include <ft2build.h>
 #include FT_FREETYPE_H
-#include <map>
 #include <iostream>
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);

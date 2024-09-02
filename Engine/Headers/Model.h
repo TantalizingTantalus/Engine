@@ -1,24 +1,27 @@
 #pragma once
-#include <string>
-#include <vector>
 #include <glm/glm.hpp>
-#include "../Headers/Shader.h"
-#include "../Headers/Mesh.h"
-#include "../Headers/stb_image.h"
 #include "glm/gtc/matrix_transform.hpp"
 #include "spdlog/spdlog.h"
 #include "ImGuizmo.h"
+#include <vector>
+#include <string>
+#include <filesystem>
+#include "../Headers/Shader.h"
+#include "../Headers/Mesh.h"
+#include "../Headers/stb_image.h"
 
-
+class Util;
 
 class Model
 {
 public:
+	// public globals
 	glm::vec3 rotation;
 	glm::vec3 scale;
 	glm::vec3 position;
 	bool IsLight = false;
 
+	// Utility
 	Model(std::string path) : modelMatrix(1.0f)
 	{
 		position = glm::vec3(0.0f, 0.0f, 0.0f);
@@ -26,8 +29,34 @@ public:
 		scale = glm::vec3(1.0f, 1.0f, 1.0f);
 		loadModel(path);
 		DecomposeModelMatrix();
+		std::string newPath = path;
+		
+		std::filesystem::path filePath = newPath;
+		std::string fileName = filePath.filename().string();
+		newPath = fileName;
+		SetModelFileName(newPath);
 	}
 	void Draw(Shader& shader);
+
+	void DecomposeModelMatrix()
+	{
+		DecomposeMatrix(modelMatrix, scale, rotation, position);
+	}
+
+	void UpdateModelMatrix() {
+		// Start with an identity matrix
+		modelMatrix = glm::mat4(1.0f);
+
+		// Apply transformations
+		modelMatrix = glm::translate(modelMatrix, position);                    // Apply translation
+		modelMatrix = glm::rotate(modelMatrix, glm::radians(rotation.x), glm::vec3(1.0f, 0.0f, 0.0f)); // Apply rotation on X axis
+		modelMatrix = glm::rotate(modelMatrix, glm::radians(rotation.y), glm::vec3(0.0f, 1.0f, 0.0f)); // Apply rotation on Y axis
+		modelMatrix = glm::rotate(modelMatrix, glm::radians(rotation.z), glm::vec3(0.0f, 0.0f, 1.0f)); // Apply rotation on Z axis
+		modelMatrix = glm::scale(modelMatrix, scale);                           // Apply scaling
+	}
+
+	// Setters and Getters
+
 	void SetRotation(float angle, const glm::vec3& axis) { rotation = glm::vec3(0.0f); rotation = angle * axis; }
 	void SetPosition(const glm::vec3& pos)
 	{ 
@@ -53,29 +82,20 @@ public:
 		modelMatrix *= rotationMatrix;
 		modelMatrix = glm::scale(modelMatrix, currentScale);
 	}
+
 	void SetScale(const glm::vec3& scl) { scale = scl; }
+
 	void SetModelName(std::string name) { this->modelName = name; }
 	std::string GetModelName() const { return this->modelName; }
+	void SetModelFileName(std::string name) { this->fileName = name; }
+	std::string GetModelFileName() const { return this->fileName; }
+
 	glm::mat4& GetModelMatrix() { return this->modelMatrix; }
-	void DecomposeModelMatrix()
-	{
-		DecomposeMatrix(modelMatrix, scale, rotation, position);
-	}
+
 	glm::vec3& GetRotation() { DecomposeModelMatrix(); return rotation; }
 	glm::vec3& GetPosition() { DecomposeModelMatrix(); return position; }
 	glm::vec3& GetScale() { DecomposeModelMatrix(); return scale; }
 
-	void UpdateModelMatrix() {
-		// Start with an identity matrix
-		modelMatrix = glm::mat4(1.0f);
-
-		// Apply transformations
-		modelMatrix = glm::translate(modelMatrix, position);                    // Apply translation
-		modelMatrix = glm::rotate(modelMatrix, glm::radians(rotation.x), glm::vec3(1.0f, 0.0f, 0.0f)); // Apply rotation on X axis
-		modelMatrix = glm::rotate(modelMatrix, glm::radians(rotation.y), glm::vec3(0.0f, 1.0f, 0.0f)); // Apply rotation on Y axis
-		modelMatrix = glm::rotate(modelMatrix, glm::radians(rotation.z), glm::vec3(0.0f, 0.0f, 1.0f)); // Apply rotation on Z axis
-		modelMatrix = glm::scale(modelMatrix, scale);                           // Apply scaling
-	}
 
 	bool& GetVisible() { return this->RenderModel; }
 	void SetVisible(const bool inFlag) { this->RenderModel = inFlag; }
@@ -129,7 +149,6 @@ private:
 	void processNode(aiNode* node, const aiScene* scene);
 	Mesh processMesh(aiMesh* mesh, const aiScene* scene);
 	std::vector<Texture> loadMaterialTextures(aiMaterial* mat, aiTextureType type, std::string typeName);
-	
 	
 	
 	std::string modelName;

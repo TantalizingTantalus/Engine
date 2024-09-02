@@ -19,6 +19,7 @@ std::vector<std::string> LoggingWindowEntries;
 
 //																								 Function protos
 std::string WideStringToString(const std::wstring& wstr);
+void CheckModelListForDuplicates(std::string&, std::string, std::vector<Model>);
 void Task_AlignDirLight();
 void LookAtObject(glm::vec3& ObjPosition);
 void Task_FocusObject();
@@ -455,6 +456,8 @@ Model Backend::OpenModelFileDialog()
 	wchar_t fileName[MAX_PATH] = L"";
 	std::string logMsg;
 
+	
+
 	// Initialize OPENFILENAME structure
 	OPENFILENAME ofn;
 	ZeroMemory(&ofn, sizeof(ofn));
@@ -476,6 +479,7 @@ Model Backend::OpenModelFileDialog()
 		std::filesystem::path path(ofnName);
 		std::string extName = path.filename().string();
 		
+		std::string baseFileName = extName;
 
 		// extTemp example value: ".obj", ".fbx"
 		std::string extTemp = extName.substr(extName.length() - 4);
@@ -483,15 +487,20 @@ Model Backend::OpenModelFileDialog()
 		// extName example value: "Backpack", "Cube"
 		extName = extName.substr(0, extName.length() - 4);
 
-		// Search if name exists
-		for (int i = 0; i < ModelList.size(); i++)
+		//Check for duplicates
 		{
-			// If it does, increment name
-			if (ModelList[i].GetModelName() == extName)
+			int numDupes = 0;
+			for (int i = 0; i < ModelList.size(); i++)
 			{
-				extName = fmt::format("{}({})", extName, (i + 1));
+				if (ModelList[i].GetModelFileName() == baseFileName)
+				{
+					numDupes++;
+				}
 			}
+			if (numDupes > 0)
+				extName = fmt::format("{}({})", extName, numDupes);
 		}
+
 
 		logMsg = fmt::format("Successfully loaded file: {}{}", extName, extTemp);
 		spdlog::info(logMsg);
@@ -500,6 +509,7 @@ Model Backend::OpenModelFileDialog()
 		// Load Model
 		Model loadedModel(ofnName);
 		loadedModel.SetModelName(extName);
+		loadedModel.SetModelFileName(baseFileName);
 		return loadedModel;
 	}
 	else
