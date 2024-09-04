@@ -1,28 +1,28 @@
 #include "../Headers/Backend.h"
 
-void PollInputs(GLFWwindow* window);
-
 
 //																							Backend Global variables 
 bool DEBUG_MODE = true;
+bool DEBUG_NORMAL_MAP = false;
 bool shouldSpin = true;
 bool reverseSpin = false;
 float deltaTime;
 Camera camera;
 glm::mat4 Backend::view = glm::mat4(1.0f);       
 glm::mat4 Backend::projection = glm::mat4(1.0f);
-Model* DirectionalLightObject;
-Model* DebugSelectedObj;
+Model* DirectionalLightObject = nullptr;
+Model* DebugSelectedObj = nullptr;
 
 // Session logging vector
 std::vector<std::string> LoggingWindowEntries;
 
 //																								 Function protos
-std::string WideStringToString(const std::wstring& wstr);
-void CheckModelListForDuplicates(std::string&, std::string, std::vector<Model>);
+
+
 void Task_AlignDirLight();
 void LookAtObject(glm::vec3& ObjPosition);
 void Task_FocusObject();
+void Task_DebugNormals(bool&, GLuint);
 void Exit_Application(GLFWwindow* window);
 void Hide_UI();
 void Show_UI();
@@ -40,6 +40,7 @@ int Backend::Initialize()
 	projection = glm::perspective(glm::radians(camera.Zoom), (float)width / (float)height, 0.1f, 100.0f);
 	view = camera.GetViewMatrix();
 	spdlog::info("Initializing GLFW");
+	
 	
 	// Initialize GLFW
 	if (!glfwInit())
@@ -132,15 +133,17 @@ int Backend::Initialize()
 	Building.UpdateModelMatrix();
 	ModelList.push_back(Building);*/
 
+	Backpack.SetScale(glm::vec3(.25f, .25f, .25f));
+	Backpack.UpdateModelMatrix();
+	ModelList.push_back(Backpack);
+
 	LightSourceObj.SetScale(glm::vec3(0.25f, 0.25f, 0.25f));
 	LightSourceObj.UpdateModelMatrix();
 	LightSourceObj.IsLight = true;
 	LightSourceObj.SetVisible(false);
 	ModelList.push_back(LightSourceObj);
 
-	Backpack.SetScale(glm::vec3(.25f, .25f, .25f));
-	Backpack.UpdateModelMatrix();
-	ModelList.push_back(Backpack);
+	
 
 	for (int i = 0; i < ModelList.size(); i++)
 	{
@@ -150,6 +153,9 @@ int Backend::Initialize()
 	}
 	//ModelList.push_back(Building);
 
+	if (ModelList.size() > 0)
+		selectedDebugModelIndex = 0;
+
 	return 0;
 }
 int Backend::Update()
@@ -158,7 +164,7 @@ int Backend::Update()
 	ImGuiIO& io = ImGui::GetIO(); (void)io;
 	
 	
-
+	
 	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 	
 
@@ -210,7 +216,8 @@ int Backend::Update()
 				lightCubeShader.setMat4("projection", projection);
 				lightCubeShader.setMat4("view", view);
 
-				modelitem.Draw(lightCubeShader);
+				modelitem.SetShader(lightCubeShader);
+				modelitem.Draw();
 			}
 		}
 
@@ -234,7 +241,8 @@ int Backend::Update()
 				TempShader.setVec3("lightColor", 1.0f, 1.0f, 1.0f);
 				TempShader.setVec3("objectColor", 1.0f, .5f, .31f);
 
-				modelitem.Draw(TempShader);
+				modelitem.SetShader(TempShader);
+				modelitem.Draw();
 			}
 		}
 
@@ -291,7 +299,6 @@ void Backend::DebugWindow(ImGuiIO& io)
 				Model newModel = OpenModelFileDialog(); 
 				ModelList.push_back(newModel);
 			}
-			if (ImGui::MenuItem("Save", "Ctrl+S")) { spdlog::info("ToDo: Save scene? Maybe, no solid plans yet."); }
 			if (ImGui::MenuItem("Close", "'Esc'")) { Exit_Application(window); }
 			ImGui::EndMenu();
 		}
@@ -366,6 +373,8 @@ void Backend::DebugWindow(ImGuiIO& io)
 		{
 			bool isSelected = (i == selectedDebugModelIndex);
 
+			
+
 			if (ImGui::Selectable(ModelList[i].GetModelName().c_str(), isSelected))
 			{
 				selectedDebugModelIndex = i; // Update the selected index
@@ -420,7 +429,7 @@ void Backend::DebugWindow(ImGuiIO& io)
 
 	{
 		ImGui::Begin("File Viewer");
-		
+		//ImGui::AcceptDragDropPayload("hello");
 		
 		ImGui::End();
 	}
@@ -443,12 +452,6 @@ void Hide_UI()
 	DEBUG_MODE = false;
 }
 
-std::string WideStringToString(const std::wstring& wstr)
-{
-	// Convert wstring to string
-	std::string str(wstr.begin(), wstr.end());
-	return str;
-}
 
 Model Backend::OpenModelFileDialog()
 {
@@ -475,7 +478,7 @@ Model Backend::OpenModelFileDialog()
 	// Display the Open dialog box
 	if (GetOpenFileName(&ofn) == TRUE)
 	{
-		std::string ofnName = WideStringToString(ofn.lpstrFile);
+		std::string ofnName = Util::WideStringToString(ofn.lpstrFile);
 		std::filesystem::path path(ofnName);
 		std::string extName = path.filename().string();
 		
@@ -588,6 +591,12 @@ void Task_FocusObject()
 
 
 	}
+}
+
+void Task_DebugNormals(bool& flag, GLuint sId)
+{
+	flag = !flag;
+	glUniform1i(glGetUniformLocation(sId, "DEBUG_NORMAL"), flag);
 }
 
 void PollInputs(GLFWwindow* window)
@@ -711,6 +720,23 @@ void Input_Callback(GLFWwindow* window, int key, int scancode, int action, int m
 		if (action == GLFW_PRESS && !ImGui::IsAnyItemActive())
 		{
 			Task_FocusObject();
+		}
+		break;
+	case GLFW_KEY_N:
+		if (action == GLFW_PRESS && !ImGui::IsAnyItemActive())
+		{
+			if (DebugSelectedObj != nullptr)
+			{
+				
+				Task_DebugNormals(DEBUG_NORMAL_MAP, DebugSelectedObj->GetShaderID());
+				LoggingWindowEntries.push_back(fmt::format("normals enabled : {}", DEBUG_NORMAL_MAP));
+			}
+			else 
+			{
+				LoggingWindowEntries.push_back("No object with shader selected!!");
+			}
+				
+
 		}
 		break;
 		// Quit out of program

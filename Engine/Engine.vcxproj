@@ -157,6 +157,7 @@
     <ClCompile Include="src\Model.cpp" />
     <ClCompile Include="src\Source.cpp" />
     <ClCompile Include="src\stb.cpp" />
+    <ClCompile Include="src\Util.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="dependencies\imgui\imgui-master\backends\imgui_impl_glfw.h" />
@@ -175,6 +176,7 @@
     <ClInclude Include="Headers\Model.h" />
     <ClInclude Include="Headers\Shader.h" />
     <ClInclude Include="Headers\stb_image.h" />
+    <ClInclude Include="Headers\Util.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\LitMaterial_Shader.frag" />

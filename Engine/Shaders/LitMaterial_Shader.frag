@@ -7,6 +7,7 @@ in vec3 Normal;
 
 uniform sampler2D texture_diffuse1;
 uniform sampler2D texture_normal1;
+uniform bool DEBUG_NORMAL;
 
 uniform vec3 lightPos;
 uniform vec3 viewPos;
@@ -34,8 +35,14 @@ void main()
   // Sample the diffuse texture
     vec3 diffuseColor = texture(texture_diffuse1, TexCoords).rgb;
     vec3 finalColor = diffuseColor * result;
-    // Output the final color
+
     FragColor = vec4(finalColor, 1.0);
+    // Output the final color
+    if(DEBUG_NORMAL)
+    {
+        FragColor = vec4(Normal, 1.0);
+    }
+    
 
 }
 

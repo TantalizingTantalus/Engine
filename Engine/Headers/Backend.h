@@ -21,6 +21,7 @@
 #include <filesystem>
 #include "spdlog/spdlog.h"
 #include <map>
+#include "../Headers/Util.h"
 
 #include <ft2build.h>
 #include FT_FREETYPE_H

@@ -10,7 +10,7 @@
 #include "../Headers/Mesh.h"
 #include "../Headers/stb_image.h"
 
-class Util;
+
 
 class Model
 {
@@ -36,57 +36,24 @@ public:
 		newPath = fileName;
 		SetModelFileName(newPath);
 	}
-	void Draw(Shader& shader);
 
-	void DecomposeModelMatrix()
-	{
-		DecomposeMatrix(modelMatrix, scale, rotation, position);
-	}
+	void Draw();
 
-	void UpdateModelMatrix() {
-		// Start with an identity matrix
-		modelMatrix = glm::mat4(1.0f);
+	void DecomposeModelMatrix();
 
-		// Apply transformations
-		modelMatrix = glm::translate(modelMatrix, position);                    // Apply translation
-		modelMatrix = glm::rotate(modelMatrix, glm::radians(rotation.x), glm::vec3(1.0f, 0.0f, 0.0f)); // Apply rotation on X axis
-		modelMatrix = glm::rotate(modelMatrix, glm::radians(rotation.y), glm::vec3(0.0f, 1.0f, 0.0f)); // Apply rotation on Y axis
-		modelMatrix = glm::rotate(modelMatrix, glm::radians(rotation.z), glm::vec3(0.0f, 0.0f, 1.0f)); // Apply rotation on Z axis
-		modelMatrix = glm::scale(modelMatrix, scale);                           // Apply scaling
-	}
+	void UpdateModelMatrix();
 
 	// Setters and Getters
 
 	void SetRotation(float angle, const glm::vec3& axis) { rotation = glm::vec3(0.0f); rotation = angle * axis; }
-	void SetPosition(const glm::vec3& pos)
-	{ 
-		position = pos;
-		// Extract the current scale and rotation from the modelMatrix
-		glm::vec3 currentScale = glm::vec3(
-			glm::length(glm::vec3(modelMatrix[0])),
-			glm::length(glm::vec3(modelMatrix[1])),
-			glm::length(glm::vec3(modelMatrix[2]))
-		);
-
-		glm::mat4 rotationMatrix = glm::mat4(
-			glm::vec4(glm::normalize(glm::vec3(modelMatrix[0])), 0.0f),
-			glm::vec4(glm::normalize(glm::vec3(modelMatrix[1])), 0.0f),
-			glm::vec4(glm::normalize(glm::vec3(modelMatrix[2])), 0.0f),
-			glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)
-		);
-
-		// Create a new modelMatrix with the updated position
-		modelMatrix = glm::translate(glm::mat4(1.0f), pos);
-
-		// Reapply the rotation and scale
-		modelMatrix *= rotationMatrix;
-		modelMatrix = glm::scale(modelMatrix, currentScale);
-	}
+	void SetPosition(const glm::vec3& pos);
+	
 
 	void SetScale(const glm::vec3& scl) { scale = scl; }
 
 	void SetModelName(std::string name) { this->modelName = name; }
 	std::string GetModelName() const { return this->modelName; }
+
 	void SetModelFileName(std::string name) { this->fileName = name; }
 	std::string GetModelFileName() const { return this->fileName; }
 
@@ -96,61 +63,30 @@ public:
 	glm::vec3& GetPosition() { DecomposeModelMatrix(); return position; }
 	glm::vec3& GetScale() { DecomposeModelMatrix(); return scale; }
 
+	void SetShader(Shader& inShader) { this->shader = &inShader; }
+	GLuint GetShaderID() { return shader->ID; }
+	Shader& GetShader() { return *shader; }
+
 
 	bool& GetVisible() { return this->RenderModel; }
 	void SetVisible(const bool inFlag) { this->RenderModel = inFlag; }
 
+
 private:
+
 	bool RenderModel = true;
 	glm::mat4 modelMatrix;
 	std::vector<Mesh> meshes;
 	std::vector<Texture> textures_loaded;
 	std::string directory;
-	bool DecomposeMatrix(const glm::mat4& matrix, glm::vec3& scale, glm::vec3& rotation, glm::vec3& translation)
-	{
-		// Extract the translation part
-		translation = glm::vec3(matrix[3]);
-
-		// Extract the scaling factors
-		glm::vec3 row[3];
-		row[0] = glm::vec3(matrix[0]);
-		row[1] = glm::vec3(matrix[1]);
-		row[2] = glm::vec3(matrix[2]);
-
-		// Compute scale factors
-		scale.x = glm::length(row[0]);
-		scale.y = glm::length(row[1]);
-		scale.z = glm::length(row[2]);
-
-		// Normalize the rows
-		row[0] = glm::normalize(row[0]);
-		row[1] = glm::normalize(row[1]);
-		row[2] = glm::normalize(row[2]);
-
-		// Compute rotation matrix
-		glm::mat3 rotationMatrix;
-		rotationMatrix[0] = row[0];
-		rotationMatrix[1] = row[1];
-		rotationMatrix[2] = row[2];
-
-		// Compute the rotation angles (assuming rotation is around the X, Y, and Z axes)
-		glm::vec3 euler;
-		euler.x = atan2(rotationMatrix[2][1], rotationMatrix[2][2]);
-		euler.y = atan2(-rotationMatrix[2][0], sqrt(rotationMatrix[2][1] * rotationMatrix[2][1] + rotationMatrix[2][2] * rotationMatrix[2][2]));
-		euler.z = atan2(rotationMatrix[1][0], rotationMatrix[0][0]);
-
-		// Convert from radians to degrees
-		rotation = glm::degrees(euler);
-
-		return true;
-	}
+	bool DecomposeMatrix(const glm::mat4& matrix, glm::vec3& scale, glm::vec3& rotation, glm::vec3& translation);
 
 	void loadModel(std::string path);
 	void processNode(aiNode* node, const aiScene* scene);
 	Mesh processMesh(aiMesh* mesh, const aiScene* scene);
 	std::vector<Texture> loadMaterialTextures(aiMaterial* mat, aiTextureType type, std::string typeName);
 	
-	
+	Shader* shader;
 	std::string modelName;
 	std::string fileName;
 };
