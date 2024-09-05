@@ -12,7 +12,7 @@
 
 
 
-class Model
+class Model 
 {
 public:
 	// public globals

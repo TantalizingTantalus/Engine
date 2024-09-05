@@ -4,14 +4,17 @@
 //																							Backend Global variables 
 bool DEBUG_MODE = true;
 bool DEBUG_NORMAL_MAP = false;
+bool ContextMenuActive = false;
 bool shouldSpin = true;
 bool reverseSpin = false;
+bool editingName = false;
 float deltaTime;
 Camera camera;
 glm::mat4 Backend::view = glm::mat4(1.0f);       
 glm::mat4 Backend::projection = glm::mat4(1.0f);
 Model* DirectionalLightObject = nullptr;
 Model* DebugSelectedObj = nullptr;
+std::string editingTempName, editingNameLoggingMsg;
 
 // Session logging vector
 std::vector<std::string> LoggingWindowEntries;
@@ -42,6 +45,7 @@ int Backend::Initialize()
 	spdlog::info("Initializing GLFW");
 	
 	
+
 	// Initialize GLFW
 	if (!glfwInit())
 	{
@@ -83,6 +87,8 @@ int Backend::Initialize()
 	glfwSetCursorPosCallback(window, mouse_callback);
 	glfwSetMouseButtonCallback(window, mouse_button_callback);
 
+	
+
 	// Load GL Libraries
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
 	{
@@ -112,7 +118,10 @@ int Backend::Initialize()
 	ImGui_ImplGlfw_InitForOpenGL(window, true);
 	ImGui_ImplOpenGL3_Init("#version 330");
 
-	
+	glfwSetCharCallback(window, ImGui_ImplGlfw_CharCallback);
+	glfwSetKeyCallback(window, ImGui_ImplGlfw_KeyCallback);
+	glfwSetMouseButtonCallback(window, ImGui_ImplGlfw_MouseButtonCallback);
+	glfwSetScrollCallback(window, ImGui_ImplGlfw_ScrollCallback);
 
 	// Load models to render
 	
@@ -161,7 +170,10 @@ int Backend::Initialize()
 int Backend::Update()
 {
 	
+	
 	ImGuiIO& io = ImGui::GetIO(); (void)io;
+
+
 	
 	
 	
@@ -272,7 +284,7 @@ void Backend::DebugWindow(ImGuiIO& io)
 	static float scaleY = 1.0f;
 	static float scaleZ = 1.0f;
 
-	
+	ImGuiInputTextFlags textFlags = ImGuiInputTextFlags_EnterReturnsTrue;
 	
 	ImGuiWindowFlags hiddenWindowFlags = ImGuiWindowFlags_NoBringToFrontOnFocus |                 
 		ImGuiWindowFlags_NoNavFocus |                                                      
@@ -306,6 +318,7 @@ void Backend::DebugWindow(ImGuiIO& io)
 		{
 			if (ImGui::MenuItem("Set Light Position to Camera", "'G'")) { Task_AlignDirLight(); }
 			if (ImGui::MenuItem("Focus Camera to Selected", "'F'")) { Task_FocusObject(); }
+			if (ImGui::MenuItem("Rename Selected Object", "'CTRL+R'")) { editingName = true; }
 			ImGui::EndMenu();
 		}
 		if (ImGui::BeginMenu("View"))
@@ -328,7 +341,7 @@ void Backend::DebugWindow(ImGuiIO& io)
 	{
 		
 		ImGui::Begin("Properties");
-		ImGuiInputTextFlags textFlags = ImGuiInputTextFlags_EnterReturnsTrue;
+		
 		for (int i = 0; i < ModelList.size(); i++)
 		{
 			Model& model = ModelList[i];
@@ -340,9 +353,9 @@ void Backend::DebugWindow(ImGuiIO& io)
 				ImGui::Text("Model Name: ");
 				char test[12];
 				strcpy_s(test, model.GetModelName().c_str());
-				if (ImGui::InputText(" ", test, IM_ARRAYSIZE(test)))
+				if (ImGui::InputText("##something", test, IM_ARRAYSIZE(test)))
 				{
-					DebugSelectedObj->SetModelName(std::string(test));
+					DebugSelectedObj->SetModelName(test);
 				}
 
 				DebugSelectedObj = &model;
@@ -373,14 +386,53 @@ void Backend::DebugWindow(ImGuiIO& io)
 		{
 			bool isSelected = (i == selectedDebugModelIndex);
 
-			
-
 			if (ImGui::Selectable(ModelList[i].GetModelName().c_str(), isSelected))
 			{
 				selectedDebugModelIndex = i; // Update the selected index
 				LoggingWindowEntries.push_back(fmt::format("{} Selected", ModelList[i].GetModelName().c_str()));
 			}
+
+			// Check if the item is hovered and the right mouse button is released
+			if (ImGui::IsItemHovered() && ImGui::IsMouseReleased(1))
+			{
+				ImGui::OpenPopup("ContextMenu");
+			}
+
+			
+
+			if (editingName && selectedDebugModelIndex == i)
+			{
+				char test[12];
+				strcpy_s(test, DebugSelectedObj->GetModelName().c_str());
+
+				//ImGui::SetKeyboardFocusHere();
+				// add update messaage
+				editingNameLoggingMsg = fmt::format("Updated model name from \"{}\"", DebugSelectedObj->GetModelName());
+
+				if (ImGui::InputText("##something", test, IM_ARRAYSIZE(test)))
+				{
+					editingTempName = test;
+				}
+
+			}
 		}
+
+		if (ImGui::BeginPopup("ContextMenu")) {
+			if (ImGui::MenuItem("Rename")) {
+				// Perform action for Option 1
+				
+				editingName = true;
+			}
+			if (ImGui::MenuItem("Duplicate")) {
+				// Perform action for Option 2
+				LoggingWindowEntries.push_back("hello world");
+			}
+
+			ImGui::EndPopup();
+
+
+		}
+
 		ImGui::AlignTextToFramePadding();
 		ImGui::End();
 	}
@@ -530,6 +582,7 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 
 void Task_AlignDirLight()
 {
+	LoggingWindowEntries.push_back(fmt::format("Updated light position to \nx:{}\ny:{}\nz:{}", camera.Position.x, camera.Position.y, camera.Position.z));
 	DirectionalLightObject->SetPosition(camera.Position);
 	DirectionalLightObject->UpdateModelMatrix();
 }
@@ -588,8 +641,6 @@ void Task_FocusObject()
 			std::string message = std::format("Focused '{}' Object", DebugSelectedObj->GetModelName());
 			LoggingWindowEntries.push_back(message);
 		}
-
-
 	}
 }
 
@@ -641,7 +692,6 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
 	if (camera.GetFreeLook())
 		camera.ProcessMouseMovement(xoffset, yoffset);
 
-
 }
 
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
@@ -657,13 +707,7 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 	glm::vec3 farPoint = glm::unProject(winPos, Backend::view, Backend::projection, viewport);
 
 
-
-	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
-	{
-		// object picker to do
-	}
-
-	if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS)
+	if ((button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS) && !ImGui::IsAnyItemHovered())
 	{
 		camera.SetFreeLook(true);
 		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
@@ -681,6 +725,7 @@ void Input_Callback(GLFWwindow* window, int key, int scancode, int action, int m
 		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 	else
 		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+
 
 	switch (key)
 	{
@@ -722,6 +767,19 @@ void Input_Callback(GLFWwindow* window, int key, int scancode, int action, int m
 			Task_FocusObject();
 		}
 		break;
+	case GLFW_KEY_ENTER:
+		if (action == GLFW_PRESS && ImGui::IsAnyItemActive())
+		{
+			if (editingName)
+			{
+				editingNameLoggingMsg = fmt::format("{}", editingNameLoggingMsg);
+				LoggingWindowEntries.push_back(fmt::format("{} to \"{}\" ", editingNameLoggingMsg, editingTempName));
+				editingNameLoggingMsg = "";
+				DebugSelectedObj->SetModelName(editingTempName);
+				editingName = false;
+			}
+		}
+		break;
 	case GLFW_KEY_N:
 		if (action == GLFW_PRESS && !ImGui::IsAnyItemActive())
 		{
@@ -729,14 +787,12 @@ void Input_Callback(GLFWwindow* window, int key, int scancode, int action, int m
 			{
 				
 				Task_DebugNormals(DEBUG_NORMAL_MAP, DebugSelectedObj->GetShaderID());
-				LoggingWindowEntries.push_back(fmt::format("normals enabled : {}", DEBUG_NORMAL_MAP));
+				LoggingWindowEntries.push_back(fmt::format("Show normals: {}", DEBUG_NORMAL_MAP));
 			}
 			else 
 			{
 				LoggingWindowEntries.push_back("No object with shader selected!!");
 			}
-				
-
 		}
 		break;
 		// Quit out of program

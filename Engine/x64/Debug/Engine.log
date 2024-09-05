@@ -1,10 +1,10 @@
 ﻿  Backend.cpp
-C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\src\Backend.cpp(185,22): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\src\Backend.cpp(630,11): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\src\Backend.cpp(631,11): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\src\Backend.cpp(636,16): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\src\Backend.cpp(637,16): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\src\Backend.cpp(638,10): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\src\Backend.cpp(639,10): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\src\Backend.cpp(524,1): warning C4715: 'Backend::OpenModelFileDialog': not all control paths return a value
+C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\src\Backend.cpp(197,22): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\src\Backend.cpp(681,11): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\src\Backend.cpp(682,11): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\src\Backend.cpp(687,16): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\src\Backend.cpp(688,16): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\src\Backend.cpp(689,10): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\src\Backend.cpp(690,10): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\src\Backend.cpp(576,1): warning C4715: 'Backend::OpenModelFileDialog': not all control paths return a value
   Engine.vcxproj -> C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\x64\Debug\Engine.exe

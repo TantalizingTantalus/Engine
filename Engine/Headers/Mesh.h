@@ -35,9 +35,11 @@ public:
 	std::vector<Texture> textures;
 
 	Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector<Texture> textures);
+	void SetInstanceCount(int c) { InstanceCount = c; }
 	void Draw(Shader& shader);
 private:
 	unsigned int VAO, VBO, EBO;
+	int InstanceCount = 1;
 
 	void SetupMesh();
 };

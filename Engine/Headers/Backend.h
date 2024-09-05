@@ -27,6 +27,7 @@
 #include FT_FREETYPE_H
 #include <iostream>
 
+
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void Input_Callback(GLFWwindow* window, int key, int scancode, int action, int mods);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
