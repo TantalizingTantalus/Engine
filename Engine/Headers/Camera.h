@@ -6,6 +6,8 @@
 #include <glad/glad.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include "../Headers/Backend.h"
+#include "../Headers/Util.h"
 
 // Defines several possible options for camera movement. Used as abstraction to stay away from window-system specific input methods
 enum Camera_Movement {
@@ -36,20 +38,23 @@ public:
     // euler Angles
     float Yaw;
     float Pitch;
+
     // camera options
-    
-    const float Max_MoveSpeed = 10.0f;
+    float NearClippingPlane = 1.0f;
+    float FarClippingPlane = 100.0f;
+
     float MovementSpeed;
     float BoostSpeed = 5.0f;
+    const float Max_MoveSpeed = 10.0f;
     const float Min_MoveSpeed = 0.0f;
     float MouseSensitivity;
     float Zoom;
 
     void LookAtWithYaw(glm::vec3 target) {
-        // Calculate direction to the target
+        // Get direction to the target
         glm::vec3 direction = glm::normalize(target - Position);
 
-        // Compute yaw based on the direction
+        // get yaw based on the direction
         Yaw = atan2(direction.z, direction.x) * 180.0f / glm::pi<float>();
         Pitch = atan2(direction.y, sqrt(direction.x * direction.x + direction.z * direction.z)) * 180.0f / glm::pi<float>();
 
@@ -68,6 +73,7 @@ public:
         WorldUp = up;
         Yaw = yaw;
         Pitch = pitch;
+
         updateCameraVectors();
     }
     // constructor with scalar values
@@ -80,10 +86,20 @@ public:
         updateCameraVectors();
     }
 
+    void Initialize(GLFWwindow* InWindow)
+    {
+        glfwGetFramebufferSize(InWindow, &m_WindowWidth, &m_WindowHeight);
+    }
+
     // returns the view matrix calculated using Euler Angles and the LookAt Matrix
     glm::mat4 GetViewMatrix()
     {
-        return glm::lookAt(Position, Position + Front, Up);
+        return m_ViewMatrix;
+    }
+
+    glm::mat4 GetProjectionMatrix()
+    {
+        return m_ProjectionMatrix;
     }
 
     void SetFreeLook(bool flag)
@@ -129,6 +145,12 @@ public:
         updateCameraVectors();
     }
 
+    void UpdateViewAndProjectionMatrices()
+    {
+        this->m_ProjectionMatrix = glm::perspective(glm::radians(Zoom), (float)m_WindowWidth / (float)m_WindowHeight, NearClippingPlane, FarClippingPlane);
+        this->m_ViewMatrix = glm::lookAt(Position, Position + Front, Up);
+    }
+
     // processes input received from a mouse scroll-wheel event. Only requires input on the vertical wheel-axis
     void ProcessMouseScroll(float yoffset)
     {
@@ -155,14 +177,15 @@ public:
         Right = glm::normalize(glm::cross(Front, WorldUp));  // normalize the vectors, because their length gets closer to 0 the more you look up or down which results in slower movement.
         Up = glm::normalize(glm::cross(Right, Front));
 
-        ViewMatrix = glm::lookAt(Position, Position + Front, Up);
+        m_ViewMatrix = glm::lookAt(Position, Position + Front, Up);
     }
 private:
     // custom properties
     bool freeLook = false;
 
-    glm::mat4 ViewMatrix;
-
+    glm::mat4 m_ViewMatrix;
+    glm::mat4 m_ProjectionMatrix;
+    int m_WindowWidth, m_WindowHeight;
     // calculates the front vector from the Camera's (updated) Euler Angles
     
 };

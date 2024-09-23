@@ -28,11 +28,17 @@ struct Texture {
 	std::string path;
 };
 
+enum RENDERTARGETS {
+	NORMAL,
+	LINES
+};
+
 class Mesh {
 public:
 	std::vector<Vertex> vertices;
 	std::vector<unsigned int> indices;
 	std::vector<Texture> textures;
+	enum RENDERTARGETS RenderMode = RENDERTARGETS::NORMAL;
 
 	Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector<Texture> textures);
 	void SetInstanceCount(int c) { InstanceCount = c; }

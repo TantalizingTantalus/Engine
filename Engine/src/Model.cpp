@@ -50,6 +50,7 @@ void Model::Draw()
 	{
         if (RenderModel)
         {
+            meshes[i].RenderMode = this->RenderMode;
             // may be point of contention due to dereference
 		    meshes[i].Draw(*shader);
         }

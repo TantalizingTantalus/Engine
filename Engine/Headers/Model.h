@@ -20,6 +20,7 @@ public:
 	glm::vec3 scale;
 	glm::vec3 position;
 	bool IsLight = false;
+	RENDERTARGETS RenderMode = RENDERTARGETS::NORMAL;
 
 	// Utility
 	Model(std::string path) : modelMatrix(1.0f)
@@ -37,10 +38,15 @@ public:
 		SetModelFileName(newPath);
 	}
 
+	Model()
+	{
+		this->modelName = "null_model";
+	}
+
 	void Draw();
 
 	void DecomposeModelMatrix();
-
+	void SetModelMatrix(glm::mat4 modelMat) { this->modelMatrix = modelMat; UpdateModelMatrix(); }
 	void UpdateModelMatrix();
 
 	// Setters and Getters
@@ -57,11 +63,13 @@ public:
 	void SetModelFileName(std::string name) { this->fileName = name; }
 	std::string GetModelFileName() const { return this->fileName; }
 
-	glm::mat4& GetModelMatrix() { return this->modelMatrix; }
+	glm::mat4& GetModelMatrix() { SafeDecompose(); return this->modelMatrix; }
 
-	glm::vec3& GetRotation() { DecomposeModelMatrix(); return rotation; }
-	glm::vec3& GetPosition() { DecomposeModelMatrix(); return position; }
-	glm::vec3& GetScale() { DecomposeModelMatrix(); return scale; }
+	void SafeDecompose() { try { DecomposeModelMatrix(); } catch (std::exception e) { spdlog::error(e.what()); } }
+
+	glm::vec3& GetRotation() { SafeDecompose(); return rotation; }
+	glm::vec3& GetPosition() { SafeDecompose(); return position; }
+	glm::vec3& GetScale() { SafeDecompose(); return scale; }
 
 	void SetShader(Shader& inShader) { this->shader = &inShader; }
 	GLuint GetShaderID() { return shader->ID; }

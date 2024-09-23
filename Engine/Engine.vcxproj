@@ -170,6 +170,7 @@
     <ClInclude Include="dependencies\imgui\imgui-master\imstb_truetype.h" />
     <ClInclude Include="Headers\Backend.h" />
     <ClInclude Include="Headers\Camera.h" />
+    <ClInclude Include="Headers\FrameBuffer.h" />
     <ClInclude Include="Headers\ft2build.h" />
     <ClInclude Include="Headers\ImGuizmo.h" />
     <ClInclude Include="Headers\Mesh.h" />
@@ -183,6 +184,8 @@
     <None Include="Shaders\lightSource.frag" />
     <None Include="Shaders\lightSource.vert" />
     <None Include="Shaders\LitMaterial_Shader.vert" />
+    <None Include="Shaders\shaderSingleColor.frag" />
+    <None Include="Shaders\shaderSingleColor.vert" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

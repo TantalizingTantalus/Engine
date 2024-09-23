@@ -15,6 +15,8 @@
 #include "../Headers/Model.h"
 #include "../Headers/Camera.h"
 #include "../Headers/stb_image.h"
+#include "../Headers/FrameBuffer.h"
+
 #include "imgui-master/imgui.h"
 #include "imgui-master/imgui_internal.h"
 
@@ -40,8 +42,7 @@ public:
 	static const int height = 900, width = 1400;
 	static const int full_height = 1440, full_width = 2560;
 	static bool IsFullscreen;
-	static glm::mat4 projection;
-	static glm::mat4 view;
+
 	Backend();
 	int Initialize();
 	int Update();
@@ -58,6 +59,7 @@ private:
 	
 	Shader TempShader; 
 	Shader lightCubeShader;
+	Shader stencilShader;
 
 	GLFWwindow* window;
 	std::vector<Model> ModelList;

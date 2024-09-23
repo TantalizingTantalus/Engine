@@ -1,12 +1,24 @@
+
 #include "../Headers/Backend.h"
+#include <exception>
+
 
 
 Backend Program;
 
 int main()
 {
-	Program.Initialize();
-	Program.Update();
+	try
+	{
+		Program.Initialize();
+		Program.Update();
+	}
+	catch (std::exception& e)
+	{
+		std::cerr << "Ran into issues at: " << e.what();
+	}
 	
 }
+
+
 

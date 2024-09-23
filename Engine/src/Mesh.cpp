@@ -47,10 +47,12 @@ void Mesh::SetupMesh()
     glEnableVertexAttribArray(6);
     glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, m_Weights));
 
-    // Cull back faces
-    glEnable(GL_CULL_FACE);
+    //Depth Testing
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
+
+    // Cull back faces
+    glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
     glFrontFace(GL_CCW);
     glDisable(GL_BLEND);
@@ -91,7 +93,16 @@ void Mesh::Draw(Shader& shader)
     glBindVertexArray(VAO);
 
     // DrawElementsInstanced is important here for future instancing implementation
-    glDrawElementsInstanced(GL_TRIANGLES, static_cast<unsigned int>(indices.size()), GL_UNSIGNED_INT, 0, 1);
+    switch (RenderMode)
+    {
+    case RENDERTARGETS::NORMAL:
+        glDrawElementsInstanced(GL_TRIANGLES, static_cast<unsigned int>(indices.size()), GL_UNSIGNED_INT, 0, 1);
+        break;
+    case RENDERTARGETS::LINES:
+        glDrawElementsInstanced(GL_LINES, static_cast<unsigned int>(indices.size()), GL_UNSIGNED_INT, 0, 1);
+        break;
+    }
+    
 
     glBindVertexArray(0);
 
