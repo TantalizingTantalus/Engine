@@ -12,6 +12,7 @@ unsigned int TextureFromFile(const char* path, const std::string& directory)
     int width, height, nrComponents;
     
     unsigned char* data = stbi_load(path, &width, &height, &nrComponents, 0);
+
     if (data)
     {
         GLenum format;
@@ -278,7 +279,12 @@ std::vector<Texture> Model::loadMaterialTextures(aiMaterial* mat, aiTextureType 
     {
         aiString str;
         mat->GetTexture(type, i, &str);
-        
+        std::string temp = str.C_Str();
+
+        if (temp.find('/') == std::string::npos && temp.find('\\') == std::string::npos)
+        {
+            temp = fmt::format("C:/Users/Gaevi/OneDrive/Documents/CodePractice/Engine/Engine/Engine/Models/{}", temp);
+        }
         bool skip = false;
         for (unsigned int j = 0; j < textures_loaded.size(); j++)
         {
@@ -292,7 +298,7 @@ std::vector<Texture> Model::loadMaterialTextures(aiMaterial* mat, aiTextureType 
         if (!skip)
         {   // if texture hasn't been loaded already, load it
             Texture texture;
-            texture.id = TextureFromFile(str.C_Str(), this->directory);
+            texture.id = TextureFromFile(temp.c_str() , this->directory);
             texture.type = typeName;
             texture.path = str.C_Str();
             textures.push_back(texture);

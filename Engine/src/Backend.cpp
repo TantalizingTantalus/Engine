@@ -5,12 +5,13 @@
 bool DEBUG_MODE = true;
 bool DEBUG_NORMAL_MAP = false;
 bool ContextMenuActive = false;
-bool shouldSpin = true;
+bool shouldSpin = false;
 bool reverseSpin = false;
 bool editingName = false;
 float deltaTime;
 char InputName[30];
 Camera camera;
+FT_Library library;
 ImGuizmo::OPERATION myOperation = ImGuizmo::OPERATION::TRANSLATE;
 Model* DirectionalLightObject = nullptr;
 Model* DebugSelectedObj = nullptr;
@@ -21,9 +22,6 @@ std::vector<std::string> LoggingWindowEntries;
 std::vector<Model>* DebugModelList;
 
 //																								 Function protos
-
-
-
 
 void Task_AlignDirLight();
 void Task_Delete();
@@ -36,128 +34,163 @@ void Show_UI();
 void ToggleFullscreen(GLFWwindow* window);
 void PollInputs(GLFWwindow* window);
 
-
-
 //																									Main Logic
 int Backend::Initialize()
 {
 	deltaTime = 0.0f;
-	shouldSpin = true;
 	Backend::IsFullscreen = false;
 	camera.Position = (glm::vec3(0.0f, 0.0f, 3.0f));
 	spdlog::info("Initializing GLFW");
 	
 
-	// Initialize GLFW
-	if (!glfwInit())
+	// Window setup
 	{
-		spdlog::error("GLFW failed intialization...");
-		return 0;
-	}
-
-	if (Backend::IsFullscreen)
-	{
-		window = glfwCreateWindow(full_width, full_height, "Engine", glfwGetPrimaryMonitor(), NULL);
-		if (!window)
+		// Initialize GLFW
+		if (!glfwInit())
 		{
-			camera.Zoom = 95;
-			spdlog::error("Uh oh something went wrong...");
+			spdlog::error("GLFW failed intialization...");
 			return 0;
 		}
-	}
-	else {
-		window = glfwCreateWindow(width, height, "Engine", NULL, NULL);
-		if (!window)
+
+		if (Backend::IsFullscreen)
 		{
-			camera.Zoom = 75;
-			spdlog::error("Uh oh something went wrong...");
-			return 0;
+			window = glfwCreateWindow(full_width, full_height, "Engine", glfwGetPrimaryMonitor(), NULL);
+			if (!window)
+			{
+				camera.Zoom = 95;
+				spdlog::error("Uh oh something went wrong...");
+				return 0;
+			}
+		}
+		else {
+			window = glfwCreateWindow(width, height, "Engine", NULL, NULL);
+			if (!window)
+			{
+				camera.Zoom = 75;
+				spdlog::error("Uh oh something went wrong...");
+				return 0;
+			}
 		}
 	}
 	
+	// Additional window setup
+	{
 
-	// Set the current context to the openGL window
-	glfwMakeContextCurrent(window);
-	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+		// Set the current context to the openGL window
+		glfwMakeContextCurrent(window);
+		glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
-	//Lock cursor to window
-	if (camera.GetFreeLook())
-		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-	else
-		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+		//Lock cursor to window
+		if (camera.GetFreeLook())
+			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+		else
+			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 
-	glfwSetCursorPosCallback(window, mouse_callback);
-	glfwSetMouseButtonCallback(window, mouse_button_callback);
-
-	
+		glfwSetCursorPosCallback(window, mouse_callback);
+		glfwSetMouseButtonCallback(window, mouse_button_callback);
+	}
 
 	// Load GL Libraries
-	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
 	{
-		spdlog::error("Failed to initialize GLAD");
-		return -1;
+		if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
+		{
+			spdlog::error("Failed to initialize GLAD");
+			return -1;
+		}
+		glEnable(GL_STENCIL_TEST);
 	}
 
-	glEnable(GL_STENCIL_TEST);
+	// Initialize FreeType
+	{
+		bool error = FT_Init_FreeType(&library);
+		if (error)
+		{
+			spdlog::error("There was an issue loading the FreeType library...");
+		}
+	}
 
-	// Display GLFW Version
-	spdlog::info("GLFW Version : {}", glfwGetVersionString());
+	// Debug display framework versioning
+	{
+		// Display GLFW Version
+		spdlog::info("GLFW Version : {}", glfwGetVersionString());	
+		// Display OpenGL Version
+		const GLubyte* glVersion = glGetString(GL_VERSION);
+		const GLubyte* glRenderer = glGetString(GL_RENDERER);
+		spdlog::info("OpenGL Version: {}", reinterpret_cast<const char*>(glVersion));
+		spdlog::info("Renderer: {}", reinterpret_cast<const char*>(glRenderer));
+	}
 
-	// Display OpenGL Version
-	const GLubyte* glVersion = glGetString(GL_VERSION);
-	const GLubyte* glRenderer = glGetString(GL_RENDERER);
-	
-	spdlog::info("OpenGL Version: {}", reinterpret_cast<const char*>(glVersion));
-	spdlog::info("Renderer: {}", reinterpret_cast<const char*>(glRenderer));
-
-	Shader shaders("..\\Engine\\Shaders\\LitMaterial_Shader.vert", "..\\Engine\\Shaders\\LitMaterial_Shader.frag");
-	Shader lightShader("..\\Engine\\Shaders\\lightSource.vert", "..\\Engine\\Shaders\\lightSource.frag");
-	Shader stencilShader("..\\Engine\\Shaders\\LitMaterial_Shader.vert", "..\\Engine\\Shaders\\shaderSingleColor.frag");
-	TempShader = shaders;
-	lightCubeShader = lightShader;
-	stencilShader = this->stencilShader;
-
+	// Shader Setup
+	{
+		Shader shaders("..\\Engine\\Shaders\\LitMaterial_Shader.vert", "..\\Engine\\Shaders\\LitMaterial_Shader.frag");
+		Shader lightShader("..\\Engine\\Shaders\\lightSource.vert", "..\\Engine\\Shaders\\lightSource.frag");
+		Shader stencilShader("..\\Engine\\Shaders\\LitMaterial_Shader.vert", "..\\Engine\\Shaders\\shaderSingleColor.frag");
+		TempShader = shaders;
+		lightCubeShader = lightShader;
+	}
 	
 	// Initialize IMGUI
-	IMGUI_CHECKVERSION();
-	ImGui::CreateContext();
-	ImGui::StyleColorsDark();
-	ImGui_ImplGlfw_InitForOpenGL(window, true);
-	ImGui_ImplOpenGL3_Init("#version 330");
-	
-
-	glfwSetCharCallback(window, ImGui_ImplGlfw_CharCallback);
-	glfwSetKeyCallback(window, ImGui_ImplGlfw_KeyCallback);
-	glfwSetMouseButtonCallback(window, ImGui_ImplGlfw_MouseButtonCallback);
-	glfwSetScrollCallback(window, ImGui_ImplGlfw_ScrollCallback);
-
-	// Load default light model to render
-	
-	Model LightSourceObj("../Engine/Models/Light_Cube.fbx");
-
-	LightSourceObj.SetScale(glm::vec3(0.25f, 0.25f, 0.25f));
-	//LightSourceObj.UpdateModelMatrix();
-	LightSourceObj.IsLight = true;
-	LightSourceObj.SetVisible(false);
-	std::string dLight = "LightSource";
-	LightSourceObj.SetModelName(dLight);
-	ModelList.push_back(LightSourceObj);
-
-	for (int i = 0; i < ModelList.size(); i++)
 	{
-		Model& modelitem = ModelList[i];
-		modelitem.SetPosition(glm::vec3(-i + .5f, 0.0f, 0.0f));
-		modelitem.UpdateModelMatrix();
+		IMGUI_CHECKVERSION();
+		ImGui::CreateContext();
+		ImGui::StyleColorsDark();
+		ImGui_ImplGlfw_InitForOpenGL(window, true);
+		ImGui_ImplOpenGL3_Init("#version 330");
+	}
+	
+	// Setup glfw input Callbacks
+	{
+		glfwSetCharCallback(window, ImGui_ImplGlfw_CharCallback);
+		glfwSetKeyCallback(window, ImGui_ImplGlfw_KeyCallback);
+		glfwSetMouseButtonCallback(window, ImGui_ImplGlfw_MouseButtonCallback);
+		glfwSetScrollCallback(window, ImGui_ImplGlfw_ScrollCallback);
 	}
 
+	// Load default light 
+	{
+		Model LightSourceObj("../Engine/Models/Light_Cube.fbx");
+
+		LightSourceObj.SetScale(glm::vec3(0.25f, 0.25f, 0.25f));
+		//LightSourceObj.UpdateModelMatrix();
+		LightSourceObj.IsLight = true;
+		LightSourceObj.SetVisible(false);
+		std::string dLight = "LightSource";
+		LightSourceObj.SetModelName(dLight);
+		ModelList.push_back(LightSourceObj);
+
+		Model Room("../Engine/Models/Room.fbx");
+		Room.SetRotation(-90, glm::vec3(1, 0, 0));
+		ModelList.push_back(Room);
+	}
+
+	// Position default render list (mostly unused unless for a demo)
+	{
+		for (int i = 0; i < ModelList.size(); i++)
+		{
+			Model& modelitem = ModelList[i];
+			modelitem.SetPosition(glm::vec3(-i + .5f, 0.0f, 0.0f));
+			modelitem.UpdateModelMatrix();
+		}
+	}
+	
+
+	// Auto select the first item in the render list for manipulation.
 	if (ModelList.size() > 0)
 		selectedDebugModelIndex = 0;
 
 
 	//Initialize camera after window creation to update framebuffersize for imguizmo
 	camera.Initialize(window);
+
+	camera.Position = glm::vec3(.6f, .83f, 1.3f);
+	camera.Yaw = -134.6f;
+	camera.Pitch = -27.0f;
+	camera.updateCameraVectors();
+
+	// return 0 for complete inits
 	return 0;
 }
+
 int Backend::Update()
 {
 	ImGuiIO& io = ImGui::GetIO(); (void)io;
@@ -178,6 +211,8 @@ int Backend::Update()
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
 		sceneBuf.Bind();
 		//ImGui::DockSpaceOverViewport(ImGuiDockNodeFlags_PassthruCentralNode);
 		ImGui::DockSpace(ImGui::GetID("Dockspace1"), ImVec2(0, 0),ImGuiDockNodeFlags_PassthruCentralNode);
@@ -194,22 +229,13 @@ int Backend::Update()
 		float windowHeight = (float)ImGui::GetWindowHeight();
 		
 		camera.UpdateViewAndProjectionMatrices();
-		//ImGui::SetNextWindowPos(ImVec2(0, 0));
-		//ImGui::SetNextWindowSize(ImVec2(float(GetWindowWidth(window)), float(GetWindowHeight(window))));
 
 		ImGui::SetNextWindowPos(ImVec2(0, 0));
 		ImGui::SetNextWindowSize(ImVec2(float(GetWindowWidth(window)), float(GetWindowHeight(window))));
 		ImGui::Begin("Engine", 0, ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoTitleBar );
 		ImGui::DockSpace(ImGui::GetID("Dockspace"), ImVec2(0, 0));
 
-		// Set the OpenGL viewport using the ImGui viewport's position and size
-		
-
-
 		ImGui::Begin("Scene");
-
-		//ImGuizmo::DrawGrid(glm::value_ptr(view), glm::value_ptr(projection), glm::value_ptr(identit), 100.0f);
-		
 
 		//ImGui::BeginChild("GameRender");
 
@@ -231,7 +257,6 @@ int Backend::Update()
 
 		ImVec2 windowPos = ImGui::GetWindowPos();
 		ImVec2 windowSize = ImGui::GetWindowSize();
-		// 
 		// End Imgui Inits
 
 		float currentFrame = glfwGetTime();  // Get the current time
@@ -254,6 +279,7 @@ int Backend::Update()
 
 		
 		ImGuizmo::BeginFrame();
+		
 
 		// Gizmo Manipulation
 		if (DebugSelectedObj != nullptr)
@@ -271,13 +297,14 @@ int Backend::Update()
 				ImGuizmo::LOCAL,
 				glm::value_ptr(*modelMatrix));
 		}
+		//ImGuizmo::DrawGrid(glm::value_ptr(camera.GetViewMatrix()), glm::value_ptr(camera.GetProjectionMatrix()), glm::value_ptr(glm::mat4(1.0f)), 100.0f);
 		
 		if (!ModelList.empty())
 		{
 			// lights first, models second
 			for (int i = 0; i < ModelList.size(); i++) {
 				Model& modelitem = ModelList[i];
-
+				
 				if (modelitem.IsLight) {
 					DirectionalLightObject = &modelitem;
 
@@ -328,9 +355,11 @@ int Backend::Update()
 		}
 		
 		DebugModelList = &ModelList;
-
 		sceneBuf.Unbind();
 		//ImGui::EndChild();
+		glEnable(GL_DEPTH_TEST);
+		glDepthFunc(GL_LESS);
+		
 		ImGui::End();
 
 		DebugWindow(io);
@@ -347,7 +376,9 @@ int Backend::Update()
 	glfwTerminate();
 	return 0;
 }
+
 bool Backend::IsFullscreen = false;
+
 Backend::Backend()
 {
 	spdlog::info("Initializing Backend");
@@ -639,7 +670,7 @@ Model Backend::OpenModelFileDialog()
 	ofn.hwndOwner = nullptr;  // If you have a window handle, pass it here
 	ofn.lpstrFile = fileName;
 	ofn.nMaxFile = sizeof(fileName) / sizeof(fileName[0]);  // Adjust for wide characters
-	ofn.lpstrFilter = L"All Files\0*.*\0Text Files\0*.TXT\0";
+	ofn.lpstrFilter = L"Any(.fbx, .obj, .dae)\0*.fbx;*.obj;*.dae\0.obj\0*.obj\0.fbx\0*.fbx\0.dae\0*.dae\0";
 	ofn.nFilterIndex = 1;
 	ofn.lpstrFileTitle = nullptr;
 	ofn.nMaxFileTitle = 0;

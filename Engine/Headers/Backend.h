@@ -59,7 +59,6 @@ private:
 	
 	Shader TempShader; 
 	Shader lightCubeShader;
-	Shader stencilShader;
 
 	GLFWwindow* window;
 	std::vector<Model> ModelList;

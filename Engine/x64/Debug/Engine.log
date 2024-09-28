@@ -23,12 +23,12 @@ C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\Headers\Fram
 C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\Headers\FrameBuffer.h(50,63): warning C4244: 'argument': conversion from 'float' to 'GLsizei', possible loss of data
   (compiling source file 'src/Backend.cpp')
   
-C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\src\Backend.cpp(225,4): warning C4312: 'type cast': conversion from 'unsigned int' to 'ImTextureID' of greater size
-C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\src\Backend.cpp(237,22): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\src\Backend.cpp(835,11): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\src\Backend.cpp(836,11): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\src\Backend.cpp(841,16): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\src\Backend.cpp(842,16): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\src\Backend.cpp(843,10): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\src\Backend.cpp(844,10): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\src\Backend.cpp(251,4): warning C4312: 'type cast': conversion from 'unsigned int' to 'ImTextureID' of greater size
+C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\src\Backend.cpp(262,22): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\src\Backend.cpp(866,11): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\src\Backend.cpp(867,11): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\src\Backend.cpp(872,16): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\src\Backend.cpp(873,16): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\src\Backend.cpp(874,10): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\src\Backend.cpp(875,10): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
   Engine.vcxproj -> C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\x64\Debug\Engine.exe

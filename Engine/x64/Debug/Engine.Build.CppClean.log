@@ -1,10 +1,12 @@
 c:\users\gaevi\onedrive\documents\codepractice\engine\engine\engine\x64\debug\vc143.pdb
 c:\users\gaevi\onedrive\documents\codepractice\engine\engine\engine\x64\debug\vc143.idb
+c:\users\gaevi\onedrive\documents\codepractice\engine\engine\engine\x64\debug\util.obj
 c:\users\gaevi\onedrive\documents\codepractice\engine\engine\engine\x64\debug\stb.obj
 c:\users\gaevi\onedrive\documents\codepractice\engine\engine\engine\x64\debug\source.obj
 c:\users\gaevi\onedrive\documents\codepractice\engine\engine\engine\x64\debug\model.obj
 c:\users\gaevi\onedrive\documents\codepractice\engine\engine\engine\x64\debug\mesh.obj
 c:\users\gaevi\onedrive\documents\codepractice\engine\engine\engine\x64\debug\imguizmo.obj
+c:\users\gaevi\onedrive\documents\codepractice\engine\engine\engine\x64\debug\backend.obj
 c:\users\gaevi\onedrive\documents\codepractice\engine\engine\engine\x64\debug\imgui_widgets.obj
 c:\users\gaevi\onedrive\documents\codepractice\engine\engine\engine\x64\debug\imgui_tables.obj
 c:\users\gaevi\onedrive\documents\codepractice\engine\engine\engine\x64\debug\imgui_draw.obj
@@ -12,11 +14,8 @@ c:\users\gaevi\onedrive\documents\codepractice\engine\engine\engine\x64\debug\im
 c:\users\gaevi\onedrive\documents\codepractice\engine\engine\engine\x64\debug\imgui.obj
 c:\users\gaevi\onedrive\documents\codepractice\engine\engine\engine\x64\debug\imgui_impl_opengl3.obj
 c:\users\gaevi\onedrive\documents\codepractice\engine\engine\engine\x64\debug\imgui_impl_glfw.obj
-c:\users\gaevi\onedrive\documents\codepractice\engine\engine\engine\x64\debug\backend.obj
 c:\users\gaevi\onedrive\documents\codepractice\engine\engine\engine\x64\debug\glad.obj
-c:\users\gaevi\onedrive\documents\codepractice\engine\engine\engine\x64\debug\util.obj
 c:\users\gaevi\onedrive\documents\codepractice\engine\engine\engine\x64\debug\engine.ilk
-c:\users\gaevi\onedrive\documents\codepractice\engine\engine\engine\x64\debug\objectpicker.obj
 c:\users\gaevi\onedrive\documents\codepractice\engine\engine\engine\x64\debug\backend.obj.enc
 c:\users\gaevi\onedrive\documents\codepractice\engine\engine\x64\debug\engine.pdb
 c:\users\gaevi\onedrive\documents\codepractice\engine\engine\engine\x64\debug\engine.tlog\cl.command.1.tlog
@@ -25,8 +24,5 @@ c:\users\gaevi\onedrive\documents\codepractice\engine\engine\engine\x64\debug\en
 c:\users\gaevi\onedrive\documents\codepractice\engine\engine\engine\x64\debug\engine.tlog\cl.write.1.tlog
 c:\users\gaevi\onedrive\documents\codepractice\engine\engine\engine\x64\debug\engine.tlog\link.command.1.tlog
 c:\users\gaevi\onedrive\documents\codepractice\engine\engine\engine\x64\debug\engine.tlog\link.read.1.tlog
-c:\users\gaevi\onedrive\documents\codepractice\engine\engine\engine\x64\debug\engine.tlog\link.read.2.tlog
-c:\users\gaevi\onedrive\documents\codepractice\engine\engine\engine\x64\debug\engine.tlog\link.read.3.tlog
-c:\users\gaevi\onedrive\documents\codepractice\engine\engine\engine\x64\debug\engine.tlog\link.read.4.tlog
 c:\users\gaevi\onedrive\documents\codepractice\engine\engine\engine\x64\debug\engine.tlog\link.secondary.1.tlog
 c:\users\gaevi\onedrive\documents\codepractice\engine\engine\engine\x64\debug\engine.tlog\link.write.1.tlog
