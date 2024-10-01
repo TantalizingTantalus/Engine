@@ -1,8 +1,6 @@
 
 
-#ifndef CAMERA_H
-#define CAMERA_H
-
+#pragma once
 #include <glad/glad.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -15,6 +13,11 @@ enum Camera_Movement {
     BACKWARD,
     LEFT,
     RIGHT
+};
+
+enum Camera_Mode {
+    PERSPECTIVE,
+    ORTHO
 };
 
 // Default camera values
@@ -35,6 +38,8 @@ public:
     glm::vec3 Up;
     glm::vec3 Right;
     glm::vec3 WorldUp;
+    glm::mat4 m_ProjectionMatrix;
+    Camera_Mode mode = Camera_Mode::PERSPECTIVE;
     // euler Angles
     float Yaw;
     float Pitch;
@@ -49,6 +54,9 @@ public:
     const float Min_MoveSpeed = 0.0f;
     float MouseSensitivity;
     float Zoom;
+
+    int m_WindowWidth, m_WindowHeight;
+
 
     void LookAtWithYaw(glm::vec3 target) {
         // Get direction to the target
@@ -147,7 +155,10 @@ public:
 
     void UpdateViewAndProjectionMatrices()
     {
-        this->m_ProjectionMatrix = glm::perspective(glm::radians(Zoom), (float)m_WindowWidth / (float)m_WindowHeight, NearClippingPlane, FarClippingPlane);
+        if (this->mode == Camera_Mode::PERSPECTIVE)
+            this->m_ProjectionMatrix = glm::perspective(glm::radians(Zoom), (float)m_WindowWidth / (float)m_WindowHeight, NearClippingPlane, FarClippingPlane);
+        else if (this->mode == Camera_Mode::ORTHO)
+            this->m_ProjectionMatrix = glm::ortho(0.0f, 4.0f, 0.0f, 3.0f, 0.1f, 100.0f);
         this->m_ViewMatrix = glm::lookAt(Position, Position + Front, Up);
     }
 
@@ -184,10 +195,9 @@ private:
     bool freeLook = false;
 
     glm::mat4 m_ViewMatrix;
-    glm::mat4 m_ProjectionMatrix;
-    int m_WindowWidth, m_WindowHeight;
+    
+    
     // calculates the front vector from the Camera's (updated) Euler Angles
     
 };
-#endif
 

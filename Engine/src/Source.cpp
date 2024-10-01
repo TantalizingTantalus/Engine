@@ -10,6 +10,7 @@ int main()
 {
 	try
 	{
+		
 		Program.Initialize();
 		Program.Update();
 	}
@@ -19,6 +20,7 @@ int main()
 	}
 	
 }
+
 
 
 

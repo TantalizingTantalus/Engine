@@ -60,6 +60,12 @@
     <ClCompile Include="dependencies\imgui\imgui-master\backends\imgui_impl_glfw.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\TestSource.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Editor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Headers\ft2build.h">
@@ -116,6 +122,12 @@
     <ClInclude Include="Headers\FrameBuffer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Headers\Editor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Headers\Logging.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\LitMaterial_Shader.frag">
@@ -136,5 +148,7 @@
     <None Include="Shaders\shaderSingleColor.vert">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="Shaders\TextGlyph.vert" />
+    <None Include="Shaders\TextGlyph.frag" />
   </ItemGroup>
 </Project>

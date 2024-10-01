@@ -8,40 +8,43 @@ bool ContextMenuActive = false;
 bool shouldSpin = false;
 bool reverseSpin = false;
 bool editingName = false;
+bool renderUI = true;
 float deltaTime;
-char InputName[30];
+
+Editor EditorWindow;
 Camera camera;
-FT_Library library;
 ImGuizmo::OPERATION myOperation = ImGuizmo::OPERATION::TRANSLATE;
-Model* DirectionalLightObject = nullptr;
-Model* DebugSelectedObj = nullptr;
 std::string editingTempName, editingNameLoggingMsg;
 
-// Session logging vector
-std::vector<std::string> LoggingWindowEntries;
-std::vector<Model>* DebugModelList;
+
+struct Character {
+	unsigned int TextureID; 
+	glm::ivec2   Size;      
+	glm::ivec2   Bearing;   
+	unsigned int Advance;   
+};
+
+std::map<GLchar, Character> Characters;
+unsigned int VAO, VBO;
 
 //																								 Function protos
 
-void Task_AlignDirLight();
-void Task_Delete();
-void LookAtObject(glm::vec3& ObjPosition);
-void Task_FocusObject();
-void Task_DebugNormals(bool&, GLuint);
-void Exit_Application(GLFWwindow* window);
-void Hide_UI();
-void Show_UI();
-void ToggleFullscreen(GLFWwindow* window);
+void RenderText(Shader& shader, std::string text, float x, float y, float scale, glm::vec3 color, float, float);
+void InitializeUserInterface();
+
 void PollInputs(GLFWwindow* window);
+Backend::Backend()
+{
+	spdlog::info("Initializing Backend");
+}
 
 //																									Main Logic
 int Backend::Initialize()
 {
 	deltaTime = 0.0f;
-	Backend::IsFullscreen = false;
+	EditorWindow.IsFullscreen = false;
 	camera.Position = (glm::vec3(0.0f, 0.0f, 3.0f));
 	spdlog::info("Initializing GLFW");
-	
 
 	// Window setup
 	{
@@ -52,7 +55,7 @@ int Backend::Initialize()
 			return 0;
 		}
 
-		if (Backend::IsFullscreen)
+		if (EditorWindow.IsFullscreen)
 		{
 			window = glfwCreateWindow(full_width, full_height, "Engine", glfwGetPrimaryMonitor(), NULL);
 			if (!window)
@@ -102,11 +105,7 @@ int Backend::Initialize()
 
 	// Initialize FreeType
 	{
-		bool error = FT_Init_FreeType(&library);
-		if (error)
-		{
-			spdlog::error("There was an issue loading the FreeType library...");
-		}
+		// To implement
 	}
 
 	// Debug display framework versioning
@@ -125,8 +124,10 @@ int Backend::Initialize()
 		Shader shaders("..\\Engine\\Shaders\\LitMaterial_Shader.vert", "..\\Engine\\Shaders\\LitMaterial_Shader.frag");
 		Shader lightShader("..\\Engine\\Shaders\\lightSource.vert", "..\\Engine\\Shaders\\lightSource.frag");
 		Shader stencilShader("..\\Engine\\Shaders\\LitMaterial_Shader.vert", "..\\Engine\\Shaders\\shaderSingleColor.frag");
+		Shader myTextShader("..\\Engine\\Shaders\\TextGlyph.vert", "..\\Engine\\Shaders\\TextGlyph.frag");
 		TempShader = shaders;
 		lightCubeShader = lightShader;
+		textShader = myTextShader;
 	}
 	
 	// Initialize IMGUI
@@ -181,6 +182,7 @@ int Backend::Initialize()
 
 	//Initialize camera after window creation to update framebuffersize for imguizmo
 	camera.Initialize(window);
+	
 
 	camera.Position = glm::vec3(.6f, .83f, 1.3f);
 	camera.Yaw = -134.6f;
@@ -194,11 +196,18 @@ int Backend::Initialize()
 int Backend::Update()
 {
 	ImGuiIO& io = ImGui::GetIO(); (void)io;
-	
+
+	InitializeUserInterface();
+
 	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+
 	int diW, diH;
 	glfwGetFramebufferSize(window, &diW, &diH);
+
 	FrameBuffer sceneBuf(width, height);
+	float money = 0, currentTime = 0;
+
+	
 
 	// Main Loop *CORE*
 	while (!glfwWindowShouldClose(window))
@@ -211,10 +220,12 @@ int Backend::Update()
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+		// Bind framebuffer
 		sceneBuf.Bind();
-		//ImGui::DockSpaceOverViewport(ImGuiDockNodeFlags_PassthruCentralNode);
+		
+		// Docking space for ImGui setup
 		ImGui::DockSpace(ImGui::GetID("Dockspace1"), ImVec2(0, 0),ImGuiDockNodeFlags_PassthruCentralNode);
 		ImGuiWindowFlags hiddenWindowFlags = ImGuiWindowFlags_NoBringToFrontOnFocus |
 			ImGuiWindowFlags_NoNavFocus |
@@ -224,26 +235,28 @@ int Backend::Update()
 			ImGuiWindowFlags_NoCollapse |
 			ImGuiWindowFlags_MenuBar;
 
-		glm::mat4 identit(1.0f);
 		float windowWidth = (float)ImGui::GetWindowWidth();
 		float windowHeight = (float)ImGui::GetWindowHeight();
 		
+		// Update camera matrices everyframe
 		camera.UpdateViewAndProjectionMatrices();
 
+		// More ImGui setup
 		ImGui::SetNextWindowPos(ImVec2(0, 0));
 		ImGui::SetNextWindowSize(ImVec2(float(GetWindowWidth(window)), float(GetWindowHeight(window))));
 		ImGui::Begin("Engine", 0, ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoTitleBar );
 		ImGui::DockSpace(ImGui::GetID("Dockspace"), ImVec2(0, 0));
 
+		// Begin Scene window frame
 		ImGui::Begin("Scene");
-
-		//ImGui::BeginChild("GameRender");
-
 		float winwidth = ImGui::GetContentRegionAvail().x;
 		float winheight = ImGui::GetContentRegionAvail().y;
 
-		glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w);
+		// Clear viewport and set selected color
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glClearColor(EditorWindow.clear_color.x, EditorWindow.clear_color.y, EditorWindow.clear_color.z, EditorWindow.clear_color.w);
+
+		// Framebuffer setup
 		glViewport(0, 0, (GLsizei)winwidth, (GLsizei)winheight);
 		sceneBuf.RescaleFrameBuffer(winwidth, winheight);
 		
@@ -253,60 +266,51 @@ int Backend::Update()
 			ImVec2(0, 1),
 			ImVec2(1, 0)
 		);
-		
 
 		ImVec2 windowPos = ImGui::GetWindowPos();
 		ImVec2 windowSize = ImGui::GetWindowSize();
 		// End Imgui Inits
 
-		float currentFrame = glfwGetTime();  // Get the current time
-		deltaTime = currentFrame - lastFrame; // Calculate delta time
-		lastFrame = currentFrame;  // Update last frame time
+		// Time tracking
+		float currentFrame = glfwGetTime();  
+		deltaTime = currentFrame - lastFrame; 
+		lastFrame = currentFrame;  
+		currentTime += deltaTime;
 
-		if (shouldSpin) {
-			if (!reverseSpin)
-				rotationAngle += 0.5f;
-			else
-				rotationAngle -= 0.5f;
-
-			if (rotationAngle > 360.0f) {
-				rotationAngle -= 360.0f;
-			}
-			if (rotationAngle < 0.0f) {
-				rotationAngle += 360.0f;
-			}
-		}
-
-		
+		// Begin Gizmo frame
 		ImGuizmo::BeginFrame();
-		
+
+		EditorWindow.Initialize(camera, *window);
 
 		// Gizmo Manipulation
-		if (DebugSelectedObj != nullptr)
+		if (EditorWindow.DebugSelectedObj != nullptr)
 		{
-			ImGuizmo::SetOrthographic(false);
+			if (camera.mode == Camera_Mode::ORTHO)
+				ImGuizmo::SetOrthographic(true);
+			else
+				ImGuizmo::SetOrthographic(false);
 			ImGuizmo::SetDrawlist();
 			
 			ImVec2 windowPos = ImGui::GetWindowPos();
 			ImVec2 windowSize = ImGui::GetWindowSize();
 			ImGuizmo::SetRect(windowPos.x, windowPos.y, windowSize.x, windowSize.y);
 			
-			glm::mat4* modelMatrix = &DebugSelectedObj->GetModelMatrix();
+			glm::mat4* modelMatrix = &EditorWindow.DebugSelectedObj->GetModelMatrix();
 			ImGuizmo::Manipulate(glm::value_ptr(camera.GetViewMatrix()), glm::value_ptr(camera.GetProjectionMatrix()),
 				myOperation,
 				ImGuizmo::LOCAL,
 				glm::value_ptr(*modelMatrix));
 		}
-		//ImGuizmo::DrawGrid(glm::value_ptr(camera.GetViewMatrix()), glm::value_ptr(camera.GetProjectionMatrix()), glm::value_ptr(glm::mat4(1.0f)), 100.0f);
-		
+
+		// Begin Main render loop
 		if (!ModelList.empty())
 		{
-			// lights first, models second
+			// Render lights first, models second
 			for (int i = 0; i < ModelList.size(); i++) {
 				Model& modelitem = ModelList[i];
 				
 				if (modelitem.IsLight) {
-					DirectionalLightObject = &modelitem;
+					EditorWindow.DirectionalLightObject = &modelitem;
 
 					// Shader setup for the light objects
 					lightCubeShader.use();
@@ -320,6 +324,7 @@ int Backend::Update()
 				}
 				else
 				{
+					// Render Models second
 					if (!modelitem.IsLight && modelitem.GetVisible()) {
 
 						// Debug Spin model in editor
@@ -334,398 +339,65 @@ int Backend::Update()
 						TempShader.setMat4("model", modelitem.GetModelMatrix());
 						TempShader.setMat4("projection", camera.GetProjectionMatrix());
 						TempShader.setMat4("view", camera.GetViewMatrix());
-						TempShader.setVec3("lightPos", DirectionalLightObject->GetPosition());
+						TempShader.setVec3("lightPos", EditorWindow.DirectionalLightObject->GetPosition());
 						TempShader.setVec3("viewPos", camera.Position);
 						TempShader.setVec3("lightColor", 1.0f, 1.0f, 1.0f);
 						TempShader.setVec3("objectColor", 1.0f, .5f, .31f);
 						modelitem.SetShader(TempShader);
 
-						// Draw the model item
+						// Draw the model item, this is 1 draw call per frame 60fps = 60 draw calls
 						modelitem.Draw();
 					}
 				}
 			}
+		}
 
-			// Models second
-			for (int i = 0; i < ModelList.size(); i++) {
-				Model& modelitem = ModelList[i];
-				// pending optimization
-				
+		// Begin Game UI
+		{
+
+			if (renderUI)
+			{
+				RenderText(textShader, fmt::format("Time: {:.2f}", currentFrame), (windowSize.x / windowSize.x) + 25.0f, windowSize.y - 40.0f, .85f, glm::vec3(0.5, 0.8f, 0.2f), windowSize.x, windowSize.y);
+				RenderText(textShader, fmt::format("Money: {:.2f}", money), windowSize.x - (windowSize.x / 3) - 25.0f,windowSize.y - 40.0f, .85f, glm::vec3(0.5, 0.8f, 0.2f), windowSize.x, windowSize.y);
 			}
 		}
-		
-		DebugModelList = &ModelList;
-		sceneBuf.Unbind();
-		//ImGui::EndChild();
-		glEnable(GL_DEPTH_TEST);
-		glDepthFunc(GL_LESS);
-		
+
+		// Money increment logic
+		if (currentTime >= 5.0f) {
+			money += 15;
+			currentTime -= 5.0f;
+		}
+
+		// Set debug modellist to current frame's model list
+		EditorWindow.DebugModelList = &ModelList;
+
+		// End Render scene
 		ImGui::End();
 
-		DebugWindow(io);
+		// Unbind the scene buffer
+		sceneBuf.Unbind();
+		
+		// Setup io for debug menus
+		EditorWindow.DebugWindow(io, ModelList);
+
+		// rescale frame buffer 
 		sceneBuf.RescaleFrameBuffer(winwidth, winheight);
-		glfwSwapBuffers(window); // End Frame
+
+		// Final
+		glfwSwapBuffers(window); 
 	}
 	
-
+	// Cleanup
 	ImGui_ImplOpenGL3_Shutdown();
 	ImGui_ImplGlfw_Shutdown();
-
 	ImGui::DestroyContext();
-
 	glfwTerminate();
+
+	// Return out
 	return 0;
 }
 
-bool Backend::IsFullscreen = false;
-
-Backend::Backend()
-{
-	spdlog::info("Initializing Backend");
-}
-
  //																									Definitions
-
-void Backend::DebugWindow(ImGuiIO& io)
-{
-	
-	if (ImGui::BeginMenuBar())
-	{
-		if (ImGui::BeginMenu("File"))
-		{
-			if (ImGui::MenuItem("Open..", "Ctrl+O")) 
-			{ 
-				Model newModel = OpenModelFileDialog(); 
-				if (newModel.GetModelName() != "null_model")
-				{
-					ModelList.push_back(newModel);
-				}
-				
-			}
-			if (ImGui::MenuItem("Close", "'Esc'")) { Exit_Application(window); }
-			ImGui::EndMenu();
-		}
-		if (ImGui::BeginMenu("Edit"))
-		{
-			if (ImGui::MenuItem("Set Light Position to Camera", "'G'")) { Task_AlignDirLight(); }
-			if (ImGui::MenuItem("Focus Camera to Selected", "'F'")) { Task_FocusObject(); }
-			if (ImGui::MenuItem("Rename Selected Object", "'CTRL+R'")) { editingName = true; }
-			ImGui::EndMenu();
-		}
-		if (ImGui::BeginMenu("View"))
-		{
-			if (ImGui::MenuItem("Hide Debug Window", "'H'")) { Hide_UI(); }
-			ImGui::EndMenu();
-		}
-		if (ImGui::BeginMenu("Docs"))
-		{
-			if (ImGui::MenuItem("OpenGL Docs", "'F12'")) { system("start https://learnopengl.com/"); }
-			if (ImGui::MenuItem("ImGui Docs", "'F12+1'")) { system("start https://github.com/ocornut/imgui/wiki"); }
-			if (ImGui::MenuItem("Guizmo Docs", "'F12+2'")) { system("start https://github.com/CedricGuillemet/ImGuizmo"); }
-			if (ImGui::MenuItem("GitHub Page", "'F12+3'")) { system("start https://github.com/TantalizingTantalus/Engine"); }
-			ImGui::EndMenu();
-		}
-		ImGui::EndMenuBar();
-	}
-	ImGui::End();
-
-	// Properties Panel
-	{
-		ImGui::Begin("Properties");
-		
-		for (int i = 0; i < ModelList.size(); i++)
-		{
-			Model& model = ModelList[i];
-			glm::vec3& modelPosition = model.GetPosition();
-			glm::vec3& modelScale = model.GetScale();
-			glm::vec3& modelRotation = model.GetRotation();
-			if (i == selectedDebugModelIndex)
-			{
-				ImGui::Text("Model Name: ");
-				strcpy_s(InputName, model.GetModelName().c_str());
-				ImGuiInputTextFlags flags = ImGuiInputTextFlags_CallbackAlways;
-				if (ImGui::InputText("##something", InputName, IM_ARRAYSIZE(InputName)))
-				{
-					DebugSelectedObj->SetModelName(InputName);
-				}
-
-				ImGui::Text("Directional Light?");
-				ImGui::Checkbox("True/False", &model.IsLight);
-
-				DebugSelectedObj = &model;
-				ImGui::Text("Position");
-				if (ImGui::InputFloat3("##position", glm::value_ptr(modelPosition))) {
-					model.UpdateModelMatrix();
-				}
-
-				ImGui::Text("Rotation");
-				if (ImGui::InputFloat3("##rotation", glm::value_ptr(modelRotation))) {
-					model.UpdateModelMatrix();
-				}
-
-				ImGui::Text("Scale");
-				if (ImGui::InputFloat3("##scale", glm::value_ptr(modelScale))) {
-					model.UpdateModelMatrix();
-				}
-			}
-		}
-		
-		//ImGui::AlignTextToFramePadding();
-		ImGui::End();
-	}
-
-	// Object selection/ object viewer 
-	{
-		ImGui::Begin("Object Viewer");
-		for (int i = 0; i < ModelList.size(); i++)
-		{
-			bool isSelected = (i == selectedDebugModelIndex);
-
-			if (ImGui::Selectable(ModelList[i].GetModelName().c_str(), isSelected))
-			{
-				selectedDebugModelIndex = i; // Update the selected index
-				LoggingWindowEntries.push_back(fmt::format("{} Selected", ModelList[i].GetModelName().c_str()));
-			}
-
-			// Check if the item is hovered and the right mouse button is released
-			if (ImGui::IsItemHovered() && ImGui::IsMouseReleased(1))
-			{
-				ImGui::OpenPopup("ContextMenu");
-			}
-			
-
-			if (editingName && selectedDebugModelIndex == i)
-			{
-				char test[12];
-				strcpy_s(test, DebugSelectedObj->GetModelName().c_str());
-
-				//ImGui::SetKeyboardFocusHere();
-				// add update messaage
-				editingNameLoggingMsg = fmt::format("Updated model name from \"{}\"", DebugSelectedObj->GetModelName());
-
-				if (ImGui::InputText("##something", test, IM_ARRAYSIZE(test)))
-				{
-					editingTempName = test;
-				}
-
-			}
-		}
-
-		if (ImGui::BeginPopup("ContextMenu")) {
-			if (ImGui::MenuItem("Rename")) {
-				// Perform action for Option 1
-				
-				editingName = true;
-			}
-			if (ImGui::MenuItem("Duplicate")) {
-				// Perform action for Option 2
-				Model DuplicateItem = *DebugSelectedObj;
-				int numDupes = 0;
-				LoggingWindowEntries.push_back("Keep in mind this duplicate is not instanced :(");
-				for (int i = 0; i < ModelList.size(); i++)
-				{
-					if (ModelList[i].GetModelFileName() == DuplicateItem.GetModelFileName())
-					{
-						numDupes++;
-					}
-				}
-				if (numDupes > 0)
-					DuplicateItem.SetModelName(fmt::format("{}({})", DuplicateItem.GetModelName(), numDupes));
-				ModelList.push_back(DuplicateItem);
-			}
-			if (ImGui::MenuItem("Delete"))
-			{
-				Task_Delete();
-			}
-
-			ImGui::EndPopup();
-
-
-		}
-
-		ImGui::AlignTextToFramePadding();
-		ImGui::End();
-	}
-
-	// Debug properties - to do cleanup
-	{
-		ImGui::Begin("Debug");
-		if (ImGui::Button("Toggle Fullscreen Mode"))
-			ToggleFullscreen(window);
-
-		// Camera Position
-		ImGui::Text("Camera:");
-		ImGui::Text("X position: %.2f", camera.Position.x);
-		ImGui::Text("Y position: %.2f", camera.Position.y);
-		ImGui::Text("Z position: %.2f", camera.Position.z);
-
-		// Camera Rotation
-		ImGui::Text("Yaw: %.2f", camera.Yaw);
-		ImGui::Text("Pitch: %.2f", camera.Pitch);
-
-		// Field of view
-		ImGui::Text("Field of View (FOV):");
-		ImGui::SameLine();
-		ImGui::SliderFloat("##fov", &camera.Zoom, 0, 100);
-
-		// Near clipping
-		ImGui::Text("Camera near clipping: ");
-		ImGui::SameLine();
-		ImGui::InputFloat("##nearClipping", &camera.NearClippingPlane);
-
-		// Far clipping
-		ImGui::Text("Camera far clipping: ");
-		ImGui::SameLine();
-		ImGui::InputFloat("##farClipping", &camera.FarClippingPlane);
-
-		// Adjust camera Speed
-		ImGui::Text("Camera Speed: ");
-		ImGui::SameLine();
-		ImGui::SliderFloat("Camera Speed", &camera.MovementSpeed, camera.Min_MoveSpeed, camera.Max_MoveSpeed);
-
-		// Reverse Spin
-		ImGui::Text("Reverse Spin? ");
-		ImGui::SameLine();
-		ImGui::Checkbox("##reverse", &reverseSpin);
-
-		// Disable/enable spinning
-		ImGui::Text("Spin? ");
-		ImGui::SameLine();
-		ImGui::Checkbox("##spin", &shouldSpin);
-		
-
-		// Color picker
-		ImGui::Text("Viewport Color:");
-		ImGui::SameLine();
-		ImGui::ColorEdit3("##viewportColor", (float*)&clear_color);
-
-		// Version/Renderer info
-		const GLubyte* glVersion = glGetString(GL_VERSION);
-		const GLubyte* glRenderer = glGetString(GL_RENDERER);
-		ImGui::Text("GPU: %s", glRenderer);
-		ImGui::Text("Application %.1f FPS", io.Framerate);
-		ImGui::Text("GLFW Version: %s", glfwGetVersionString());
-		ImGui::Text("OpenGL Version: %s", glVersion);
-		ImGui::End();
-	}
-
-	// Logging window! a personal favorite
-	{
-		ImGui::Begin("Logging");
-		ImGui::Text("Logging window successfully initialized!");
-		for (int i = 0; i < LoggingWindowEntries.size(); i++)
-		{
-			ImGui::Text(LoggingWindowEntries[i].c_str());
-		}
-		ImGui::End();
-	}
-
-	// To do implement content file browser
-	//{
-	//	ImGui::Begin("File Viewer");
-	//	//ImGui::AcceptDragDropPayload("hello");
-	//	
-	//	ImGui::End();
-	//}
-	
-	// Prepare render to draw
-	ImGui::Render();
-
-	// Draw it if Debug mode true - todo fix this, bug in program where entire window stalls when false, 
-	// this is mostly likely due to the openGL renderer being rendered to a 'scene' window inside of the 
-	// debug menu.
-	if (DEBUG_MODE)
-	{
-		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-	}
-}
-
-// Quick toggle function for debug mode
-void Show_UI()
-{
-	DEBUG_MODE = true;
-}
-
-// Quick hide function for debug ui elements
-void Hide_UI()
-{
-	DEBUG_MODE = false;
-}
-
-// super useful for importing files from disk
-Model Backend::OpenModelFileDialog()
-{
-																							// To Do: solve cancellation logic
-
-	// Buffer to hold the file name
-	wchar_t fileName[MAX_PATH] = L"";
-	std::string logMsg;
-
-	
-
-	// Initialize OPENFILENAME structure
-	OPENFILENAME ofn;
-	ZeroMemory(&ofn, sizeof(ofn));
-	ofn.lStructSize = sizeof(ofn);
-	ofn.hwndOwner = nullptr;  // If you have a window handle, pass it here
-	ofn.lpstrFile = fileName;
-	ofn.nMaxFile = sizeof(fileName) / sizeof(fileName[0]);  // Adjust for wide characters
-	ofn.lpstrFilter = L"Any(.fbx, .obj, .dae)\0*.fbx;*.obj;*.dae\0.obj\0*.obj\0.fbx\0*.fbx\0.dae\0*.dae\0";
-	ofn.nFilterIndex = 1;
-	ofn.lpstrFileTitle = nullptr;
-	ofn.nMaxFileTitle = 0;
-	ofn.lpstrInitialDir = nullptr;
-	ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
-
-	// Display the Open dialog box
-	if (GetOpenFileName(&ofn) == TRUE)
-	{
-		std::string ofnName = Util::WideStringToString(ofn.lpstrFile);
-		std::filesystem::path path(ofnName);
-		std::string extName = path.filename().string();
-		
-		std::string baseFileName = extName;
-
-		// extTemp example value: ".obj", ".fbx"
-		std::string extTemp = extName.substr(extName.length() - 4);
-
-		// extName example value: "Backpack", "Cube"
-		extName = extName.substr(0, extName.length() - 4);
-
-		//Check for duplicates
-		{
-			int numDupes = 0;
-			for (int i = 0; i < ModelList.size(); i++)
-			{
-				if (ModelList[i].GetModelFileName() == baseFileName)
-				{
-					numDupes++;
-				}
-			}
-			if (numDupes > 0)
-				extName = fmt::format("{}({})", extName, numDupes);
-		}
-
-
-		logMsg = fmt::format("Successfully loaded file: {}{}", extName, extTemp);
-		spdlog::info(logMsg);
-		LoggingWindowEntries.push_back(logMsg);
-
-		// Load Model
-		Model loadedModel(ofnName);
-		loadedModel.SetModelName(extName);
-		loadedModel.SetModelFileName(baseFileName);
-		return loadedModel;
-	}
-	else
-	{
-		logMsg = "Open file selection cancelled";
-		spdlog::info(logMsg);
-		LoggingWindowEntries.push_back(logMsg);
-		Model model;
-		return model;
-	}
-}
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
@@ -733,106 +405,149 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 	glViewport(0, 0, width, height);
 }
 
-void Task_AlignDirLight()
+void RenderText(Shader& shader, std::string text, float x, float y, float scale, glm::vec3 color, float screen_width, float screen_height)
 {
-	/*LoggingWindowEntries.push_back(fmt::format("Updated light position to \nx:{}\ny:{}\nz:{}", camera.Position.x * roundDecimal, camera.Position.y * roundDecimal, camera.Position.z * roundDecimal));*/
-	std::ostringstream oss;
-	oss << std::fixed << std::setprecision(2)
-		<< "Updated light position to \nx:" << camera.Position.x
-		<< "\ny:" << camera.Position.y
-		<< "\nz:" << camera.Position.z;
+	glm::mat4 projection = glm::ortho(0.0f, screen_width, 0.0f, screen_height);
 
-	LoggingWindowEntries.push_back(oss.str());
-	DirectionalLightObject->SetPosition(camera.Position);
-	DirectionalLightObject->UpdateModelMatrix();
-}
+	// activate corresponding render state	
+	shader.use();
+	shader.setMat4("projection", projection);
+	glUniform3f(glGetUniformLocation(shader.ID, "textColor"), color.x, color.y, color.z);
+	glEnable(GL_BLEND);
+	glDisable(GL_DEPTH_TEST);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glActiveTexture(GL_TEXTURE0);
+	glBindVertexArray(VAO);
 
-void Exit_Application(GLFWwindow* window)
-{
-	std::cout << "Goodbye!" << std::endl;
-
-	glfwSetWindowShouldClose(window, true);
-}
-
-void ToggleFullscreen(GLFWwindow* window)
-{
-	if (Backend::IsFullscreen)
+	// iterate through all characters
+	std::string::const_iterator c;
+	for (c = text.begin(); c != text.end(); c++)
 	{
-		Backend::IsFullscreen = !Backend::IsFullscreen;
-		spdlog::info(Backend::IsFullscreen);
-		glfwSetWindowMonitor(window, NULL, 100, 100, Backend::width, Backend::height, 0);
-		camera.Zoom = 45.0f;
+		Character ch = Characters[*c];
+
+		float xpos = x + ch.Bearing.x * scale;
+		float ypos = y - (ch.Size.y - ch.Bearing.y) * scale;
+
+		float w = ch.Size.x * scale;
+		float h = ch.Size.y * scale;
+		// update VBO for each character
+		float vertices[6][4] = {
+			{ xpos,     ypos + h,   0.0f, 0.0f },
+			{ xpos,     ypos,       0.0f, 1.0f },
+			{ xpos + w, ypos,       1.0f, 1.0f },
+
+			{ xpos,     ypos + h,   0.0f, 0.0f },
+			{ xpos + w, ypos,       1.0f, 1.0f },
+			{ xpos + w, ypos + h,   1.0f, 0.0f }
+		};
+		// render glyph texture over quad
+		glBindTexture(GL_TEXTURE_2D, ch.TextureID);
+		// update content of VBO memory
+		glBindBuffer(GL_ARRAY_BUFFER, VBO);
+		glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices); // be sure to use glBufferSubData and not glBufferData
+
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		// render quad
+		glDrawArrays(GL_TRIANGLES, 0, 6);
+		// now advance cursors for next glyph (note that advance is number of 1/64 pixels)
+		x += (ch.Advance >> 6) * scale; // bitshift by 6 to get value in pixels (2^6 = 64 (divide amount of 1/64th pixels by 64 to get amount of pixels))
+	}
+	glBindVertexArray(0);
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+	glEnable(GL_DEPTH_TEST);
+}
+
+void InitializeUserInterface()
+{
+
+	// FreeType
+	// --------
+	FT_Library ft;
+	// All functions return a value different than 0 whenever an error occurred
+	if (FT_Init_FreeType(&ft))
+	{
+		std::cout << "ERROR::FREETYPE: Could not init FreeType Library" << std::endl;
+		return;
+	}
+
+	// find path to font
+	std::string font_name = "C:\\Users\\Gaevi\\OneDrive\\Documents\\CodePractice\\Engine\\Engine\\Engine\\Fonts\\arial.ttf";
+	if (font_name.empty())
+	{
+		std::cout << "ERROR::FREETYPE: Failed to load font_name" << std::endl;
+		return;
+	}
+
+	// load font as face
+	FT_Face face;
+	if (FT_New_Face(ft, font_name.c_str(), 0, &face)) {
+		std::cout << "ERROR::FREETYPE: Failed to load font" << std::endl;
+		return;
 	}
 	else {
-		Backend::IsFullscreen = !Backend::IsFullscreen;
-		spdlog::info(Backend::IsFullscreen);
-		glfwSetWindowMonitor(window, glfwGetPrimaryMonitor(), 100, 100, Backend::full_width, Backend::full_height, 0);
-		camera.Zoom = 90.0f;
-	}
-}
+		// set size to load glyphs as
+		FT_Set_Pixel_Sizes(face, 0, 48);
 
-void LookAtObject(glm::vec3& ObjPosition)
-{
+		// disable byte-alignment restriction
+		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
-	glm::vec3 zoffset = glm::vec3(0, 0, 3.0f);
-
-	if (camera.Position != (ObjPosition - zoffset))
-	{
-		camera.Position = glm::vec3(ObjPosition.x, ObjPosition.y, ObjPosition.z - zoffset.z);
-		camera.LookAtWithYaw(ObjPosition);
-		camera.Pitch = -15.0f;
-		camera.updateCameraVectors();
-	}
-}
-
-void Task_FocusObject()
-{
-	if (DebugSelectedObj == nullptr)
-	{
-		LoggingWindowEntries.push_back("Debug Selected Object is empty (null)");
-	}
-	else
-	{
-		glm::vec3 ObjPosition = DebugSelectedObj->GetPosition();
-		if (camera.Position != ObjPosition)
+		// load first 128 characters of ASCII set
+		for (unsigned char c = 0; c < 128; c++)
 		{
-			glm::vec3 ObjPosition = DebugSelectedObj->GetPosition();
-			LookAtObject(ObjPosition);
-			std::string message = std::format("Focused '{}' Object", DebugSelectedObj->GetModelName());
-			LoggingWindowEntries.push_back(message);
-		}
-	}
-}
-
-void Task_DebugNormals(bool& flag, GLuint sId)
-{
-	flag = !flag;
-	glUniform1i(glGetUniformLocation(sId, "DEBUG_NORMAL"), flag);
-}
-
-void Task_Delete()
-{
-	if (DebugSelectedObj != nullptr)
-	{
-		if (!DebugModelList->empty())
-		{
-			for (auto iModel = DebugModelList->begin(); iModel != DebugModelList->end(); )
+			// Load character glyph 
+			if (FT_Load_Char(face, c, FT_LOAD_RENDER))
 			{
-				if (iModel->GetModelName() == DebugSelectedObj->GetModelName())
-				{
-					iModel = DebugModelList->erase(iModel);
-				}
-				else
-				{
-					++iModel;
-				}
+				std::cout << "ERROR::FREETYTPE: Failed to load Glyph" << std::endl;
+				continue;
 			}
+			// generate texture
+			unsigned int texture;
+			glGenTextures(1, &texture);
+			glBindTexture(GL_TEXTURE_2D, texture);
+			glTexImage2D(
+				GL_TEXTURE_2D,
+				0,
+				GL_RED,
+				face->glyph->bitmap.width,
+				face->glyph->bitmap.rows,
+				0,
+				GL_RED,
+				GL_UNSIGNED_BYTE,
+				face->glyph->bitmap.buffer
+			);
+			// set texture options
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			// now store character for later use
+			Character character = {
+				texture,
+				glm::ivec2(face->glyph->bitmap.width, face->glyph->bitmap.rows),
+				glm::ivec2(face->glyph->bitmap_left, face->glyph->bitmap_top),
+				static_cast<unsigned int>(face->glyph->advance.x)
+			};
+			Characters.insert(std::pair<char, Character>(c, character));
 		}
+		glBindTexture(GL_TEXTURE_2D, 0);
 	}
-	else
-	{
-		LoggingWindowEntries.push_back("No object selected!!");
-	}
+	// destroy FreeType once we're finished
+	FT_Done_Face(face);
+	FT_Done_FreeType(ft);
+
+
+	// configure VAO/VBO for texture quads
+	// -----------------------------------
+	glGenVertexArrays(1, &VAO);
+	glGenBuffers(1, &VBO);
+	glBindVertexArray(VAO);
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 6 * 4, NULL, GL_DYNAMIC_DRAW);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), 0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindVertexArray(0);
 }
 
 void PollInputs(GLFWwindow* window)
@@ -907,13 +622,14 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 		{
 			ImGuiID myID = ImGui::GetHoveredID();
 			std::string s = std::to_string(myID);
-			LoggingWindowEntries.push_back(s);
+			EditorWindow.LoggingEntries.push_back(s);
 		}
 	}
 }
 
 void Input_Callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
+	ImGuizmo::OPERATION tempOp = myOperation;
 	switch (key)
 	{
 	case GLFW_KEY_W:
@@ -923,9 +639,16 @@ void Input_Callback(GLFWwindow* window, int key, int scancode, int action, int m
 		}
 		break;
 	case GLFW_KEY_R:
+		
 		if (action == GLFW_PRESS && !ImGui::IsAnyItemActive())
 		{
 			myOperation = ImGuizmo::OPERATION::ROTATE;
+		}
+		
+		if (action == GLFW_PRESS && (mods & GLFW_MOD_CONTROL) && !ImGui::IsAnyItemActive())
+		{
+			editingName = true;
+			myOperation = tempOp;
 		}
 		break;
 	case GLFW_KEY_T:
@@ -945,9 +668,7 @@ void Input_Callback(GLFWwindow* window, int key, int scancode, int action, int m
 	case GLFW_KEY_G:
 		if (action == GLFW_PRESS && !ImGui::IsAnyItemActive())
 		{
-
-			Task_AlignDirLight();
-
+			EditorWindow.Task_AlignDirLight();
 		}
 
 		break;
@@ -962,14 +683,14 @@ void Input_Callback(GLFWwindow* window, int key, int scancode, int action, int m
 	case GLFW_KEY_F11:
 		if (action == GLFW_PRESS && !ImGui::IsAnyItemActive())
 		{
-			ToggleFullscreen(window);
+			EditorWindow.ToggleFullscreen(window);
 		}
 		break;
 		// Stop the models from spinning 
 	case GLFW_KEY_F:
 		if (action == GLFW_PRESS && !ImGui::IsAnyItemActive())
 		{
-			Task_FocusObject();
+			EditorWindow.Task_FocusObject();
 		}
 		break;
 	case GLFW_KEY_BACKSPACE:
@@ -984,9 +705,9 @@ void Input_Callback(GLFWwindow* window, int key, int scancode, int action, int m
 			if (editingName)
 			{
 				editingNameLoggingMsg = fmt::format("{}", editingNameLoggingMsg);
-				LoggingWindowEntries.push_back(fmt::format("{} to \"{}\" ", editingNameLoggingMsg, editingTempName));
+				EditorWindow.LoggingEntries.push_back(fmt::format("{} to \"{}\" ", editingNameLoggingMsg, editingTempName));
 				editingNameLoggingMsg = "";
-				DebugSelectedObj->SetModelName(editingTempName);
+				EditorWindow.DebugSelectedObj->SetModelName(editingTempName);
 				editingName = false;
 			}
 		}
@@ -994,30 +715,30 @@ void Input_Callback(GLFWwindow* window, int key, int scancode, int action, int m
 	case GLFW_KEY_N:
 		if (action == GLFW_PRESS && !ImGui::IsAnyItemActive())
 		{
-			if (DebugSelectedObj != nullptr)
+			if (EditorWindow.DebugSelectedObj != nullptr)
 			{
-				DebugSelectedObj->RenderMode = RENDERTARGETS::NORMAL;
-				Task_DebugNormals(DEBUG_NORMAL_MAP, DebugSelectedObj->GetShaderID());
-				LoggingWindowEntries.push_back(fmt::format("Show normals: {}", DEBUG_NORMAL_MAP));
+				EditorWindow.DebugSelectedObj->RenderMode = RENDERTARGETS::NORMAL;
+				EditorWindow.Task_DebugNormals(DEBUG_NORMAL_MAP, EditorWindow.DebugSelectedObj->GetShaderID());
+				EditorWindow.LoggingEntries.push_back(fmt::format("Show normals: {}", DEBUG_NORMAL_MAP));
 			}
 			else
 			{
-				LoggingWindowEntries.push_back("No object with shader selected!!");
+				EditorWindow.LoggingEntries.push_back("No object with shader selected!!");
 			}
 		}
 		break;
 	case GLFW_KEY_L:
 		if (action == GLFW_PRESS && !ImGui::IsAnyItemActive())
 		{
-			if (DebugSelectedObj != nullptr)
+			if (EditorWindow.DebugSelectedObj != nullptr)
 			{
-				DebugSelectedObj->RenderMode = RENDERTARGETS::LINES;
+				EditorWindow.DebugSelectedObj->RenderMode = RENDERTARGETS::LINES;
 
-				LoggingWindowEntries.push_back(fmt::format("Rendering lines"));
+				EditorWindow.LoggingEntries.push_back(fmt::format("Rendering lines"));
 			}
 			else
 			{
-				LoggingWindowEntries.push_back("No object selected!!");
+				EditorWindow.LoggingEntries.push_back("No object selected!!");
 			}
 		}
 		break;
@@ -1025,16 +746,41 @@ void Input_Callback(GLFWwindow* window, int key, int scancode, int action, int m
 		case GLFW_KEY_DELETE:
 		if (action == GLFW_PRESS && !ImGui::IsAnyItemActive())
 		{
-			Task_Delete();
+			EditorWindow.Task_Delete();
 		}
 		break;
 		// Quit out of program
 	case GLFW_KEY_ESCAPE:
 		if (action == GLFW_PRESS && !ImGui::IsAnyItemActive())
 		{
-			Exit_Application(window);
+			EditorWindow.Exit_Application(window);
+		}
+		break;
+	case GLFW_KEY_O:
+		if (action == GLFW_PRESS && (mods & GLFW_MOD_CONTROL) && !ImGui::IsAnyItemActive())
+		{
+			EditorWindow.Task_ImportModel(*EditorWindow.DebugModelList);
+		}
+		break;
+	case GLFW_KEY_F12:
+		if (action == GLFW_PRESS && !ImGui::IsAnyItemActive())
+		{
+			system("start https://learnopengl.com/");
+		}
+		break;
+	case GLFW_KEY_X:
+		if (action == GLFW_PRESS && !ImGui::IsAnyItemActive())
+		{
+			renderUI = !renderUI;
+		}
+		break;
+	case GLFW_KEY_M:
+		if (action == GLFW_PRESS && !ImGui::IsAnyItemActive())
+		{
+			camera.mode = static_cast<Camera_Mode>((camera.mode + 1) % 2);	
 		}
 		break;
 	}
+
 }
 

@@ -23,12 +23,63 @@ C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\Headers\Fram
 C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\Headers\FrameBuffer.h(50,63): warning C4244: 'argument': conversion from 'float' to 'GLsizei', possible loss of data
   (compiling source file 'src/Backend.cpp')
   
-C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\src\Backend.cpp(251,4): warning C4312: 'type cast': conversion from 'unsigned int' to 'ImTextureID' of greater size
-C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\src\Backend.cpp(262,22): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\src\Backend.cpp(866,11): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\src\Backend.cpp(867,11): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\src\Backend.cpp(872,16): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\src\Backend.cpp(873,16): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\src\Backend.cpp(874,10): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\src\Backend.cpp(875,10): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\src\Backend.cpp(264,4): warning C4312: 'type cast': conversion from 'unsigned int' to 'ImTextureID' of greater size
+C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\src\Backend.cpp(275,22): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\src\Backend.cpp(581,11): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\src\Backend.cpp(582,11): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\src\Backend.cpp(587,16): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\src\Backend.cpp(588,16): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\src\Backend.cpp(589,10): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\src\Backend.cpp(590,10): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+  Editor.cpp
+C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\Headers\FrameBuffer.h(17,49): warning C4244: 'argument': conversion from 'float' to 'GLsizei', possible loss of data
+  (compiling source file 'src/Editor.cpp')
+  
+C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\Headers\FrameBuffer.h(17,42): warning C4244: 'argument': conversion from 'float' to 'GLsizei', possible loss of data
+  (compiling source file 'src/Editor.cpp')
+  
+C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\Headers\FrameBuffer.h(24,70): warning C4244: 'argument': conversion from 'float' to 'GLsizei', possible loss of data
+  (compiling source file 'src/Editor.cpp')
+  
+C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\Headers\FrameBuffer.h(24,63): warning C4244: 'argument': conversion from 'float' to 'GLsizei', possible loss of data
+  (compiling source file 'src/Editor.cpp')
+  
+C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\Headers\FrameBuffer.h(44,49): warning C4244: 'argument': conversion from 'float' to 'GLsizei', possible loss of data
+  (compiling source file 'src/Editor.cpp')
+  
+C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\Headers\FrameBuffer.h(44,42): warning C4244: 'argument': conversion from 'float' to 'GLsizei', possible loss of data
+  (compiling source file 'src/Editor.cpp')
+  
+C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\Headers\FrameBuffer.h(50,70): warning C4244: 'argument': conversion from 'float' to 'GLsizei', possible loss of data
+  (compiling source file 'src/Editor.cpp')
+  
+C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\Headers\FrameBuffer.h(50,63): warning C4244: 'argument': conversion from 'float' to 'GLsizei', possible loss of data
+  (compiling source file 'src/Editor.cpp')
+  
+  Source.cpp
+C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\Headers\FrameBuffer.h(17,49): warning C4244: 'argument': conversion from 'float' to 'GLsizei', possible loss of data
+  (compiling source file 'src/Source.cpp')
+  
+C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\Headers\FrameBuffer.h(17,42): warning C4244: 'argument': conversion from 'float' to 'GLsizei', possible loss of data
+  (compiling source file 'src/Source.cpp')
+  
+C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\Headers\FrameBuffer.h(24,70): warning C4244: 'argument': conversion from 'float' to 'GLsizei', possible loss of data
+  (compiling source file 'src/Source.cpp')
+  
+C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\Headers\FrameBuffer.h(24,63): warning C4244: 'argument': conversion from 'float' to 'GLsizei', possible loss of data
+  (compiling source file 'src/Source.cpp')
+  
+C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\Headers\FrameBuffer.h(44,49): warning C4244: 'argument': conversion from 'float' to 'GLsizei', possible loss of data
+  (compiling source file 'src/Source.cpp')
+  
+C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\Headers\FrameBuffer.h(44,42): warning C4244: 'argument': conversion from 'float' to 'GLsizei', possible loss of data
+  (compiling source file 'src/Source.cpp')
+  
+C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\Headers\FrameBuffer.h(50,70): warning C4244: 'argument': conversion from 'float' to 'GLsizei', possible loss of data
+  (compiling source file 'src/Source.cpp')
+  
+C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\Headers\FrameBuffer.h(50,63): warning C4244: 'argument': conversion from 'float' to 'GLsizei', possible loss of data
+  (compiling source file 'src/Source.cpp')
+  
+  Generating Code...
   Engine.vcxproj -> C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\x64\Debug\Engine.exe
