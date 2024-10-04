@@ -6,28 +6,25 @@
 #include <vector>
 #include <string>
 #include <filesystem>
+#include "../Headers/Entity.h"
+#include "../Headers/Transform.h"
 #include "../Headers/Shader.h"
 #include "../Headers/Mesh.h"
 #include "../Headers/stb_image.h"
 
 
 
-class Model 
+class Model : public Entity
 {
 public:
 	// public globals
-	glm::vec3 rotation;
-	glm::vec3 scale;
-	glm::vec3 position;
+	
 	bool IsLight = false;
 	RENDERTARGETS RenderMode = RENDERTARGETS::NORMAL;
 
 	// Utility
-	Model(std::string path) : modelMatrix(1.0f)
+	Model(std::string path) 
 	{
-		position = glm::vec3(0.0f, 0.0f, 0.0f);
-		rotation = glm::vec3(0.0f, 0.0f, 0.0f);
-		scale = glm::vec3(1.0f, 1.0f, 1.0f);
 		loadModel(path);
 		DecomposeModelMatrix();
 		std::string newPath = path;
@@ -46,16 +43,16 @@ public:
 	void Draw();
 
 	void DecomposeModelMatrix();
-	void SetModelMatrix(glm::mat4 modelMat) { this->modelMatrix = modelMat; UpdateModelMatrix(); }
+	void SetModelMatrix(glm::mat4 modelMat) { this->transform.modelMatrix = modelMat; UpdateModelMatrix(); }
 	void UpdateModelMatrix();
 
 	// Setters and Getters
 
-	void SetRotation(float angle, const glm::vec3& axis) { rotation = glm::vec3(0.0f); rotation = angle * axis; }
+	void SetRotation(float angle, const glm::vec3& axis) { transform.eulerRot = transform.eulerRot; transform.eulerRot = angle * axis; }
 	void SetPosition(const glm::vec3& pos);
 	
 
-	void SetScale(const glm::vec3& scl) { scale = scl; }
+	void SetScale(const glm::vec3& scl) { transform.scale = scl; }
 
 	void SetModelName(std::string name) { this->modelName = name; }
 	std::string GetModelName() const { return this->modelName; }
@@ -63,13 +60,13 @@ public:
 	void SetModelFileName(std::string name) { this->fileName = name; }
 	std::string GetModelFileName() const { return this->fileName; }
 
-	glm::mat4& GetModelMatrix() { SafeDecompose(); return this->modelMatrix; }
+	glm::mat4& GetModelMatrix() { SafeDecompose(); return this->transform.modelMatrix; }
 
 	void SafeDecompose() { try { DecomposeModelMatrix(); } catch (std::exception e) { spdlog::error(e.what()); } }
 
-	glm::vec3& GetRotation() { SafeDecompose(); return rotation; }
-	glm::vec3& GetPosition() { SafeDecompose(); return position; }
-	glm::vec3& GetScale() { SafeDecompose(); return scale; }
+	glm::vec3& GetRotation() { SafeDecompose(); return transform.eulerRot; }
+	glm::vec3& GetPosition() { SafeDecompose(); return transform.pos; }
+	glm::vec3& GetScale() { SafeDecompose(); return transform.scale; }
 
 	void SetShader(Shader& inShader) { this->shader = &inShader; }
 	GLuint GetShaderID() { return shader->ID; }
@@ -83,7 +80,6 @@ public:
 private:
 
 	bool RenderModel = true;
-	glm::mat4 modelMatrix;
 	std::vector<Mesh> meshes;
 	std::vector<Texture> textures_loaded;
 	std::string directory;

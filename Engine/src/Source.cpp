@@ -11,12 +11,15 @@ int main()
 	try
 	{
 		
-		Program.Initialize();
-		Program.Update();
+		const bool RunResult = Program.Run();
+		if (!RunResult)
+		{
+			std::cerr << "Ran into issues during Run()" << std::endl;
+		}
 	}
 	catch (std::exception& e)
 	{
-		std::cerr << "Ran into issues at: " << e.what();
+		std::cerr << "Ran into issues at: " << e.what() << std::endl;
 	}
 	
 }

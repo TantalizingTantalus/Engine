@@ -10,6 +10,7 @@ void Editor::Initialize(Camera& in_camera, GLFWwindow& in_window)
 
 void Editor::DebugWindow(ImGuiIO& io, std::vector<Model>& ModelList)
 {
+	
 
 	if (ImGui::BeginMenuBar())
 	{
@@ -70,10 +71,8 @@ void Editor::DebugWindow(ImGuiIO& io, std::vector<Model>& ModelList)
 					DebugSelectedObj->SetModelName(InputName);
 				}
 
-				ImGui::Text("Directional Light?");
-				ImGui::Checkbox("True/False", &model.IsLight);
-
 				DebugSelectedObj = &model;
+
 				ImGui::Text("Position");
 				if (ImGui::InputFloat3("##position", glm::value_ptr(modelPosition))) {
 					model.UpdateModelMatrix();
@@ -87,6 +86,12 @@ void Editor::DebugWindow(ImGuiIO& io, std::vector<Model>& ModelList)
 				ImGui::Text("Scale");
 				if (ImGui::InputFloat3("##scale", glm::value_ptr(modelScale))) {
 					model.UpdateModelMatrix();
+				}
+
+				if (DebugSelectedObj->IsLight)
+				{
+					ImGui::Text("Light Color");
+					ImGui::ColorEdit3("##lightColor", (float*)&LightColor);
 				}
 			}
 		}
