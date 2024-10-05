@@ -23,8 +23,10 @@ public:
 	Model* DebugSelectedObj = nullptr;
 	ImVec4 clear_color = ImVec4(0.21f, 0.21f, 0.21f, .21f);
 	std::vector<Model>* DebugModelList;
+	std::vector<Entity>* DebugEntityList;
 	std::vector<std::string> LoggingEntries;
 	ImVec4 LightColor = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
+
 
 	void Task_AlignDirLight();
 	void Task_Delete();

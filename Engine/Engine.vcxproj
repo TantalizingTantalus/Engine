@@ -152,6 +152,7 @@
     <ClCompile Include="dependencies\imgui\imgui-master\imgui_widgets.cpp" />
     <ClCompile Include="src\Backend.cpp" />
     <ClCompile Include="src\Editor.cpp" />
+    <ClCompile Include="src\Entity.cpp" />
     <ClCompile Include="src\glad.c" />
     <ClCompile Include="src\ImGuizmo.cpp" />
     <ClCompile Include="src\Mesh.cpp" />

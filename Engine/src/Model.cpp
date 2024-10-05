@@ -46,7 +46,7 @@ unsigned int TextureFromFile(const char* path, const std::string& directory)
 
 void Model::Draw()
 {
-    shader->setMat4("model", transform.modelMatrix);
+    shader->setMat4("model", transform.getModelMatrix());
 	for (unsigned int i = 0; i < meshes.size(); i++)
 	{
         if (RenderModel)
@@ -56,88 +56,6 @@ void Model::Draw()
 		    meshes[i].Draw(*shader);
         }
 	}
-}
-
-void Model::SetPosition(const glm::vec3& pos)
-{
-    transform.pos = pos;
-    // Extract the current scale and rotation from the modelMatrix
-    glm::vec3 currentScale = glm::vec3(
-        glm::length(glm::vec3(transform.modelMatrix[0])),
-        glm::length(glm::vec3(transform.modelMatrix[1])),
-        glm::length(glm::vec3(transform.modelMatrix[2]))
-    );
-
-    glm::mat4 rotationMatrix = glm::mat4(
-        glm::vec4(glm::normalize(glm::vec3(transform.modelMatrix[0])), 0.0f),
-        glm::vec4(glm::normalize(glm::vec3(transform.modelMatrix[1])), 0.0f),
-        glm::vec4(glm::normalize(glm::vec3(transform.modelMatrix[2])), 0.0f),
-        glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)
-    );
-
-    // Create a new modelMatrix with the updated position
-    transform.modelMatrix = glm::translate(glm::mat4(1.0f), pos);
-
-    // Reapply the rotation and scale
-    transform.modelMatrix *= rotationMatrix;
-    transform.modelMatrix = glm::scale(transform.modelMatrix, currentScale);
-}
-
-void Model::UpdateModelMatrix()
-{
-    // Start with an identity matrix
-    transform.modelMatrix = glm::mat4(1.0f);
-
-    // Apply transformations
-    transform.modelMatrix = glm::translate(transform.modelMatrix, transform.pos);                    // Apply translation
-    transform.modelMatrix = glm::rotate(transform.modelMatrix, glm::radians(transform.eulerRot.x), glm::vec3(1.0f, 0.0f, 0.0f)); // Apply rotation on X axis
-    transform.modelMatrix = glm::rotate(transform.modelMatrix, glm::radians(transform.eulerRot.y), glm::vec3(0.0f, 1.0f, 0.0f)); // Apply rotation on Y axis
-    transform.modelMatrix = glm::rotate(transform.modelMatrix, glm::radians(transform.eulerRot.z), glm::vec3(0.0f, 0.0f, 1.0f)); // Apply rotation on Z axis
-    transform.modelMatrix = glm::scale(transform.modelMatrix, transform.scale);                           // Apply scaling
-}
-
-void Model::DecomposeModelMatrix()
-{
-    DecomposeMatrix(transform.modelMatrix, transform.scale, transform.eulerRot, transform.pos);
-}
-
-bool Model::DecomposeMatrix(const glm::mat4& matrix, glm::vec3& scale, glm::vec3& rotation, glm::vec3& translation)
-{
-    // Extract the translation part
-    translation = glm::vec3(matrix[3]);
-
-    // Extract the scaling factors
-    glm::vec3 row[3];
-    row[0] = glm::vec3(matrix[0]);
-    row[1] = glm::vec3(matrix[1]);
-    row[2] = glm::vec3(matrix[2]);
-
-    // Compute scale factors
-    scale.x = glm::length(row[0]);
-    scale.y = glm::length(row[1]);
-    scale.z = glm::length(row[2]);
-
-    // Normalize the rows
-    row[0] = glm::normalize(row[0]);
-    row[1] = glm::normalize(row[1]);
-    row[2] = glm::normalize(row[2]);
-
-    // Compute rotation matrix
-    glm::mat3 rotationMatrix;
-    rotationMatrix[0] = row[0];
-    rotationMatrix[1] = row[1];
-    rotationMatrix[2] = row[2];
-
-    // Compute the rotation angles (assuming rotation is around the X, Y, and Z axes)
-    glm::vec3 euler;
-    euler.x = atan2(rotationMatrix[2][1], rotationMatrix[2][2]);
-    euler.y = atan2(-rotationMatrix[2][0], sqrt(rotationMatrix[2][1] * rotationMatrix[2][1] + rotationMatrix[2][2] * rotationMatrix[2][2]));
-    euler.z = atan2(rotationMatrix[1][0], rotationMatrix[0][0]);
-
-    // Convert from radians to degrees
-    rotation = glm::degrees(euler);
-
-    return true;
 }
 
 void Model::loadModel(std::string path)

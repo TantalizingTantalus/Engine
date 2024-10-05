@@ -26,13 +26,13 @@ public:
 	Model(std::string path) 
 	{
 		loadModel(path);
-		DecomposeModelMatrix();
 		std::string newPath = path;
 		
 		std::filesystem::path filePath = newPath;
 		std::string fileName = filePath.filename().string();
 		newPath = fileName;
 		SetModelFileName(newPath);
+		Name = fileName;
 	}
 
 	Model()
@@ -42,17 +42,12 @@ public:
 
 	void Draw();
 
-	void DecomposeModelMatrix();
-	void SetModelMatrix(glm::mat4 modelMat) { this->transform.modelMatrix = modelMat; UpdateModelMatrix(); }
-	void UpdateModelMatrix();
+	
 
 	// Setters and Getters
 
-	void SetRotation(float angle, const glm::vec3& axis) { transform.eulerRot = transform.eulerRot; transform.eulerRot = angle * axis; }
-	void SetPosition(const glm::vec3& pos);
 	
 
-	void SetScale(const glm::vec3& scl) { transform.scale = scl; }
 
 	void SetModelName(std::string name) { this->modelName = name; }
 	std::string GetModelName() const { return this->modelName; }
@@ -60,13 +55,10 @@ public:
 	void SetModelFileName(std::string name) { this->fileName = name; }
 	std::string GetModelFileName() const { return this->fileName; }
 
-	glm::mat4& GetModelMatrix() { SafeDecompose(); return this->transform.modelMatrix; }
+	
 
-	void SafeDecompose() { try { DecomposeModelMatrix(); } catch (std::exception e) { spdlog::error(e.what()); } }
+	
 
-	glm::vec3& GetRotation() { SafeDecompose(); return transform.eulerRot; }
-	glm::vec3& GetPosition() { SafeDecompose(); return transform.pos; }
-	glm::vec3& GetScale() { SafeDecompose(); return transform.scale; }
 
 	void SetShader(Shader& inShader) { this->shader = &inShader; }
 	GLuint GetShaderID() { return shader->ID; }

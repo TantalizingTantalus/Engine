@@ -139,7 +139,7 @@ int Backend::Initialize()
 	{
 		Model LightSourceObj("../Engine/Models/Light_Cube.fbx");
 
-		LightSourceObj.SetScale(glm::vec3(0.25f, 0.25f, 0.25f));
+		LightSourceObj.transform.setLocalScale(glm::vec3(0.25f, 0.25f, 0.25f));
 		//LightSourceObj.UpdateModelMatrix();
 		LightSourceObj.IsLight = true;
 		LightSourceObj.SetVisible(false);
@@ -148,7 +148,8 @@ int Backend::Initialize()
 		ModelList.push_back(LightSourceObj);
 
 		Model Room("../Engine/Models/Room.fbx");
-		Room.SetRotation(-90, glm::vec3(1, 0, 0));
+		
+		Room.transform.setLocalRotation(glm::vec3(-90, 0, 0));
 		ModelList.push_back(Room);
 	}
 
@@ -157,8 +158,7 @@ int Backend::Initialize()
 		for (int i = 0; i < ModelList.size(); i++)
 		{
 			Model& modelitem = ModelList[i];
-			modelitem.SetPosition(glm::vec3(-i + .5f, 0.0f, 0.0f));
-			modelitem.UpdateModelMatrix();
+			modelitem.transform.setLocalPosition(glm::vec3(-i + .5f, 0.0f, 0.0f));
 		}
 	}
 
@@ -376,11 +376,11 @@ bool Backend::RenderModels()
 			ImVec2 windowSize = ImGui::GetWindowSize();
 			ImGuizmo::SetRect(windowPos.x, windowPos.y, windowSize.x, windowSize.y);
 
-			glm::mat4* modelMatrix = &EditorWindow.DebugSelectedObj->GetModelMatrix();
+			Transform& modelMatrix = EditorWindow.DebugSelectedObj->transform;
 			ImGuizmo::Manipulate(glm::value_ptr(camera.GetViewMatrix()), glm::value_ptr(camera.GetProjectionMatrix()),
 				EditorWindow.myOperation,
 				ImGuizmo::LOCAL,
-				glm::value_ptr(*modelMatrix));
+				glm::value_ptr(modelMatrix.getModelMatrix()));
 		}
 
 		if (!ModelList.empty())
@@ -394,7 +394,7 @@ bool Backend::RenderModels()
 
 					// Shader setup for the light objects
 					lightCubeShader.use();
-					lightCubeShader.setMat4("model", modelitem.GetModelMatrix());
+					lightCubeShader.setMat4("model", modelitem.transform.getModelMatrix());
 					lightCubeShader.setMat4("projection", camera.GetProjectionMatrix());
 					lightCubeShader.setMat4("view", camera.GetViewMatrix());
 					modelitem.SetShader(lightCubeShader);
@@ -409,15 +409,15 @@ bool Backend::RenderModels()
 
 						// Shader setup for lit models
 						TempShader.use();
-						TempShader.setMat4("model", modelitem.GetModelMatrix());
+						TempShader.setMat4("model", modelitem.transform.getModelMatrix());
 						TempShader.setMat4("projection", camera.GetProjectionMatrix());
 						TempShader.setMat4("view", camera.GetViewMatrix());
-						TempShader.setVec3("lightPos", EditorWindow.DirectionalLightObject->GetPosition());
+						TempShader.setVec3("lightPos", EditorWindow.DirectionalLightObject->transform.getLocalPosition());
 						TempShader.setVec3("viewPos", camera.Position);
 						TempShader.setVec3("lightColor", glm::vec3(EditorWindow.LightColor.x, EditorWindow.LightColor.y, EditorWindow.LightColor.z));
 						TempShader.setVec3("objectColor", 1.0f, .5f, .31f);
 						modelitem.SetShader(TempShader);
-
+						modelitem.UpdateSelfAndChild();
 						// Draw the model item, this is 1 draw call per frame 60fps = 60 draw calls
 						modelitem.Draw();
 					}

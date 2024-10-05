@@ -58,9 +58,9 @@ void Editor::DebugWindow(ImGuiIO& io, std::vector<Model>& ModelList)
 		for (int i = 0; i < ModelList.size(); i++)
 		{
 			Model& model = ModelList[i];
-			glm::vec3& modelPosition = model.GetPosition();
-			glm::vec3& modelScale = model.GetScale();
-			glm::vec3& modelRotation = model.GetRotation();
+			glm::vec3 modelPosition = model.transform.getLocalPosition();
+			glm::vec3 modelScale = model.transform.getLocalScale();
+			glm::vec3 modelRotation = model.transform.getLocalRotation();
 			if (i == selectedDebugModelIndex)
 			{
 				ImGui::Text("Model Name: ");
@@ -75,23 +75,42 @@ void Editor::DebugWindow(ImGuiIO& io, std::vector<Model>& ModelList)
 
 				ImGui::Text("Position");
 				if (ImGui::InputFloat3("##position", glm::value_ptr(modelPosition))) {
-					model.UpdateModelMatrix();
+					model.transform.setLocalPosition(modelPosition);
 				}
 
 				ImGui::Text("Rotation");
 				if (ImGui::InputFloat3("##rotation", glm::value_ptr(modelRotation))) {
-					model.UpdateModelMatrix();
+					model.transform.setLocalRotation(modelRotation);
 				}
 
 				ImGui::Text("Scale");
 				if (ImGui::InputFloat3("##scale", glm::value_ptr(modelScale))) {
-					model.UpdateModelMatrix();
+					model.transform.setLocalScale(modelScale);
 				}
 
 				if (DebugSelectedObj->IsLight)
 				{
 					ImGui::Text("Light Color");
 					ImGui::ColorEdit3("##lightColor", (float*)&LightColor);
+				}
+
+				if (ImGui::Button("Make Parent"))
+				{
+					if (ModelList.size() > 2)
+					{
+						ModelList[1].AddChild(ModelList[2].GetEntity());
+						ModelList[1].UpdateSelfAndChild();
+					}
+				}
+
+				if (!DebugSelectedObj->children.empty())
+				{
+					// not empty
+					ImGui::Text("Children names: ");
+					for (int i = 0; i < DebugSelectedObj->children.size(); i++)
+					{
+						ImGui::Text(DebugSelectedObj->children[i]->Name.c_str());
+					}
 				}
 			}
 		}
@@ -275,8 +294,7 @@ void Editor::Task_AlignDirLight()
 		<< "\nz:" << camera->Position.z;
 
 	LoggingEntries.push_back(oss.str());
-	DirectionalLightObject->SetPosition(camera->Position);
-	DirectionalLightObject->UpdateModelMatrix();
+	DirectionalLightObject->transform.setLocalPosition(camera->Position);
 }
 
 void Editor::Exit_Application(GLFWwindow* window)
@@ -325,10 +343,10 @@ void Editor::Task_FocusObject()
 	}
 	else
 	{
-		glm::vec3 ObjPosition = DebugSelectedObj->GetPosition();
+		glm::vec3 ObjPosition = DebugSelectedObj->transform.getLocalPosition();
 		if (camera->Position != ObjPosition)
 		{
-			glm::vec3 ObjPosition = DebugSelectedObj->GetPosition();
+			glm::vec3 ObjPosition = DebugSelectedObj->transform.getLocalPosition();
 			LookAtObject(ObjPosition);
 			std::string message = std::format("Focused '{}' Object", DebugSelectedObj->GetModelName());
 			LoggingEntries.push_back(message);
