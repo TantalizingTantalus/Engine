@@ -6,6 +6,7 @@ C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\dependencies
 C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\dependencies\imgui\imgui-master\imgui_tables.cpp;C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\x64\Debug\imgui_tables.obj
 C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\dependencies\imgui\imgui-master\imgui_widgets.cpp;C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\x64\Debug\imgui_widgets.obj
 C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\src\Backend.cpp;C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\x64\Debug\Backend.obj
+C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\src\Component.cpp;C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\x64\Debug\Component.obj
 C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\src\Editor.cpp;C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\x64\Debug\Editor.obj
 C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\src\Entity.cpp;C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\x64\Debug\Entity.obj
 C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\src\glad.c;C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\x64\Debug\glad.obj

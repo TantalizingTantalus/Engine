@@ -58,9 +58,10 @@ void Editor::DebugWindow(ImGuiIO& io, std::vector<Model>& ModelList)
 		for (int i = 0; i < ModelList.size(); i++)
 		{
 			Model& model = ModelList[i];
-			glm::vec3 modelPosition = model.transform.getLocalPosition();
-			glm::vec3 modelScale = model.transform.getLocalScale();
-			glm::vec3 modelRotation = model.transform.getLocalRotation();
+			glm::vec3 modelPosition = model.transform->getLocalPosition();
+			glm::vec3 modelScale = model.transform->getLocalScale();
+			glm::vec3 displayModelRotation = model.transform->rotation;
+			glm::vec3 modelRotation = model.transform->getLocalRotation();
 			if (i == selectedDebugModelIndex)
 			{
 				ImGui::Text("Model Name: ");
@@ -73,20 +74,29 @@ void Editor::DebugWindow(ImGuiIO& io, std::vector<Model>& ModelList)
 
 				DebugSelectedObj = &model;
 
-				ImGui::Text("Position");
+				ImGui::Text("Position: X%.3f Y%.3f Z%.3f", model.transform->getLocalPosition().x, model.transform->getLocalPosition().y, model.transform->getLocalPosition().z);
+				ImGui::Text("Rotation: X%.3f Y%.3f Z%.3f", model.transform->getLocalRotation().x, model.transform->getLocalRotation().y, model.transform->getLocalRotation().z);
+				ImGui::Text("Scale: X%.3f Y%.3f Z%.3f", model.transform->getLocalScale().x, model.transform->getLocalScale().y, model.transform->getLocalScale().z);
+
+				model.ShowComponentsInImGui();
+
+				/*ImGui::Text("Position");
 				if (ImGui::InputFloat3("##position", glm::value_ptr(modelPosition))) {
 					model.transform.setLocalPosition(modelPosition);
-				}
+					model.transform.DecomposeMM();
+				}*/
 
-				ImGui::Text("Rotation");
-				if (ImGui::InputFloat3("##rotation", glm::value_ptr(modelRotation))) {
-					model.transform.setLocalRotation(modelRotation);
-				}
+				// 
+				//ImGui::Text("Rotation");
+				//if (ImGui::InputFloat3("##rotation", glm::value_ptr(modelRotation))) {
+				//	//model.transform.setLocalRotation(modelRotation);
+				//	model.transform.DecomposeMM();
+				//}
 
-				ImGui::Text("Scale");
+				/*ImGui::Text("Scale");
 				if (ImGui::InputFloat3("##scale", glm::value_ptr(modelScale))) {
 					model.transform.setLocalScale(modelScale);
-				}
+				}*/
 
 				if (DebugSelectedObj->IsLight)
 				{
@@ -99,9 +109,29 @@ void Editor::DebugWindow(ImGuiIO& io, std::vector<Model>& ModelList)
 					if (ModelList.size() > 2)
 					{
 						ModelList[1].AddChild(ModelList[2].GetEntity());
-						ModelList[1].UpdateSelfAndChild();
+						//ModelList[1].UpdateSelfAndChild();
 					}
 				}
+
+				if (ImGui::Button("Update Matrix"))
+				{
+					if (ModelList.size() > 2)
+					{
+						for (auto&& child : DebugSelectedObj->children)
+						{
+							child->transform->m_modelMatrix = DebugSelectedObj->transform->m_modelMatrix * child->transform->m_modelMatrix;
+						}
+					}
+				}
+
+				glm::mat4& modelMatrix = DebugSelectedObj->transform->m_modelMatrix;
+
+				ImGui::Text("Model Matrix");
+				ImGui::Text("Row 1: %.3f %.3f %.3f %.3f", modelMatrix[0][0], modelMatrix[0][1], modelMatrix[0][2], modelMatrix[0][3]);
+				ImGui::Text("Row 2: %.3f %.3f %.3f %.3f", modelMatrix[1][0], modelMatrix[1][1], modelMatrix[1][2], modelMatrix[1][3]);
+				ImGui::Text("Row 3: %.3f %.3f %.3f %.3f", modelMatrix[2][0], modelMatrix[2][1], modelMatrix[2][2], modelMatrix[2][3]);
+				ImGui::Text("Row 4: %.3f %.3f %.3f %.3f", modelMatrix[3][0], modelMatrix[3][1], modelMatrix[3][2], modelMatrix[3][3]);
+
 
 				if (!DebugSelectedObj->children.empty())
 				{
@@ -294,7 +324,7 @@ void Editor::Task_AlignDirLight()
 		<< "\nz:" << camera->Position.z;
 
 	LoggingEntries.push_back(oss.str());
-	DirectionalLightObject->transform.setLocalPosition(camera->Position);
+	DirectionalLightObject->transform->setLocalPosition(camera->Position);
 }
 
 void Editor::Exit_Application(GLFWwindow* window)
@@ -343,10 +373,10 @@ void Editor::Task_FocusObject()
 	}
 	else
 	{
-		glm::vec3 ObjPosition = DebugSelectedObj->transform.getLocalPosition();
+		glm::vec3 ObjPosition = DebugSelectedObj->transform->getLocalPosition();
 		if (camera->Position != ObjPosition)
 		{
-			glm::vec3 ObjPosition = DebugSelectedObj->transform.getLocalPosition();
+			glm::vec3 ObjPosition = DebugSelectedObj->transform->getLocalPosition();
 			LookAtObject(ObjPosition);
 			std::string message = std::format("Focused '{}' Object", DebugSelectedObj->GetModelName());
 			LoggingEntries.push_back(message);
@@ -391,7 +421,9 @@ void Editor::Task_ImportModel(std::vector<Model>& ModelList)
 	if (newModel.GetModelName() != "null_model")
 	{
 		ModelList.push_back(newModel);
+		selectedDebugModelIndex = ModelList.size() - 1;
 	}
+
 }
 
 Model Editor::OpenModelFileDialog(std::vector<Model>& ModelList)

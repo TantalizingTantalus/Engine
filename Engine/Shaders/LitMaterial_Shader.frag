@@ -12,7 +12,7 @@ uniform bool DEBUG_NORMAL;
 uniform vec3 lightPos;
 uniform vec3 viewPos;
 uniform vec3 lightColor;
-uniform vec3 objectColor;
+uniform vec3 objectColor = {1.0f, .5f, .31f};
 
 void main()
 {

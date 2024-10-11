@@ -139,17 +139,19 @@ int Backend::Initialize()
 	{
 		Model LightSourceObj("../Engine/Models/Light_Cube.fbx");
 
-		LightSourceObj.transform.setLocalScale(glm::vec3(0.25f, 0.25f, 0.25f));
+		LightSourceObj.transform->setLocalScale(glm::vec3(0.25f, 0.25f, 0.25f));
 		//LightSourceObj.UpdateModelMatrix();
 		LightSourceObj.IsLight = true;
 		LightSourceObj.SetVisible(false);
 		std::string dLight = "LightSource";
 		LightSourceObj.SetModelName(dLight);
+		LightSourceObj.AddComponent(LightSourceObj.transform);
 		ModelList.push_back(LightSourceObj);
 
 		Model Room("../Engine/Models/Room.fbx");
-		
-		Room.transform.setLocalRotation(glm::vec3(-90, 0, 0));
+		Room.AddComponent(Room.transform);
+		//Room.transform.setLocalRotation(glm::vec3(-90, 0, 0));
+		//Room.transform.DecomposeMM();
 		ModelList.push_back(Room);
 	}
 
@@ -158,7 +160,7 @@ int Backend::Initialize()
 		for (int i = 0; i < ModelList.size(); i++)
 		{
 			Model& modelitem = ModelList[i];
-			modelitem.transform.setLocalPosition(glm::vec3(-i + .5f, 0.0f, 0.0f));
+			modelitem.transform->setLocalPosition(glm::vec3(-i + .5f, 0.0f, 0.0f));
 		}
 	}
 
@@ -366,6 +368,8 @@ bool Backend::RenderModels()
 		// Gizmo Manipulation
 		if (EditorWindow.DebugSelectedObj != nullptr)
 		{
+			
+
 			if (camera.mode == Camera_Mode::ORTHO)
 				ImGuizmo::SetOrthographic(true);
 			else
@@ -376,13 +380,27 @@ bool Backend::RenderModels()
 			ImVec2 windowSize = ImGui::GetWindowSize();
 			ImGuizmo::SetRect(windowPos.x, windowPos.y, windowSize.x, windowSize.y);
 
-			Transform& modelMatrix = EditorWindow.DebugSelectedObj->transform;
-			ImGuizmo::Manipulate(glm::value_ptr(camera.GetViewMatrix()), glm::value_ptr(camera.GetProjectionMatrix()),
+			glm::mat4& modelMatrix = EditorWindow.DebugSelectedObj->transform->m_modelMatrix;
+
+			if (ImGuizmo::Manipulate(
+				glm::value_ptr(camera.GetViewMatrix()),
+				glm::value_ptr(camera.GetProjectionMatrix()),
 				EditorWindow.myOperation,
-				ImGuizmo::LOCAL,
-				glm::value_ptr(modelMatrix.getModelMatrix()));
+				ImGuizmo::WORLD,
+				glm::value_ptr(modelMatrix)))
+			{
+				glm::vec3 translation = glm::vec3(1.0f), rotation = glm::vec3(1.0f), scale = glm::vec3(1.0f);
+				glm::vec3 deltaRotation = rotation - EditorWindow.DebugSelectedObj->transform->getLocalRotation();
+			
+					EditorWindow.DebugSelectedObj->transform->DecomposeTransform(modelMatrix, translation, rotation, scale);
+					EditorWindow.DebugSelectedObj->transform->position = translation;
+					EditorWindow.DebugSelectedObj->transform->rotation += deltaRotation;
+					EditorWindow.DebugSelectedObj->transform->scale = scale;
+					
+			}
 		}
 
+		// Render Models
 		if (!ModelList.empty())
 		{
 			// Render lights first, models second
@@ -394,7 +412,7 @@ bool Backend::RenderModels()
 
 					// Shader setup for the light objects
 					lightCubeShader.use();
-					lightCubeShader.setMat4("model", modelitem.transform.getModelMatrix());
+					lightCubeShader.setMat4("model", modelitem.transform->m_modelMatrix);
 					lightCubeShader.setMat4("projection", camera.GetProjectionMatrix());
 					lightCubeShader.setMat4("view", camera.GetViewMatrix());
 					modelitem.SetShader(lightCubeShader);
@@ -409,15 +427,16 @@ bool Backend::RenderModels()
 
 						// Shader setup for lit models
 						TempShader.use();
-						TempShader.setMat4("model", modelitem.transform.getModelMatrix());
+						/*if (modelitem.parent)
+							modelitem.forceUpdateSelfAndChild();*/
+						TempShader.setMat4("model", modelitem.transform->m_modelMatrix);
 						TempShader.setMat4("projection", camera.GetProjectionMatrix());
 						TempShader.setMat4("view", camera.GetViewMatrix());
-						TempShader.setVec3("lightPos", EditorWindow.DirectionalLightObject->transform.getLocalPosition());
+						TempShader.setVec3("lightPos", EditorWindow.DirectionalLightObject->transform->getLocalPosition());
 						TempShader.setVec3("viewPos", camera.Position);
 						TempShader.setVec3("lightColor", glm::vec3(EditorWindow.LightColor.x, EditorWindow.LightColor.y, EditorWindow.LightColor.z));
-						TempShader.setVec3("objectColor", 1.0f, .5f, .31f);
+						
 						modelitem.SetShader(TempShader);
-						modelitem.UpdateSelfAndChild();
 						// Draw the model item, this is 1 draw call per frame 60fps = 60 draw calls
 						modelitem.Draw();
 					}

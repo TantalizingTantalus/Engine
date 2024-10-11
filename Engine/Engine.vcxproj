@@ -151,6 +151,7 @@
     <ClCompile Include="dependencies\imgui\imgui-master\imgui_tables.cpp" />
     <ClCompile Include="dependencies\imgui\imgui-master\imgui_widgets.cpp" />
     <ClCompile Include="src\Backend.cpp" />
+    <ClCompile Include="src\Component.cpp" />
     <ClCompile Include="src\Editor.cpp" />
     <ClCompile Include="src\Entity.cpp" />
     <ClCompile Include="src\glad.c" />
@@ -173,6 +174,7 @@
     <ClInclude Include="dependencies\imgui\imgui-master\imstb_truetype.h" />
     <ClInclude Include="Headers\Backend.h" />
     <ClInclude Include="Headers\Camera.h" />
+    <ClInclude Include="Headers\Component.h" />
     <ClInclude Include="Headers\Editor.h" />
     <ClInclude Include="Headers\Entity.h" />
     <ClInclude Include="Headers\FrameBuffer.h" />

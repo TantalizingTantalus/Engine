@@ -1,6 +1,8 @@
 #pragma once
 #include <iostream>
 #include <string>
+#include <vector>
+#include <memory>
 #include "../Headers/Transform.h"
 
 class Entity 
@@ -18,7 +20,7 @@ public:
 
 	void UpdateSelfAndChild()
 	{
-		if (transform.isDirty()) {
+		if (transform->isDirty()) {
 			forceUpdateSelfAndChild();
 			return;
 		}
@@ -32,9 +34,9 @@ public:
 	void forceUpdateSelfAndChild()
 	{
 		if (parent)
-			transform.computeModelMatrix(parent->transform.getModelMatrix());
+			transform->computeModelMatrix(parent->transform->getModelMatrix());
 		else
-			transform.computeModelMatrix();
+			transform->computeModelMatrix(transform->m_modelMatrix);
 
 		for (auto&& child : children)
 		{
@@ -42,10 +44,27 @@ public:
 		}
 	}
 
+	void AddComponent(std::shared_ptr<Component> component)
+	{
+		components.push_back(component);
+	}
+
+	void ShowComponentsInImGui() {
+		ImGui::Text("Entity: %s", Name.c_str());
+
+		if (components.size() > 0)
+		{
+			for (const auto& component : components) {
+				if(component != nullptr)
+					component->ShowImGuiPanel();  // Call each component's ImGui panel
+			}
+		}
+	}
 
 	Entity* parent;
 	std::vector<Entity*> children;
+	std::vector<std::shared_ptr<Component>> components;
 	glm::mat4 LocalModelMatrix;
 
-	Transform transform;
+	std::shared_ptr<Transform> transform = std::make_shared<Transform>();
 };

@@ -46,7 +46,7 @@ unsigned int TextureFromFile(const char* path, const std::string& directory)
 
 void Model::Draw()
 {
-    shader->setMat4("model", transform.getModelMatrix());
+    shader->setMat4("model", transform->m_modelMatrix);
 	for (unsigned int i = 0; i < meshes.size(); i++)
 	{
         if (RenderModel)
