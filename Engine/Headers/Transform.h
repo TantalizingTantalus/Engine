@@ -32,11 +32,27 @@ public:
 	bool m_isDirty = true;
 
 	void ShowImGuiPanel() override {
-		if (ImGui::CollapsingHeader("Transform Component")) {
-			ImGui::InputFloat3("Position", glm::value_ptr(position));
-			ImGui::InputFloat3("Rotation", glm::value_ptr(rotation));
-			ImGui::InputFloat3("Scale", glm::value_ptr(scale));
+		if (ImGui::CollapsingHeader("Transform")) {
+			if(ImGui::InputFloat3("Position", glm::value_ptr(position)))
+			{
+				setLocalPosition(position);
+			}
+			if (ImGui::InputFloat3("Rotation", glm::value_ptr(rotation)))
+			{
+				setLocalRotation(rotation);
+			}
+			if (ImGui::InputFloat3("Scale", glm::value_ptr(scale)))
+			{
+				setLocalScale(scale);
+			}
+
+			ImGui::Text("Model Matrix");
+			ImGui::Text("Row 1: %.3f %.3f %.3f %.3f", m_modelMatrix[0][0], m_modelMatrix[0][1], m_modelMatrix[0][2], m_modelMatrix[0][3]);
+			ImGui::Text("Row 2: %.3f %.3f %.3f %.3f", m_modelMatrix[1][0], m_modelMatrix[1][1], m_modelMatrix[1][2], m_modelMatrix[1][3]);
+			ImGui::Text("Row 3: %.3f %.3f %.3f %.3f", m_modelMatrix[2][0], m_modelMatrix[2][1], m_modelMatrix[2][2], m_modelMatrix[2][3]);
+			ImGui::Text("Row 4: %.3f %.3f %.3f %.3f", m_modelMatrix[3][0], m_modelMatrix[3][1], m_modelMatrix[3][2], m_modelMatrix[3][3]);
 		}
+		ImGui::Separator();
 	}
 
 	bool DecomposeTransform()
@@ -235,6 +251,25 @@ public:
 		return true;  // Decomposition successful
 	}
 
+	void updatePositionMatrix()
+	{
+		if (m_isDirty)
+			m_modelMatrix = glm::translate(glm::mat4(1.0f), position);
+		
+
+		m_isDirty = false;
+	}
+
+	void updateRotationMatrix()
+	{
+		// under construction
+	}
+
+	void updateScaleMatrix()
+	{
+		// under construction
+	}
+
 	void DecomposeMM()
 	{
 
@@ -275,6 +310,7 @@ public:
 	{
 		position = newPosition;
 		m_isDirty = true;
+		updatePositionMatrix();
 	}
 
 	void setLocalRotation(const glm::vec3& newRotation)
@@ -294,8 +330,9 @@ public:
 		return m_modelMatrix[3];
 	}
 
-	const glm::vec3& getLocalPosition() const
+	const glm::vec3& getLocalPosition() 
 	{
+		DecomposeTransform();
 		return position;
 	}
 

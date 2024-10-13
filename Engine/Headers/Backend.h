@@ -4,6 +4,9 @@
 #include "imgui-master/backends/imgui_impl_opengl3.h"
 #include <windows.h>
 #include <commdlg.h>
+#include <memory>
+#include <typeinfo>
+#include <type_traits>
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -27,6 +30,7 @@
 #include "../Headers/Util.h"
 #include "ft2build.h"
 #include "../Headers/Editor.h"
+
 #include FT_FREETYPE_H
 
 #include <iostream>
@@ -64,6 +68,7 @@ public:
 	Backend();
 	int Initialize();
 	int Update();
+	
 	bool Run();
 	bool RenderModels();
 	bool RenderUI();
@@ -83,6 +88,8 @@ private:
 	FrameBuffer sceneBuf;
 
 	GLFWwindow* window;
+
+	// Base instance of ModelList
 	std::vector<Model> ModelList;
 	int selectedDebugModelIndex = -1;
 };

@@ -2,6 +2,7 @@
 
 
 
+
 void Editor::Initialize(Camera& in_camera, GLFWwindow& in_window)
 {
 	this->camera = &in_camera;
@@ -10,8 +11,6 @@ void Editor::Initialize(Camera& in_camera, GLFWwindow& in_window)
 
 void Editor::DebugWindow(ImGuiIO& io, std::vector<Model>& ModelList)
 {
-	
-
 	if (ImGui::BeginMenuBar())
 	{
 		if (ImGui::BeginMenu("File"))
@@ -36,6 +35,7 @@ void Editor::DebugWindow(ImGuiIO& io, std::vector<Model>& ModelList)
 			if (ImGui::MenuItem("Hide Debug Window", "'H'")) { Hide_UI(); }
 			if (ImGui::MenuItem("Hide/Show HUD", "'X'")) { renderUI = !renderUI; }
 			if (ImGui::MenuItem("Change Camera Mode", "'M'")) { camera->mode = static_cast<Camera_Mode>((camera->mode + 1) % 2); }
+			if (ImGui::MenuItem("Reset Window Layout", "'PG DN'")) { Task_LoadDefaultLayout(); }
 
 			ImGui::EndMenu();
 		}
@@ -53,7 +53,9 @@ void Editor::DebugWindow(ImGuiIO& io, std::vector<Model>& ModelList)
 
 	// Properties Panel
 	{
-		ImGui::Begin("Properties");
+		std::string PanelTitle = "Properties";
+		
+		ImGui::Begin(PanelTitle.c_str(), nullptr);
 
 		for (int i = 0; i < ModelList.size(); i++)
 		{
@@ -64,46 +66,13 @@ void Editor::DebugWindow(ImGuiIO& io, std::vector<Model>& ModelList)
 			glm::vec3 modelRotation = model.transform->getLocalRotation();
 			if (i == selectedDebugModelIndex)
 			{
-				ImGui::Text("Model Name: ");
-				strcpy_s(InputName, model.GetModelName().c_str());
-				ImGuiInputTextFlags flags = ImGuiInputTextFlags_CallbackAlways;
-				if (ImGui::InputText("##something", InputName, IM_ARRAYSIZE(InputName)))
-				{
-					DebugSelectedObj->SetModelName(InputName);
-				}
-
 				DebugSelectedObj = &model;
 
-				ImGui::Text("Position: X%.3f Y%.3f Z%.3f", model.transform->getLocalPosition().x, model.transform->getLocalPosition().y, model.transform->getLocalPosition().z);
-				ImGui::Text("Rotation: X%.3f Y%.3f Z%.3f", model.transform->getLocalRotation().x, model.transform->getLocalRotation().y, model.transform->getLocalRotation().z);
-				ImGui::Text("Scale: X%.3f Y%.3f Z%.3f", model.transform->getLocalScale().x, model.transform->getLocalScale().y, model.transform->getLocalScale().z);
+				// Display ALL contents of Components list
+				model.ShowComponents();
 
-				model.ShowComponentsInImGui();
 
-				/*ImGui::Text("Position");
-				if (ImGui::InputFloat3("##position", glm::value_ptr(modelPosition))) {
-					model.transform.setLocalPosition(modelPosition);
-					model.transform.DecomposeMM();
-				}*/
-
-				// 
-				//ImGui::Text("Rotation");
-				//if (ImGui::InputFloat3("##rotation", glm::value_ptr(modelRotation))) {
-				//	//model.transform.setLocalRotation(modelRotation);
-				//	model.transform.DecomposeMM();
-				//}
-
-				/*ImGui::Text("Scale");
-				if (ImGui::InputFloat3("##scale", glm::value_ptr(modelScale))) {
-					model.transform.setLocalScale(modelScale);
-				}*/
-
-				if (DebugSelectedObj->IsLight)
-				{
-					ImGui::Text("Light Color");
-					ImGui::ColorEdit3("##lightColor", (float*)&LightColor);
-				}
-
+				// Debug Buttons **** Ignore for now *****
 				if (ImGui::Button("Make Parent"))
 				{
 					if (ModelList.size() > 2)
@@ -123,25 +92,6 @@ void Editor::DebugWindow(ImGuiIO& io, std::vector<Model>& ModelList)
 						}
 					}
 				}
-
-				glm::mat4& modelMatrix = DebugSelectedObj->transform->m_modelMatrix;
-
-				ImGui::Text("Model Matrix");
-				ImGui::Text("Row 1: %.3f %.3f %.3f %.3f", modelMatrix[0][0], modelMatrix[0][1], modelMatrix[0][2], modelMatrix[0][3]);
-				ImGui::Text("Row 2: %.3f %.3f %.3f %.3f", modelMatrix[1][0], modelMatrix[1][1], modelMatrix[1][2], modelMatrix[1][3]);
-				ImGui::Text("Row 3: %.3f %.3f %.3f %.3f", modelMatrix[2][0], modelMatrix[2][1], modelMatrix[2][2], modelMatrix[2][3]);
-				ImGui::Text("Row 4: %.3f %.3f %.3f %.3f", modelMatrix[3][0], modelMatrix[3][1], modelMatrix[3][2], modelMatrix[3][3]);
-
-
-				if (!DebugSelectedObj->children.empty())
-				{
-					// not empty
-					ImGui::Text("Children names: ");
-					for (int i = 0; i < DebugSelectedObj->children.size(); i++)
-					{
-						ImGui::Text(DebugSelectedObj->children[i]->Name.c_str());
-					}
-				}
 			}
 		}
 
@@ -150,7 +100,7 @@ void Editor::DebugWindow(ImGuiIO& io, std::vector<Model>& ModelList)
 
 	// Object selection/ object viewer 
 	{
-		ImGui::Begin("Object Viewer");
+		ImGui::Begin("Object Viewer", nullptr);
 		for (int i = 0; i < ModelList.size(); i++)
 		{
 			bool isSelected = (i == selectedDebugModelIndex);
@@ -184,11 +134,17 @@ void Editor::DebugWindow(ImGuiIO& io, std::vector<Model>& ModelList)
 		}
 
 		if (ImGui::BeginPopup("ContextMenu")) {
+			if (ImGui::MenuItem("Add"))
+			{
+
+			}
+			ImGui::Separator();
 			if (ImGui::MenuItem("Rename")) {
 				// Perform action for Option 1
 
 				editingName = true;
 			}
+			ImGui::Separator();
 			if (ImGui::MenuItem("Duplicate")) {
 				// Perform action for Option 2
 				Model DuplicateItem = *DebugSelectedObj;
@@ -205,6 +161,7 @@ void Editor::DebugWindow(ImGuiIO& io, std::vector<Model>& ModelList)
 					DuplicateItem.SetModelName(fmt::format("{}({})", DuplicateItem.GetModelName(), numDupes));
 				ModelList.push_back(DuplicateItem);
 			}
+			ImGui::Separator();
 			if (ImGui::MenuItem("Delete"))
 			{
 				Task_Delete();
@@ -219,7 +176,7 @@ void Editor::DebugWindow(ImGuiIO& io, std::vector<Model>& ModelList)
 
 	// Debug properties - to do cleanup
 	{
-		ImGui::Begin("Debug");
+		ImGui::Begin("Debug", nullptr);
 		if (ImGui::Button("Toggle Fullscreen Mode"))
 			ToggleFullscreen(window);
 
@@ -273,7 +230,7 @@ void Editor::DebugWindow(ImGuiIO& io, std::vector<Model>& ModelList)
 
 	// Logging window! a personal favorite
 	{
-		ImGui::Begin("Logging");
+		ImGui::Begin("Logging", nullptr);
 		ImGui::Text("Logging window successfully initialized!");
 		for (int i = 0; i < LoggingEntries.size(); i++)
 		{
@@ -314,16 +271,37 @@ void Editor::Hide_UI()
 	DEBUG_MODE = false;
 }
 
+bool Editor::Task_LoadDefaultLayout()
+{
+	std::ifstream src("DefaultLayout.ini", std::ios::binary);
+	std::ofstream dst("imgui.ini", std::ios::binary);
+
+	if (src && dst)
+	{
+		dst << src.rdbuf();
+	}
+	else
+	{
+		std::cerr << "Error loading layout";
+		return false;
+	}
+	// Step 2: Reload the layout settings from imgui.ini
+	ImGui::LoadIniSettingsFromDisk("imgui.ini");  // Load new layout from imgui.ini
+
+	// Step 3: Close all currently open windows (this resets the layout to the new one)
+	ImGuiContext& g = *ImGui::GetCurrentContext();
+	for (int i = 0; i < g.Windows.Size; i++) {
+		ImGui::CloseCurrentPopup(); // Safely closes all windows
+	}
+
+	
+	return true;
+}
+
 void Editor::Task_AlignDirLight()
 {
-	/*LoggingWindowEntries.push_back(fmt::format("Updated light position to \nx:{}\ny:{}\nz:{}", camera.Position.x * roundDecimal, camera.Position.y * roundDecimal, camera.Position.z * roundDecimal));*/
-	std::ostringstream oss;
-	oss << std::fixed << std::setprecision(2)
-		<< "Updated light position to \nx:" << camera->Position.x
-		<< "\ny:" << camera->Position.y
-		<< "\nz:" << camera->Position.z;
+	LoggingEntries.push_back("Under Construction...");
 
-	LoggingEntries.push_back(oss.str());
 	DirectionalLightObject->transform->setLocalPosition(camera->Position);
 }
 
@@ -485,6 +463,8 @@ Model Editor::OpenModelFileDialog(std::vector<Model>& ModelList)
 		Model loadedModel(ofnName);
 		loadedModel.SetModelName(extName);
 		loadedModel.SetModelFileName(baseFileName);
+		loadedModel.AddComponent(loadedModel.transform);
+
 		return loadedModel;
 	}
 	else

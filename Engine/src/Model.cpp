@@ -51,6 +51,7 @@ void Model::Draw()
 	{
         if (RenderModel)
         {
+            // should render mode be coupled to the mesh? or left to the Model?
             meshes[i].RenderMode = this->RenderMode;
             // may be point of contention due to dereference
 		    meshes[i].Draw(*shader);

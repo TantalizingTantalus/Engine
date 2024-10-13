@@ -49,16 +49,25 @@ public:
 		components.push_back(component);
 	}
 
-	void ShowComponentsInImGui() {
-		ImGui::Text("Entity: %s", Name.c_str());
-
+	void ShowComponents() {
+		
 		if (components.size() > 0)
 		{
 			for (const auto& component : components) {
 				if(component != nullptr)
-					component->ShowImGuiPanel();  // Call each component's ImGui panel
+					component->ShowImGuiPanel();  
 			}
 		}
+	}
+
+	template <typename T>
+	T& GetComponent() {
+		for (auto& component : components) {
+			if (auto castedComponent = std::dynamic_pointer_cast<T>(component)) {
+				return *castedComponent;
+			}
+		}
+		throw std::runtime_error("Component not found!");
 	}
 
 	Entity* parent;

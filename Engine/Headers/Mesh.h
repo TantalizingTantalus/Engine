@@ -6,6 +6,7 @@
 #include <vector>
 #include <string>
 #include "../Headers/Shader.h"
+#include "../Headers/Component.h"
 
 #define MAX_BONE_INFLUENCE 4
 
@@ -30,7 +31,8 @@ struct Texture {
 
 enum RENDERTARGETS {
 	NORMAL,
-	LINES
+	LINES,
+	RENDER_COUNT
 };
 
 class Mesh {
@@ -38,14 +40,16 @@ public:
 	std::vector<Vertex> vertices;
 	std::vector<unsigned int> indices;
 	std::vector<Texture> textures;
-	enum RENDERTARGETS RenderMode = RENDERTARGETS::NORMAL;
+	RENDERTARGETS RenderMode = RENDERTARGETS::NORMAL;
 
 	Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector<Texture> textures);
 	void SetInstanceCount(int c) { InstanceCount = c; }
 	void Draw(Shader& shader);
+
 private:
 	unsigned int VAO, VBO, EBO;
 	int InstanceCount = 1;
 
 	void SetupMesh();
+
 };

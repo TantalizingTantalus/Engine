@@ -1,5 +1,6 @@
 #pragma once
 #include "../Headers/Backend.h"
+#include "../Headers/Light.h"
 
 
 class Editor
@@ -25,13 +26,14 @@ public:
 	std::vector<Model>* DebugModelList;
 	std::vector<Entity>* DebugEntityList;
 	std::vector<std::string> LoggingEntries;
-	ImVec4 LightColor = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
+	
 
 
 	void Task_AlignDirLight();
 	void Task_Delete();
 	void LookAtObject(glm::vec3& ObjPosition);
 	void Task_FocusObject();
+	bool Task_LoadDefaultLayout();
 	void Task_ImportModel(std::vector<Model>& ModelList);
 	void Task_DebugNormals(bool&, GLuint);
 	void Exit_Application(GLFWwindow* window);

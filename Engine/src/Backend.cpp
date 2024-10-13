@@ -1,5 +1,5 @@
 #include "../Headers/Backend.h"
-
+#include "../Headers/Light.h"
 
 //									 Global variables 
 
@@ -135,23 +135,35 @@ int Backend::Initialize()
 		glfwSetScrollCallback(window, ImGui_ImplGlfw_ScrollCallback);
 	}
 
-	// Load default light 
+	
 	{
+		// Create model
 		Model LightSourceObj("../Engine/Models/Light_Cube.fbx");
 
 		LightSourceObj.transform->setLocalScale(glm::vec3(0.25f, 0.25f, 0.25f));
-		//LightSourceObj.UpdateModelMatrix();
+		// LightSourceObj.UpdateModelMatrix();
 		LightSourceObj.IsLight = true;
 		LightSourceObj.SetVisible(false);
 		std::string dLight = "LightSource";
 		LightSourceObj.SetModelName(dLight);
+
+		// Add components to model
+		std::shared_ptr<Light> lightComponent = std::make_unique<Light>();
 		LightSourceObj.AddComponent(LightSourceObj.transform);
+		LightSourceObj.AddComponent(lightComponent);
+
+		// Ship it
 		ModelList.push_back(LightSourceObj);
 
+		// Create model
 		Model Room("../Engine/Models/Room.fbx");
+
+		// Add components to model
 		Room.AddComponent(Room.transform);
 		//Room.transform.setLocalRotation(glm::vec3(-90, 0, 0));
 		//Room.transform.DecomposeMM();
+
+		// Ship it
 		ModelList.push_back(Room);
 	}
 
@@ -182,8 +194,17 @@ int Backend::Initialize()
 
 int Backend::Update()
 {
+	EditorWindow.Task_LoadDefaultLayout();
+	// Last minute ImGui io setup
 	ImGuiIO& io = ImGui::GetIO(); (void)io;
 	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+	io.FontDefault = io.Fonts->AddFontFromFileTTF("../Engine/Fonts/arial.ttf", 24.0f);
+	
+
+	ImGuiStyle& Style = ImGui::GetStyle();
+	Style.WindowMenuButtonPosition = ImGuiDir_None;
+
+
 	InitializeUserInterface();
 
 	LoadEngineIcon();
@@ -207,7 +228,7 @@ int Backend::Update()
 		UpdateDockingScene();
 
 		// Begin Scene window frame
-		ImGui::Begin("Scene");
+		ImGui::Begin("Scene", nullptr);
 
 		// Size scene to ImGui window
 		SceneWidth = ImGui::GetContentRegionAvail().x;
@@ -392,10 +413,13 @@ bool Backend::RenderModels()
 				glm::vec3 translation = glm::vec3(1.0f), rotation = glm::vec3(1.0f), scale = glm::vec3(1.0f);
 				glm::vec3 deltaRotation = rotation - EditorWindow.DebugSelectedObj->transform->getLocalRotation();
 			
+				if (ImGuizmo::IsUsing())
+				{
 					EditorWindow.DebugSelectedObj->transform->DecomposeTransform(modelMatrix, translation, rotation, scale);
 					EditorWindow.DebugSelectedObj->transform->position = translation;
 					EditorWindow.DebugSelectedObj->transform->rotation += deltaRotation;
 					EditorWindow.DebugSelectedObj->transform->scale = scale;
+				}
 					
 			}
 		}
@@ -403,10 +427,11 @@ bool Backend::RenderModels()
 		// Render Models
 		if (!ModelList.empty())
 		{
+			ImVec4* DirectionalColor = nullptr;
+			
 			// Render lights first, models second
 			for (int i = 0; i < ModelList.size(); i++) {
 				Model& modelitem = ModelList[i];
-
 				if (modelitem.IsLight) {
 					EditorWindow.DirectionalLightObject = &modelitem;
 
@@ -415,6 +440,7 @@ bool Backend::RenderModels()
 					lightCubeShader.setMat4("model", modelitem.transform->m_modelMatrix);
 					lightCubeShader.setMat4("projection", camera.GetProjectionMatrix());
 					lightCubeShader.setMat4("view", camera.GetViewMatrix());
+					DirectionalColor = &modelitem.GetComponent<Light>().LightColor;
 					modelitem.SetShader(lightCubeShader);
 
 					// Draw light objects *** Do we even need to draw lights?
@@ -434,7 +460,8 @@ bool Backend::RenderModels()
 						TempShader.setMat4("view", camera.GetViewMatrix());
 						TempShader.setVec3("lightPos", EditorWindow.DirectionalLightObject->transform->getLocalPosition());
 						TempShader.setVec3("viewPos", camera.Position);
-						TempShader.setVec3("lightColor", glm::vec3(EditorWindow.LightColor.x, EditorWindow.LightColor.y, EditorWindow.LightColor.z));
+
+						TempShader.setVec3("lightColor", glm::vec3(DirectionalColor->x, DirectionalColor->y, DirectionalColor->z));
 						
 						modelitem.SetShader(TempShader);
 						// Draw the model item, this is 1 draw call per frame 60fps = 60 draw calls
@@ -456,6 +483,8 @@ bool Backend::RenderModels()
 	}
 	return true;
 }
+
+
 
 bool Backend::Run()
 {

@@ -180,6 +180,7 @@
     <ClInclude Include="Headers\FrameBuffer.h" />
     <ClInclude Include="Headers\ft2build.h" />
     <ClInclude Include="Headers\ImGuizmo.h" />
+    <ClInclude Include="Headers\Light.h" />
     <ClInclude Include="Headers\Logging.h" />
     <ClInclude Include="Headers\Mesh.h" />
     <ClInclude Include="Headers\Model.h" />

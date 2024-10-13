@@ -42,12 +42,7 @@ public:
 
 	void Draw();
 
-	
-
 	// Setters and Getters
-
-	
-
 
 	void SetModelName(std::string name) { this->modelName = name; }
 	std::string GetModelName() const { return this->modelName; }
@@ -55,19 +50,12 @@ public:
 	void SetModelFileName(std::string name) { this->fileName = name; }
 	std::string GetModelFileName() const { return this->fileName; }
 
-	
-
-	
-
-
 	void SetShader(Shader& inShader) { this->shader = &inShader; }
 	GLuint GetShaderID() { return shader->ID; }
 	Shader& GetShader() { return *shader; }
 
-
 	bool& GetVisible() { return this->RenderModel; }
 	void SetVisible(const bool inFlag) { this->RenderModel = inFlag; }
-
 
 private:
 

@@ -9,10 +9,6 @@
 class Component
 {
 public:
-	Component()
-	{
-		std::cout << "Hello World!" << std::endl;
-	}
-
 	virtual void ShowImGuiPanel() = 0;
+	
 };
