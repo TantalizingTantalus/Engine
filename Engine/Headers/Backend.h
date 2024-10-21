@@ -30,6 +30,7 @@
 #include "../Headers/Util.h"
 #include "ft2build.h"
 #include "../Headers/Editor.h"
+#include "Component.h"
 
 #include FT_FREETYPE_H
 
@@ -92,4 +93,6 @@ private:
 	// Base instance of ModelList
 	std::vector<Model> ModelList;
 	int selectedDebugModelIndex = -1;
+
+	ComponentLibrary componentLibrary;
 };

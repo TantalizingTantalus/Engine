@@ -20,12 +20,15 @@ public:
 	// public globals
 	
 	bool IsLight = false;
+	std::string fullFilePath;
 	RENDERTARGETS RenderMode = RENDERTARGETS::NORMAL;
+	std::string modelName;
 
 	// Utility
 	Model(std::string path) 
 	{
-		loadModel(path);
+		fullFilePath = path;
+		loadModel(fullFilePath);
 		std::string newPath = path;
 		
 		std::filesystem::path filePath = newPath;
@@ -34,6 +37,8 @@ public:
 		SetModelFileName(newPath);
 		Name = fileName;
 	}
+
+	
 
 	Model()
 	{
@@ -54,6 +59,12 @@ public:
 	GLuint GetShaderID() { return shader->ID; }
 	Shader& GetShader() { return *shader; }
 
+	Model Duplicate() const {
+		Model copy = *this;  // Assuming copy constructor handles deep copying
+		// Perform additional logic if necessary (e.g., reset certain fields)
+		return copy;
+	}
+
 	bool& GetVisible() { return this->RenderModel; }
 	void SetVisible(const bool inFlag) { this->RenderModel = inFlag; }
 
@@ -71,6 +82,6 @@ private:
 	std::vector<Texture> loadMaterialTextures(aiMaterial* mat, aiTextureType type, std::string typeName);
 	
 	Shader* shader;
-	std::string modelName;
+	
 	std::string fileName;
 };

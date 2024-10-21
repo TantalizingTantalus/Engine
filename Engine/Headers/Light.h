@@ -1,6 +1,27 @@
 #pragma once
 #include "../Headers/Component.h"
 
+class TestComponent : public Component
+{
+public:
+	std::string compName = "";
+	void ShowImGuiPanel() override
+	{
+		using namespace ImGui;
+		std::string headerLabel = fmt::format("Test Component##{}", compName);
+		if (CollapsingHeader(headerLabel.c_str()))
+		{
+
+			std::string s = fmt::format("This is a test component. {}", compName);
+
+			PushTextWrapPos(GetWindowContentRegionMax().x);
+			TextWrapped(s.c_str());
+			PopTextWrapPos();
+		}
+		Separator();
+	}
+};
+
 class Light : public Component
 {
 public:
@@ -8,12 +29,15 @@ public:
 
 	void ShowImGuiPanel() override
 	{
-		if (ImGui::CollapsingHeader("Light"))
+		using namespace ImGui;
+		if (CollapsingHeader("Light"))
 		{
-			ImGui::Text("Light Color:");
-			ImGui::ColorEdit3("##lightColor", (float*)&LightColor);
+			PushTextWrapPos(GetWindowContentRegionMax().x);
+			TextWrapped("Light Color:");
+			ColorEdit3("##lightColor", (float*)&LightColor);
+			PopTextWrapPos();
 
 		}
-		ImGui::Separator();
+		Separator();
 	}
 };

@@ -1,12 +1,19 @@
 #include "../Headers/Editor.h"
+#include <cstring>
 
+void Editor::Init()
+{
+	folderIcon = (void*)(intptr_t)LoadFileIconID(fileFolderIconPath);
+	fileIcon = (void*)(intptr_t)LoadFileIconID(fileFileIconPath);
+	backButtonIcon = (void*)(intptr_t)LoadFileIconID(backButtonIconPath);
+}
 
-
-
-void Editor::Initialize(Camera& in_camera, GLFWwindow& in_window)
+void Editor::WindowUpdate(Camera& in_camera, GLFWwindow& in_window)
 {
 	this->camera = &in_camera;
 	this->window = &in_window;
+
+	
 }
 
 void Editor::DebugWindow(ImGuiIO& io, std::vector<Model>& ModelList)
@@ -107,11 +114,10 @@ void Editor::DebugWindow(ImGuiIO& io, std::vector<Model>& ModelList)
 
 			if (ImGui::Selectable(ModelList[i].GetModelName().c_str(), isSelected))
 			{
-				selectedDebugModelIndex = i; // Update the selected index
+				selectedDebugModelIndex = i; 
 				LoggingEntries.push_back(fmt::format("{} Selected", ModelList[i].GetModelName().c_str()));
 			}
 
-			// Check if the item is hovered and the right mouse button is released
 			if (ImGui::IsItemHovered() && ImGui::IsMouseReleased(1))
 			{
 				ImGui::OpenPopup("ContextMenu");
@@ -134,20 +140,66 @@ void Editor::DebugWindow(ImGuiIO& io, std::vector<Model>& ModelList)
 		}
 
 		if (ImGui::BeginPopup("ContextMenu")) {
-			if (ImGui::MenuItem("Add"))
-			{
+			if (ImGui::BeginMenu("Add")) {
+				if (ImGui::BeginMenu("Object")) {
+					if (ImGui::MenuItem("Cube")) {
+						Model newCube("../Engine/Models/Light_Cube.fbx");
+						if (newCube.GetModelName() != "null_model")
+						{
+							newCube.transform->setLocalPosition(glm::vec3(0.0f));
+							newCube.AddComponent(newCube.transform);
+							ModelList.push_back(newCube);
+							selectedDebugModelIndex = ModelList.size() - 1;
+							DebugSelectedObj = &ModelList[selectedDebugModelIndex];
+						}
+					}
+					ImGui::EndMenu();  
+				}
 
+				if (ImGui::BeginMenu("Component")) {
+					if (ImGui::MenuItem("Test Component 1")) {
+						std::shared_ptr<TestComponent> TestC = std::make_unique<TestComponent>();
+						TestC->compName = "hey-heypeople";
+						DebugSelectedObj->AddComponent(TestC);
+						LoggingEntries.push_back("Added a new component!");
+					}
+					ImGui::Separator();
+					if (ImGui::MenuItem("Test Component 2")) {
+						std::shared_ptr<TestComponent> TestC = std::make_unique<TestComponent>();
+						TestC->compName = "whats crackin'";
+						DebugSelectedObj->AddComponent(TestC);
+						LoggingEntries.push_back("Added a new component!");
+					}
+					ImGui::Separator();
+					if (ImGui::MenuItem("Transform")) {
+						std::shared_ptr<Transform> TestT = std::make_unique<Transform>();
+						
+						DebugSelectedObj->AddComponent(TestT);
+						LoggingEntries.push_back("Added a new component!");
+					}
+					ImGui::Separator();
+					if (ImGui::MenuItem("Light")) {
+						std::shared_ptr<Light> TestT = std::make_unique<Light>();
+
+						DebugSelectedObj->AddComponent(TestT);
+						LoggingEntries.push_back("Added a new component!");
+					}
+
+					ImGui::EndMenu();  
+				}
+
+				ImGui::EndMenu();  
 			}
 			ImGui::Separator();
 			if (ImGui::MenuItem("Rename")) {
-				// Perform action for Option 1
+				
 
 				editingName = true;
 			}
 			ImGui::Separator();
 			if (ImGui::MenuItem("Duplicate")) {
-				// Perform action for Option 2
-				Model DuplicateItem = *DebugSelectedObj;
+				
+				Model DuplicateItem(DebugSelectedObj->fullFilePath);
 				int numDupes = 0;
 				LoggingEntries.push_back("Keep in mind this duplicate is not instanced :(");
 				for (int i = 0; i < ModelList.size(); i++)
@@ -159,7 +211,10 @@ void Editor::DebugWindow(ImGuiIO& io, std::vector<Model>& ModelList)
 				}
 				if (numDupes > 0)
 					DuplicateItem.SetModelName(fmt::format("{}({})", DuplicateItem.GetModelName(), numDupes));
+				DuplicateItem.AddComponent(DuplicateItem.transform);
 				ModelList.push_back(DuplicateItem);
+				selectedDebugModelIndex = ModelList.size() - 1;
+				DebugSelectedObj = &ModelList[selectedDebugModelIndex];
 			}
 			ImGui::Separator();
 			if (ImGui::MenuItem("Delete"))
@@ -182,7 +237,7 @@ void Editor::DebugWindow(ImGuiIO& io, std::vector<Model>& ModelList)
 
 
 		// Camera Position
-		ImGui::Text("Camera:");
+		ImGui::SeparatorText("Camera:");
 		ImGui::Text("X position: %.2f", camera->Position.x);
 		ImGui::Text("Y position: %.2f", camera->Position.y);
 		ImGui::Text("Z position: %.2f", camera->Position.z);
@@ -192,35 +247,27 @@ void Editor::DebugWindow(ImGuiIO& io, std::vector<Model>& ModelList)
 		ImGui::Text("Pitch: %.2f", camera->Pitch);
 
 		// Field of view
-		ImGui::Text("Field of View (FOV):");
-		ImGui::SameLine();
+		ImGui::SeparatorText("Field of View (FOV):");
 		ImGui::SliderFloat("##fov", &camera->Zoom, 0, 100);
-
 		// Near clipping
-		ImGui::Text("Camera near clipping: ");
-		ImGui::SameLine();
+		ImGui::SeparatorText("Camera near clipping: ");
 		ImGui::InputFloat("##nearClipping", &camera->NearClippingPlane);
-
 		// Far clipping
-		ImGui::Text("Camera far clipping: ");
-		ImGui::SameLine();
+		ImGui::SeparatorText("Camera far clipping: ");
 		ImGui::InputFloat("##farClipping", &camera->FarClippingPlane);
-
 		// Adjust camera Speed
-		ImGui::Text("Camera Speed: ");
-		ImGui::SameLine();
-		ImGui::SliderFloat("Camera Speed", &camera->MovementSpeed, camera->Min_MoveSpeed, camera->Max_MoveSpeed);
-
+		ImGui::SeparatorText("Camera Speed: ");
+		ImGui::SliderFloat("##CameraSpeed", &camera->MovementSpeed, camera->Min_MoveSpeed, camera->Max_MoveSpeed);
 
 
 		// Color picker
-		ImGui::Text("Viewport Color:");
-		ImGui::SameLine();
+		ImGui::SeparatorText("Viewport Color:");
 		ImGui::ColorEdit3("##viewportColor", (float*)&clear_color);
 
 		// Version/Renderer info
 		const GLubyte* glVersion = glGetString(GL_VERSION);
 		const GLubyte* glRenderer = glGetString(GL_RENDERER);
+		ImGui::SeparatorText("Misc: ");
 		ImGui::Text("GPU: %s", glRenderer);
 		ImGui::Text("Application %.1f FPS", io.Framerate);
 		ImGui::Text("GLFW Version: %s", glfwGetVersionString());
@@ -232,6 +279,7 @@ void Editor::DebugWindow(ImGuiIO& io, std::vector<Model>& ModelList)
 	{
 		ImGui::Begin("Logging", nullptr);
 		ImGui::Text("Logging window successfully initialized!");
+		
 		for (int i = 0; i < LoggingEntries.size(); i++)
 		{
 			ImGui::Text(LoggingEntries[i].c_str());
@@ -240,12 +288,76 @@ void Editor::DebugWindow(ImGuiIO& io, std::vector<Model>& ModelList)
 	}
 
 	// To do implement content file browser
-	//{
-	//	ImGui::Begin("File Viewer");
-	//	//ImGui::AcceptDragDropPayload("hello");
-	//	
-	//	ImGui::End();
-	//}
+	{
+		char buffer[100];
+		
+
+		ImGui::Begin("File Viewer");
+		ImGui::Text("Working Directory:");
+		ImGui::SameLine();
+		strcpy_s(buffer, myPath.string().c_str());
+		ImGui::InputText("##WorkingDirectoryInput", buffer, IM_ARRAYSIZE(buffer));
+		ImGui::SameLine();
+		ImGui::Text("Icon Size:");
+		ImGui::SameLine();
+		ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x); // Adjust size for the slider
+		ImGui::SliderFloat("##IconSizeSlider", &currentIconSize, minIconSize, maxIconSize, "%.2f");
+		ImGui::PopItemWidth();
+		ImGui::Separator();
+		
+		ImGui::BeginChild("ChildFileViewer");
+
+		if (ImGui::BeginTable("##FileViewTable", 8))
+		{
+			float spacing = 5.0f;
+			ImGui::SetCursorPosY(ImGui::GetCursorPosY() + spacing);
+			ImGui::TableNextColumn();
+			if (ImGui::ImageButton("../", backButtonIcon, ImVec2(currentIconSize, currentIconSize)))
+			{
+				// Go up a directory
+				if (myPath.has_parent_path())
+				{
+					myPath = myPath.parent_path();
+				}
+			}
+			ImGui::TableNextColumn();
+			for (auto& p : std::filesystem::directory_iterator(myPath))
+			{
+				auto& path = p.path();
+				std::string fileNames;
+				ImGui::SetCursorPosY(ImGui::GetCursorPosY() + spacing);
+				std::string s = path.filename().string();
+				if (p.is_directory())
+				{
+					fileNames = path.filename().string();
+					if (ImGui::ImageButton(s.c_str(), folderIcon, ImVec2(currentIconSize, currentIconSize)))
+					{
+						myPath /= path.filename();
+					}
+					ImGui::Spacing();
+
+					ImGui::Text(fmt::format("{}", fileNames.c_str()).c_str()); // may be a point of contention with const char* and 
+					// std::filesystem::path
+				}
+				else
+				{
+					fileNames = path.filename().string();
+					ImGui::ImageButton(s.c_str(), fileIcon, ImVec2(currentIconSize, currentIconSize));
+					ImGui::Spacing();
+					ImGui::SetCursorPosY(ImGui::GetCursorPosY() + spacing);
+					ImGui::Text(fmt::format("{}", fileNames.c_str()).c_str());
+				}
+
+
+				ImGui::TableNextColumn();
+			}
+			ImGui::EndTable();
+		}
+
+		ImGui::EndChild();
+		
+		ImGui::End();
+	}
 
 	// Prepare render to draw
 	ImGui::Render();
@@ -257,6 +369,33 @@ void Editor::DebugWindow(ImGuiIO& io, std::vector<Model>& ModelList)
 	{
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 	}
+}
+
+GLuint Editor::LoadFileIconID(const char* path)
+{
+	GLuint textureID;
+	int height, width, channels;
+
+	unsigned char* data = stbi_load(path, &width, &height, &channels, 4);
+	if (data == nullptr) {
+		std::cerr << "Error loading icon for reason: " << stbi_failure_reason() << std::endl;
+		return 0; 
+	}
+
+	glGenTextures(1, &textureID);
+	glBindTexture(GL_TEXTURE_2D, textureID);
+
+	// Texture params
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+	glGenerateMipmap(GL_TEXTURE_2D);
+
+	stbi_image_free(data); 
+	return textureID;
 }
 
 // Quick toggle function for debug mode
@@ -286,12 +425,12 @@ bool Editor::Task_LoadDefaultLayout()
 		return false;
 	}
 	// Step 2: Reload the layout settings from imgui.ini
-	ImGui::LoadIniSettingsFromDisk("imgui.ini");  // Load new layout from imgui.ini
+	ImGui::LoadIniSettingsFromDisk("imgui.ini");  
 
 	// Step 3: Close all currently open windows (this resets the layout to the new one)
 	ImGuiContext& g = *ImGui::GetCurrentContext();
 	for (int i = 0; i < g.Windows.Size; i++) {
-		ImGui::CloseCurrentPopup(); // Safely closes all windows
+		ImGui::CloseCurrentPopup(); 
 	}
 
 	

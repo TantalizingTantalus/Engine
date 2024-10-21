@@ -135,7 +135,17 @@ int Backend::Initialize()
 		glfwSetScrollCallback(window, ImGui_ImplGlfw_ScrollCallback);
 	}
 
-	
+	// Component Initialization
+	{
+		std::shared_ptr<Light> light_Component = std::make_shared<Light>();
+		std::shared_ptr<Transform> transform_Component = std::make_shared<Transform>();
+		std::shared_ptr<TestComponent> test_Component = std::make_shared<TestComponent>();
+
+		componentLibrary.AddComponent(std::static_pointer_cast<Component>(light_Component));
+		componentLibrary.AddComponent(std::static_pointer_cast<Component>(transform_Component));
+		componentLibrary.AddComponent(std::static_pointer_cast<Component>(test_Component));
+	}
+
 	{
 		// Create model
 		Model LightSourceObj("../Engine/Models/Light_Cube.fbx");
@@ -148,9 +158,12 @@ int Backend::Initialize()
 		LightSourceObj.SetModelName(dLight);
 
 		// Add components to model
-		std::shared_ptr<Light> lightComponent = std::make_unique<Light>();
+		
 		LightSourceObj.AddComponent(LightSourceObj.transform);
-		LightSourceObj.AddComponent(lightComponent);
+		std::shared_ptr<Light> light_Component = std::make_shared<Light>();
+		//std::shared_ptr<Light> mp = componentLibrary.GetComponent<Light>();
+
+		LightSourceObj.AddComponent(light_Component);
 
 		// Ship it
 		ModelList.push_back(LightSourceObj);
@@ -211,6 +224,7 @@ int Backend::Update()
 
 	FrameBuffer sceneBuf(width, height);
 
+	EditorWindow.Init();
 	// Main Loop *CORE*
 	while (!glfwWindowShouldClose(window))
 	{
@@ -269,7 +283,7 @@ int Backend::Update()
 		EditorTime.Update();
 
 		// Editor window setup
-		EditorWindow.Initialize(camera, *window);
+		EditorWindow.WindowUpdate(camera, *window);
 
 		// Render ModelList
 		RenderModels();

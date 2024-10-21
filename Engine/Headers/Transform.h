@@ -32,27 +32,39 @@ public:
 	bool m_isDirty = true;
 
 	void ShowImGuiPanel() override {
-		if (ImGui::CollapsingHeader("Transform")) {
-			if(ImGui::InputFloat3("Position", glm::value_ptr(position)))
+		using namespace ImGui;
+		if (CollapsingHeader("Transform")) {
+			PushTextWrapPos(GetWindowContentRegionMax().x);
+			AlignTextToFramePadding();
+			TextWrapped("Position");
+			SameLine();
+			if(InputFloat3("##Position", glm::value_ptr(position)))
 			{
 				setLocalPosition(position);
 			}
-			if (ImGui::InputFloat3("Rotation", glm::value_ptr(rotation)))
+			TextWrapped("Rotation");
+			SameLine();
+			if (InputFloat3("##Rotation", glm::value_ptr(rotation)))
 			{
 				setLocalRotation(rotation);
 			}
-			if (ImGui::InputFloat3("Scale", glm::value_ptr(scale)))
+			TextWrapped("Scale");
+			SameLine();
+			if (InputFloat3("##Scale", glm::value_ptr(scale)))
 			{
 				setLocalScale(scale);
 			}
 
-			ImGui::Text("Model Matrix");
-			ImGui::Text("Row 1: %.3f %.3f %.3f %.3f", m_modelMatrix[0][0], m_modelMatrix[0][1], m_modelMatrix[0][2], m_modelMatrix[0][3]);
-			ImGui::Text("Row 2: %.3f %.3f %.3f %.3f", m_modelMatrix[1][0], m_modelMatrix[1][1], m_modelMatrix[1][2], m_modelMatrix[1][3]);
-			ImGui::Text("Row 3: %.3f %.3f %.3f %.3f", m_modelMatrix[2][0], m_modelMatrix[2][1], m_modelMatrix[2][2], m_modelMatrix[2][3]);
-			ImGui::Text("Row 4: %.3f %.3f %.3f %.3f", m_modelMatrix[3][0], m_modelMatrix[3][1], m_modelMatrix[3][2], m_modelMatrix[3][3]);
+			Separator();
+			TextWrapped("Model Matrix");
+			TextWrapped("Row 1: %.3f %.3f %.3f %.3f", m_modelMatrix[0][0], m_modelMatrix[0][1], m_modelMatrix[0][2], m_modelMatrix[0][3]);
+			TextWrapped("Row 2: %.3f %.3f %.3f %.3f", m_modelMatrix[1][0], m_modelMatrix[1][1], m_modelMatrix[1][2], m_modelMatrix[1][3]);
+			TextWrapped("Row 3: %.3f %.3f %.3f %.3f", m_modelMatrix[2][0], m_modelMatrix[2][1], m_modelMatrix[2][2], m_modelMatrix[2][3]);
+			TextWrapped("Row 4: %.3f %.3f %.3f %.3f", m_modelMatrix[3][0], m_modelMatrix[3][1], m_modelMatrix[3][2], m_modelMatrix[3][3]);
+
+			PopTextWrapPos();
 		}
-		ImGui::Separator();
+		Separator();
 	}
 
 	bool DecomposeTransform()

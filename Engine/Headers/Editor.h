@@ -27,8 +27,11 @@ public:
 	std::vector<Entity>* DebugEntityList;
 	std::vector<std::string> LoggingEntries;
 	
-
-
+	Editor() : myPath("..\\Engine\\src")
+	{
+		LoggingEntries.push_back("Initializing Editor Object...");
+	}
+	void Init();
 	void Task_AlignDirLight();
 	void Task_Delete();
 	void LookAtObject(glm::vec3& ObjPosition);
@@ -40,8 +43,17 @@ public:
 	void ToggleFullscreen(GLFWwindow* window);
 	void Hide_UI();
 	void Show_UI();
-	void Initialize(Camera& in_camera, GLFWwindow& in_window);
+	void WindowUpdate(Camera& in_camera, GLFWwindow& in_window);
+	GLuint LoadFileIconID(const char* path);
 
 	Model OpenModelFileDialog(std::vector<Model>& ModelList);
 	void DebugWindow(ImGuiIO& io, std::vector<Model>& ModelList);
+
+private:
+	std::filesystem::path myPath;
+	const char* fileFolderIconPath = "C:\\Users\\Gaevi\\OneDrive\\Documents\\Extracted Icons\\4.png";
+	const char* fileFileIconPath = "C:\\Users\\Gaevi\\OneDrive\\Documents\\Extracted Icons\\1.png";
+	const char* backButtonIconPath = "C:\\Users\\Gaevi\\OneDrive\\Documents\\Extracted Icons\\UpArrow.png";
+	ImTextureID folderIcon, fileIcon, backButtonIcon;
+	float minIconSize = 20.0f, maxIconSize = 100.0f, currentIconSize = 50.0f;
 };
