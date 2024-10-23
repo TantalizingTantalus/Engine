@@ -16,6 +16,21 @@ void Editor::WindowUpdate(Camera& in_camera, GLFWwindow& in_window)
 	
 }
 
+void ShowMyTree() {
+	// Create a tree node that is not a leaf
+	if (ImGui::TreeNode("Parent Node")) {
+
+		// Add a leaf node
+		ImGui::TreeNodeEx("Leaf Node 1", ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen);
+
+		// Add another leaf node
+		ImGui::TreeNodeEx("Leaf Node 2", ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen);
+
+		// Close the parent node
+		ImGui::TreePop();
+	}
+}
+
 void Editor::DebugWindow(ImGuiIO& io, std::vector<Model>& ModelList)
 {
 	if (ImGui::BeginMenuBar())
@@ -111,10 +126,11 @@ void Editor::DebugWindow(ImGuiIO& io, std::vector<Model>& ModelList)
 		for (int i = 0; i < ModelList.size(); i++)
 		{
 			bool isSelected = (i == selectedDebugModelIndex);
-
+			
 			if (ImGui::Selectable(ModelList[i].GetModelName().c_str(), isSelected))
 			{
-				selectedDebugModelIndex = i; 
+				// to do 
+				selectedDebugModelIndex = i;
 				LoggingEntries.push_back(fmt::format("{} Selected", ModelList[i].GetModelName().c_str()));
 			}
 
@@ -122,7 +138,6 @@ void Editor::DebugWindow(ImGuiIO& io, std::vector<Model>& ModelList)
 			{
 				ImGui::OpenPopup("ContextMenu");
 			}
-
 
 			if (editingName && selectedDebugModelIndex == i)
 			{
@@ -262,7 +277,7 @@ void Editor::DebugWindow(ImGuiIO& io, std::vector<Model>& ModelList)
 
 		// Color picker
 		ImGui::SeparatorText("Viewport Color:");
-		ImGui::ColorEdit3("##viewportColor", (float*)&clear_color);
+		ImGui::ColorEdit3("##viewportColor", (float*)&clear_color, ImGuiColorEditFlags_Float);
 
 		// Version/Renderer info
 		const GLubyte* glVersion = glGetString(GL_VERSION);
@@ -290,23 +305,45 @@ void Editor::DebugWindow(ImGuiIO& io, std::vector<Model>& ModelList)
 	// To do implement content file browser
 	{
 		char buffer[100];
-		
 
 		ImGui::Begin("File Viewer");
-		ImGui::Text("Working Directory:");
+
+		ImGui::Columns(2, "split", true);
+
+		
+		ImGui::SetColumnWidth(0, ImGui::GetWindowWidth() * 0.2f); 
+		ImGui::SameLine();
+		ImGui::Text("Project Files");
+		ImGui::BeginChild("NavigationPanel");
+		ImGui::Separator();
+		ImGui::Spacing();
+		for (auto& p : std::filesystem::directory_iterator(myNavWindowPath))
+		{
+			if (p.is_directory())
+			{
+				RecursiveDisplayFolders(p.path());
+			}
+		}
+		ImGui::Spacing();
+		ImGui::EndChild();
+
+		ImGui::NextColumn();
+
+		ImGui::Text("Directory:");
 		ImGui::SameLine();
 		strcpy_s(buffer, myPath.string().c_str());
-		ImGui::InputText("##WorkingDirectoryInput", buffer, IM_ARRAYSIZE(buffer));
+		if (ImGui::InputText("##WorkingDirectoryInput", buffer, IM_ARRAYSIZE(buffer)))
+		{
+			// to do:
+			//  make editable
+		}
 		ImGui::SameLine();
-		ImGui::Text("Icon Size:");
-		ImGui::SameLine();
-		ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x); // Adjust size for the slider
+		ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x); 
 		ImGui::SliderFloat("##IconSizeSlider", &currentIconSize, minIconSize, maxIconSize, "%.2f");
 		ImGui::PopItemWidth();
-		ImGui::Separator();
-		
-		ImGui::BeginChild("ChildFileViewer");
 
+		ImGui::BeginChild("ChildFileViewer");
+		
 		if (ImGui::BeginTable("##FileViewTable", 8))
 		{
 			float spacing = 5.0f;
@@ -321,38 +358,49 @@ void Editor::DebugWindow(ImGuiIO& io, std::vector<Model>& ModelList)
 				}
 			}
 			ImGui::TableNextColumn();
-			for (auto& p : std::filesystem::directory_iterator(myPath))
+
+			if (std::filesystem::exists(myPath))
 			{
-				auto& path = p.path();
-				std::string fileNames;
-				ImGui::SetCursorPosY(ImGui::GetCursorPosY() + spacing);
-				std::string s = path.filename().string();
-				if (p.is_directory())
+				for (auto& p : std::filesystem::directory_iterator(myPath))
 				{
-					fileNames = path.filename().string();
-					if (ImGui::ImageButton(s.c_str(), folderIcon, ImVec2(currentIconSize, currentIconSize)))
-					{
-						myPath /= path.filename();
-					}
-					ImGui::Spacing();
-
-					ImGui::Text(fmt::format("{}", fileNames.c_str()).c_str()); // may be a point of contention with const char* and 
-					// std::filesystem::path
-				}
-				else
-				{
-					fileNames = path.filename().string();
-					ImGui::ImageButton(s.c_str(), fileIcon, ImVec2(currentIconSize, currentIconSize));
-					ImGui::Spacing();
+					auto& p_path = p.path();
+					std::string fileNames;
 					ImGui::SetCursorPosY(ImGui::GetCursorPosY() + spacing);
-					ImGui::Text(fmt::format("{}", fileNames.c_str()).c_str());
+					std::string s = p_path.filename().string();
+					if (p.is_directory())
+					{
+						fileNames = p_path.filename().string();
+						if (ImGui::ImageButton(s.c_str(), folderIcon, ImVec2(currentIconSize, currentIconSize)))
+						{
+							myPath /= p_path.filename();
+						}
+						ImGui::Spacing();
+
+						ImGui::Text(fmt::format("{}", fileNames.c_str()).c_str()); // may be a point of contention with const char* and 
+
+					}
+					else
+					{
+						fileNames = p_path.filename().string();
+						ImGui::ImageButton(s.c_str(), fileIcon, ImVec2(currentIconSize, currentIconSize));
+						ImGui::Spacing();
+						ImGui::SetCursorPosY(ImGui::GetCursorPosY() + spacing);
+						ImGui::Text(fmt::format("{}", fileNames.c_str()).c_str());
+					}
+
+
+					ImGui::TableNextColumn();
 				}
-
-
-				ImGui::TableNextColumn();
 			}
+			else
+			{
+				spdlog::error("Directory {} does not exist!", myPath.string());
+			}
+
 			ImGui::EndTable();
 		}
+		
+		
 
 		ImGui::EndChild();
 		
@@ -369,6 +417,37 @@ void Editor::DebugWindow(ImGuiIO& io, std::vector<Model>& ModelList)
 	{
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 	}
+}
+
+void Editor::RecursiveDisplayFolders(const std::filesystem::path& directoryPath)
+{
+	if (!std::filesystem::is_directory(directoryPath))
+	{
+		return;
+	}
+
+	bool isOpened = ImGui::TreeNodeEx(directoryPath.filename().string().c_str(), ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanFullWidth);
+
+	if (ImGui::IsItemClicked())
+	{
+		myPath = directoryPath;
+	}
+
+	if (isOpened)
+	{
+
+		for (auto& entry : std::filesystem::directory_iterator(directoryPath))
+		{
+			if (entry.is_directory())
+			{
+
+				RecursiveDisplayFolders(entry.path());
+			}
+		}
+
+		ImGui::TreePop();
+	}
+	
 }
 
 GLuint Editor::LoadFileIconID(const char* path)
@@ -534,6 +613,8 @@ void Editor::Task_Delete()
 
 void Editor::Task_ImportModel(std::vector<Model>& ModelList)
 {
+	std::filesystem::path originalWorkingDir = std::filesystem::current_path();
+	
 	Model newModel = OpenModelFileDialog(ModelList);
 	if (newModel.GetModelName() != "null_model")
 	{
@@ -541,6 +622,7 @@ void Editor::Task_ImportModel(std::vector<Model>& ModelList)
 		selectedDebugModelIndex = ModelList.size() - 1;
 	}
 
+	std::filesystem::current_path(originalWorkingDir);
 }
 
 Model Editor::OpenModelFileDialog(std::vector<Model>& ModelList)

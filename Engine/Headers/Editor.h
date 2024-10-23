@@ -22,15 +22,17 @@ public:
 	ImGuizmo::OPERATION myOperation = ImGuizmo::OPERATION::TRANSLATE;
 	Model* DirectionalLightObject = nullptr;
 	Model* DebugSelectedObj = nullptr;
-	ImVec4 clear_color = ImVec4(0.21f, 0.21f, 0.21f, .21f);
+	ImVec4 clear_color;
 	std::vector<Model>* DebugModelList;
 	std::vector<Entity>* DebugEntityList;
 	std::vector<std::string> LoggingEntries;
 	
-	Editor() : myPath("..\\Engine\\src")
+	Editor() : myPath(".."), myNavWindowPath("..")
 	{
-		LoggingEntries.push_back("Initializing Editor Object...");
+		spdlog::info("Initializing Editor Object...");
+		clear_color = ImVec4(0.098f, 0.098f, 0.098f, 1.0f);
 	}
+
 	void Init();
 	void Task_AlignDirLight();
 	void Task_Delete();
@@ -43,6 +45,7 @@ public:
 	void ToggleFullscreen(GLFWwindow* window);
 	void Hide_UI();
 	void Show_UI();
+	void RecursiveDisplayFolders(const std::filesystem::path&);
 	void WindowUpdate(Camera& in_camera, GLFWwindow& in_window);
 	GLuint LoadFileIconID(const char* path);
 
@@ -51,9 +54,10 @@ public:
 
 private:
 	std::filesystem::path myPath;
+	std::filesystem::path myNavWindowPath;
 	const char* fileFolderIconPath = "C:\\Users\\Gaevi\\OneDrive\\Documents\\Extracted Icons\\4.png";
 	const char* fileFileIconPath = "C:\\Users\\Gaevi\\OneDrive\\Documents\\Extracted Icons\\1.png";
 	const char* backButtonIconPath = "C:\\Users\\Gaevi\\OneDrive\\Documents\\Extracted Icons\\UpArrow.png";
 	ImTextureID folderIcon, fileIcon, backButtonIcon;
-	float minIconSize = 20.0f, maxIconSize = 100.0f, currentIconSize = 50.0f;
+	float minIconSize = 20.0f, maxIconSize = 100.0f, currentIconSize = 75.0f;
 };

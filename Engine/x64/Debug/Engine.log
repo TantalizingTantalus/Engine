@@ -44,7 +44,7 @@ C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\Headers\Fram
 C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\Headers\Backend.h(54,29): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
   (compiling source file 'src/Editor.cpp')
   
-C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\src\Editor.cpp(152,51): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
-C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\src\Editor.cpp(216,48): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
-C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\src\Editor.cpp(541,46): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\src\Editor.cpp(167,51): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\src\Editor.cpp(231,48): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\src\Editor.cpp(622,46): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
   Engine.vcxproj -> C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\x64\Debug\Engine.exe
