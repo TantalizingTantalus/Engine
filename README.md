@@ -2,4 +2,28 @@
 
 This is a simple engine written in C++ using OpenGL and GLFW.
 
-![alt text](/Engine/EngineDemo.gif?raw=true "title")
+# The Goal
+My Goal is to learn the broader aspects of graphics engine programming. This is my first attempt at a larger system using Object Oriented Programming principles.
+
+![alt text](/Engine/EngineScreenshot.png?raw=true "title")
+
+# File Browser
+![alt text](/Engine/FileViewerScreenshot.png?raw=true "file_viewer")
+Each folder is represented as "ImGui::TreeNodeEx()".\
+Each file is represented as "ImGui::Selectable()".
+
+## To do: 
+- Sort viewer by folders first, then files
+- UI Cleanup
+
+# Installation
+Currently, I am not using valid CMake to build the project. The .sln is included in the root "Engine" directory to help with building the project.
+
+# Libraries Used
+- OpenGL
+- GLFW
+- glad
+- glm
+- spdlog
+- Assimp
+- stb_image
