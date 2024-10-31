@@ -15,6 +15,10 @@ Each file is represented as "ImGui::Selectable()".
 ## To do: 
 - Sort viewer by folders first, then files
 - UI Cleanup
+- Update Scene Graph handling
+- glDrawInstanced implementation so that models can be easily re-used
+- Asset System
+- Physics Engine Implementation
 
 # Installation
 Currently, I am not using valid CMake to build the project. The .sln is included in the root "Engine" directory to help with building the project.
