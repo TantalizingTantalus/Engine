@@ -15,6 +15,7 @@ public:
 		parent = nullptr;
 	}
 
+
 	void AddChild(Entity*);
 	Entity* GetEntity() { return this; }
 

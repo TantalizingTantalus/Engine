@@ -16,18 +16,30 @@ void Editor::WindowUpdate(Camera& in_camera, GLFWwindow& in_window)
 	
 }
 
-void ShowMyTree() {
-	// Create a tree node that is not a leaf
-	if (ImGui::TreeNode("Parent Node")) {
-
-		// Add a leaf node
-		ImGui::TreeNodeEx("Leaf Node 1", ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen);
-
-		// Add another leaf node
-		ImGui::TreeNodeEx("Leaf Node 2", ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen);
-
-		// Close the parent node
-		ImGui::TreePop();
+void Editor::RecursiveDisplayChildren(const Entity& entity)
+{
+	if (entity.children.size() <= 0)
+	{
+		if (ImGui::Selectable(entity.Name.c_str())) {
+			*DebugSelectedEntity = entity;
+		}
+	}
+	else {
+		for (const auto& child : entity.children) {
+			if (child->children.size() <= 0) // problem here somewhere
+			{
+				if (ImGui::Selectable(child->Name.c_str()))
+				{
+					DebugSelectedEntity = child;
+				}
+			}
+			else {
+				if (ImGui::TreeNodeEx(child->Name.c_str())) {
+					RecursiveDisplayChildren(*child);
+					ImGui::TreePop();
+				}
+			}
+		}
 	}
 }
 
@@ -86,9 +98,10 @@ void Editor::DebugWindow(ImGuiIO& io, std::vector<Model>& ModelList)
 			glm::vec3 modelScale = model.transform->getLocalScale();
 			glm::vec3 displayModelRotation = model.transform->rotation;
 			glm::vec3 modelRotation = model.transform->getLocalRotation();
-			if (i == selectedDebugModelIndex)
+			if (ModelList[i].GetEntity() == DebugSelectedEntity)
 			{
 				DebugSelectedObj = &model;
+				DebugSelectedEntity = model.GetEntity();
 
 				// Display ALL contents of Components list
 				model.ShowComponents();
@@ -126,13 +139,42 @@ void Editor::DebugWindow(ImGuiIO& io, std::vector<Model>& ModelList)
 		for (int i = 0; i < ModelList.size(); i++)
 		{
 			bool isSelected = (i == selectedDebugModelIndex);
-			
-			if (ImGui::Selectable(ModelList[i].GetModelName().c_str(), isSelected))
+			bool isOpened = false;
+			if (!ModelList[i].children.empty())
 			{
-				// to do 
-				selectedDebugModelIndex = i;
-				LoggingEntries.push_back(fmt::format("{} Selected", ModelList[i].GetModelName().c_str()));
+				isOpened = (ImGui::TreeNodeEx(ModelList[i].Name.c_str(), ImGuiTreeNodeFlags_OpenOnArrow));
 			}
+			else
+			{
+				if (ModelList[i].parent == nullptr)
+				{
+					if (ImGui::Selectable(ModelList[i].Name.c_str()))
+					{
+						DebugSelectedEntity = ModelList[i].GetEntity();
+					}
+				}
+			}
+
+			if (ImGui::IsItemClicked())
+			{
+				//selectedDebugModelIndex = i;
+				DebugSelectedEntity = ModelList[i].GetEntity();
+			}
+
+
+			if (isOpened)
+			{
+				RecursiveDisplayChildren(*ModelList[i].GetEntity());
+				ImGui::TreePop();
+			}
+
+			// Selectable for testing purposes - delete later
+			//if (ImGui::Selectable(ModelList[i].GetModelName().c_str(), isSelected))
+			//{
+			//	// to do 
+			//	selectedDebugModelIndex = i;
+			//	LoggingEntries.push_back(fmt::format("{} Selected", ModelList[i].GetModelName().c_str()));
+			//}
 
 			if (ImGui::IsItemHovered() && ImGui::IsMouseReleased(1))
 			{
@@ -304,7 +346,7 @@ void Editor::DebugWindow(ImGuiIO& io, std::vector<Model>& ModelList)
 
 	// To do implement content file browser
 	{
-		char buffer[100];
+		char buffer[100]; // 100 can be reduced if needed
 
 		ImGui::Begin("File Viewer");
 
@@ -335,7 +377,7 @@ void Editor::DebugWindow(ImGuiIO& io, std::vector<Model>& ModelList)
 		if (ImGui::InputText("##WorkingDirectoryInput", buffer, IM_ARRAYSIZE(buffer)))
 		{
 			// to do:
-			//  make editable
+			//  make editable text input
 		}
 		ImGui::SameLine();
 		ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x); 
@@ -503,10 +545,10 @@ bool Editor::Task_LoadDefaultLayout()
 		std::cerr << "Error loading layout";
 		return false;
 	}
-	// Step 2: Reload the layout settings from imgui.ini
+	// Reload the layout settings from imgui.ini
 	ImGui::LoadIniSettingsFromDisk("imgui.ini");  
 
-	// Step 3: Close all currently open windows (this resets the layout to the new one)
+	// Close all currently open windows (this resets the layout to the new one)
 	ImGuiContext& g = *ImGui::GetCurrentContext();
 	for (int i = 0; i < g.Windows.Size; i++) {
 		ImGui::CloseCurrentPopup(); 
@@ -619,15 +661,14 @@ void Editor::Task_ImportModel(std::vector<Model>& ModelList)
 	if (newModel.GetModelName() != "null_model")
 	{
 		ModelList.push_back(newModel);
-		selectedDebugModelIndex = ModelList.size() - 1;
+		DebugSelectedEntity = ModelList[ModelList.size() - 1].GetEntity();
 	}
 
 	std::filesystem::current_path(originalWorkingDir);
 }
 
 Model Editor::OpenModelFileDialog(std::vector<Model>& ModelList)
-{																					// To Do: solve cancellation logic
-
+{																			
 	// Buffer to hold the file name
 	wchar_t fileName[MAX_PATH] = L"";
 	std::string logMsg;

@@ -415,7 +415,7 @@ bool Backend::RenderModels()
 			ImVec2 windowSize = ImGui::GetWindowSize();
 			ImGuizmo::SetRect(windowPos.x, windowPos.y, windowSize.x, windowSize.y);
 
-			glm::mat4& modelMatrix = EditorWindow.DebugSelectedObj->transform->m_modelMatrix;
+			glm::mat4& modelMatrix = EditorWindow.DebugSelectedEntity->transform->m_modelMatrix;
 
 			if (ImGuizmo::Manipulate(
 				glm::value_ptr(camera.GetViewMatrix()),
@@ -425,14 +425,14 @@ bool Backend::RenderModels()
 				glm::value_ptr(modelMatrix)))
 			{
 				glm::vec3 translation = glm::vec3(1.0f), rotation = glm::vec3(1.0f), scale = glm::vec3(1.0f);
-				glm::vec3 deltaRotation = rotation - EditorWindow.DebugSelectedObj->transform->getLocalRotation();
+				glm::vec3 deltaRotation = rotation - EditorWindow.DebugSelectedEntity->transform->getLocalRotation();
 			
 				if (ImGuizmo::IsUsing())
 				{
-					EditorWindow.DebugSelectedObj->transform->DecomposeTransform(modelMatrix, translation, rotation, scale);
-					EditorWindow.DebugSelectedObj->transform->position = translation;
-					EditorWindow.DebugSelectedObj->transform->rotation += deltaRotation;
-					EditorWindow.DebugSelectedObj->transform->scale = scale;
+					EditorWindow.DebugSelectedEntity->transform->DecomposeTransform(modelMatrix, translation, rotation, scale);
+					EditorWindow.DebugSelectedEntity->transform->position = translation;
+					EditorWindow.DebugSelectedEntity->transform->rotation += deltaRotation;
+					EditorWindow.DebugSelectedEntity->transform->scale = scale;
 				}
 					
 			}
@@ -569,8 +569,10 @@ void RenderText(Shader& shader, std::string text, float x, float y, float scale,
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		// render quad
 		glDrawArrays(GL_TRIANGLES, 0, 6);
-		// now advance cursors for next glyph (note that advance is number of 1/64 pixels)
-		x += (ch.Advance >> 6) * scale; // bitshift by 6 to get value in pixels (2^6 = 64 (divide amount of 1/64th pixels by 64 to get amount of pixels))
+
+
+		// bitshift by 6 to get value in pixels
+		x += (ch.Advance >> 6) * scale;  
 	}
 	glBindVertexArray(0);
 	glBindTexture(GL_TEXTURE_2D, 0);
@@ -725,8 +727,7 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 
 	if ((button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) && !ImGui::IsAnyItemHovered())
 	{
-		
-		
+		// to do handle left click 
 	}
 
 	if ((button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS) && !ImGui::IsAnyItemHovered())
@@ -796,7 +797,7 @@ void Input_Callback(GLFWwindow* window, int key, int scancode, int action, int m
 	case GLFW_KEY_SPACE:
 		if (action == GLFW_PRESS && !ImGui::IsAnyItemActive())
 		{
-			
+			// Under revision
 		}
 		break;
 		// Fullscreen hotkey

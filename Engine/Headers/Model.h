@@ -12,8 +12,9 @@
 #include "../Headers/Mesh.h"
 #include "../Headers/stb_image.h"
 
-
-
+// Keep in mind:
+// Child classes are constructed AFTER parent classes
+// I.E. parent classes are invoked first.
 class Model : public Entity
 {
 public:
@@ -34,7 +35,6 @@ public:
 		std::filesystem::path filePath = newPath;
 		std::string fileName = filePath.filename().string();
 		newPath = fileName;
-		SetModelFileName(newPath);
 		Name = fileName;
 	}
 
@@ -42,7 +42,11 @@ public:
 
 	Model()
 	{
+		// model name, used for assimp
 		this->modelName = "null_model";
+
+		// Entity name, used for editor properties
+		Name = "null_model";
 	}
 
 	void Draw();
@@ -60,8 +64,8 @@ public:
 	Shader& GetShader() { return *shader; }
 
 	Model Duplicate() const {
-		Model copy = *this;  // Assuming copy constructor handles deep copying
-		// Perform additional logic if necessary (e.g., reset certain fields)
+		Model copy = *this;  
+		
 		return copy;
 	}
 

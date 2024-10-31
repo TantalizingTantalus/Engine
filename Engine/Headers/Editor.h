@@ -25,6 +25,7 @@ public:
 	ImVec4 clear_color;
 	std::vector<Model>* DebugModelList;
 	std::vector<Entity>* DebugEntityList;
+	Entity* DebugSelectedEntity = nullptr;
 	std::vector<std::string> LoggingEntries;
 	
 	Editor() : myPath(".."), myNavWindowPath("..")
@@ -46,6 +47,7 @@ public:
 	void Hide_UI();
 	void Show_UI();
 	void RecursiveDisplayFolders(const std::filesystem::path&);
+	void RecursiveDisplayChildren(const Entity&);
 	void WindowUpdate(Camera& in_camera, GLFWwindow& in_window);
 	GLuint LoadFileIconID(const char* path);
 

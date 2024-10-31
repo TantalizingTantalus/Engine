@@ -51,7 +51,7 @@ void Model::Draw()
 	{
         if (RenderModel)
         {
-            // should render mode be coupled to the mesh? or left to the Model?
+            // should render mode be coupled to the mesh? or left to the parent Model?
             meshes[i].RenderMode = this->RenderMode;
             // may be point of contention due to dereference
 		    meshes[i].Draw(*shader);
@@ -70,7 +70,8 @@ void Model::loadModel(std::string path)
     }
 
     std::string fileName = path.substr(path.find_last_of('/')+1);
-    this->modelName = fileName.substr(0, fileName.length() - 4);
+    Name = fileName.substr(0, fileName.length() - 4);
+    modelName = Name;
     directory = path.substr(0, path.find_last_of('/'));
     processNode(scene->mRootNode, scene);
 
@@ -86,7 +87,7 @@ void Model::processNode(aiNode* node, const aiScene* scene)
         aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
         meshes.push_back(processMesh(mesh, scene));
     }
-    // then do the same for each of its children
+    // nodes same for each of its children
     for (unsigned int i = 0; i < node->mNumChildren; i++)
     {
         processNode(node->mChildren[i], scene);
@@ -118,10 +119,10 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene)
             vertex.Normal = vector;
         }
         // texture coordinates
-        if (mesh->mTextureCoords[0]) // does the mesh contain texture coordinates?
+        if (mesh->mTextureCoords[0]) 
         {
             glm::vec2 vec;
-            // a vertex can contain up to 8 different texture coordinates. 
+            
             vec.x = mesh->mTextureCoords[0][i].x;
             vec.y = mesh->mTextureCoords[0][i].y;
 
@@ -141,7 +142,7 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene)
                 vertex.Bitangent = vector;
             }
             else {
-                // Handle the case where tangents/bitangents are not present
+                // No tangents/bitangents
                 vertex.Tangent = glm::vec3(0.0f, 0.0f, 0.0f);
                 vertex.Bitangent = glm::vec3(0.0f, 0.0f, 0.0f);
             }
@@ -154,7 +155,7 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene)
         vertices.push_back(vertex);
     }
 
-    // now wak through each of the mesh's faces (a face is a mesh its triangle) and retrieve the corresponding vertex indices.
+    
     for (unsigned int i = 0; i < mesh->mNumFaces; i++)
     {
         aiFace face = mesh->mFaces[i];
@@ -164,12 +165,8 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene)
     }
     // process materials
     aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
-    // we assume a convention for sampler names in the shaders. Each diffuse texture should be named
-    // as 'texture_diffuseN' where N is a sequential number ranging from 1 to MAX_SAMPLER_NUMBER. 
-    // Same applies to other texture as the following list summarizes:
-    // diffuse: texture_diffuseN
-    // specular: texture_specularN
-    // normal: texture_normalN
+    
+    // Currently ignoring specular and height maps, only taking diffuse and normal for debugging
     
     // 1. diffuse maps
     std::vector<Texture> diffuseMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE, "texture_diffuse");
@@ -184,7 +181,7 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene)
     //std::vector<Texture> heightMaps = loadMaterialTextures(material, aiTextureType_AMBIENT, "texture_height");
     //textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());
 
-    // return a mesh object created from the extracted mesh data
+    
     return Mesh(vertices, indices, textures);
 }
 
@@ -221,7 +218,7 @@ std::vector<Texture> Model::loadMaterialTextures(aiMaterial* mat, aiTextureType 
             texture.type = typeName;
             texture.path = str.C_Str();
             textures.push_back(texture);
-            textures_loaded.push_back(texture); // add to loaded textures
+            textures_loaded.push_back(texture); 
         }
     }
     return textures;
