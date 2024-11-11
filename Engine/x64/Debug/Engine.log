@@ -1,63 +1,4 @@
-﻿  Backend.cpp
-C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\Headers\Transform.h(98,16): warning C4101: 'Pdum3': unreferenced local variable
-  (compiling source file 'src/Backend.cpp')
-  
-C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\Headers\Transform.h(198,16): warning C4101: 'Pdum3': unreferenced local variable
-  (compiling source file 'src/Backend.cpp')
-  
-C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\Headers\FrameBuffer.h(17,49): warning C4244: 'argument': conversion from 'float' to 'GLsizei', possible loss of data
-  (compiling source file 'src/Backend.cpp')
-  
-C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\Headers\FrameBuffer.h(17,42): warning C4244: 'argument': conversion from 'float' to 'GLsizei', possible loss of data
-  (compiling source file 'src/Backend.cpp')
-  
-C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\Headers\FrameBuffer.h(24,70): warning C4244: 'argument': conversion from 'float' to 'GLsizei', possible loss of data
-  (compiling source file 'src/Backend.cpp')
-  
-C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\Headers\FrameBuffer.h(24,63): warning C4244: 'argument': conversion from 'float' to 'GLsizei', possible loss of data
-  (compiling source file 'src/Backend.cpp')
-  
-C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\Headers\FrameBuffer.h(49,49): warning C4244: 'argument': conversion from 'float' to 'GLsizei', possible loss of data
-  (compiling source file 'src/Backend.cpp')
-  
-C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\Headers\FrameBuffer.h(49,42): warning C4244: 'argument': conversion from 'float' to 'GLsizei', possible loss of data
-  (compiling source file 'src/Backend.cpp')
-  
-C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\Headers\FrameBuffer.h(55,70): warning C4244: 'argument': conversion from 'float' to 'GLsizei', possible loss of data
-  (compiling source file 'src/Backend.cpp')
-  
-C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\Headers\FrameBuffer.h(55,63): warning C4244: 'argument': conversion from 'float' to 'GLsizei', possible loss of data
-  (compiling source file 'src/Backend.cpp')
-  
-C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\Headers\FrameBuffer.h(68,49): warning C4244: 'argument': conversion from 'float' to 'GLsizei', possible loss of data
-  (compiling source file 'src/Backend.cpp')
-  
-C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\Headers\FrameBuffer.h(68,42): warning C4244: 'argument': conversion from 'float' to 'GLsizei', possible loss of data
-  (compiling source file 'src/Backend.cpp')
-  
-C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\Headers\FrameBuffer.h(75,70): warning C4244: 'argument': conversion from 'float' to 'GLsizei', possible loss of data
-  (compiling source file 'src/Backend.cpp')
-  
-C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\Headers\FrameBuffer.h(75,63): warning C4244: 'argument': conversion from 'float' to 'GLsizei', possible loss of data
-  (compiling source file 'src/Backend.cpp')
-  
-C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\Headers\Backend.h(54,29): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-  (compiling source file 'src/Backend.cpp')
-  
-C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\src\Backend.cpp(248,46): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
-C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\src\Backend.cpp(249,47): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
-C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\src\Backend.cpp(255,43): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
-C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\src\Backend.cpp(255,31): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
-C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\src\Backend.cpp(260,5): warning C4312: 'type cast': conversion from 'unsigned int' to 'ImTextureID' of greater size
-C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\src\Backend.cpp(275,5): warning C4312: 'type cast': conversion from 'unsigned int' to 'ImTextureID' of greater size
-C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\src\Backend.cpp(338,11): warning C4305: 'return': truncation from 'int' to 'bool'
-C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\src\Backend.cpp(703,11): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\src\Backend.cpp(704,11): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\src\Backend.cpp(709,16): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\src\Backend.cpp(710,16): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\src\Backend.cpp(711,10): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\src\Backend.cpp(712,10): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-  Editor.cpp
+﻿  Editor.cpp
 C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\Headers\Transform.h(98,16): warning C4101: 'Pdum3': unreferenced local variable
   (compiling source file 'src/Editor.cpp')
   
@@ -103,20 +44,6 @@ C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\Headers\Fram
 C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\Headers\Backend.h(54,29): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
   (compiling source file 'src/Editor.cpp')
   
-C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\src\Editor.cpp(209,51): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
-C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\src\Editor.cpp(273,48): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
-  Mesh.cpp
-C:\Program Files (x86)\Windows Kits\10\Include\10.0.22621.0\shared\minwindef.h(130,1): warning C4005: 'APIENTRY': macro redefinition
-  (compiling source file 'src/Mesh.cpp')
-  C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\dependencies\include\glad\glad.h(32,1):
-  see previous definition of 'APIENTRY'
-  
-  Model.cpp
-C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\Headers\Transform.h(98,16): warning C4101: 'Pdum3': unreferenced local variable
-  (compiling source file 'src/Model.cpp')
-  
-C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\Headers\Transform.h(198,16): warning C4101: 'Pdum3': unreferenced local variable
-  (compiling source file 'src/Model.cpp')
-  
-  Generating Code...
+C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\src\Editor.cpp(215,52): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\src\Editor.cpp(279,49): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
   Engine.vcxproj -> C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\x64\Debug\Engine.exe

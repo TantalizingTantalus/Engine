@@ -62,7 +62,9 @@ class Backend
 {
 public:
 	static const int height = 900, width = 1400;
-	static const int full_height = 1440, full_width = 2560;
+	int full_height = 1080, full_width = 1920;
+	float editor_fontSize = 24.0f;
+	std::string fontPath = "../Engine/Fonts/arial.ttf";
 	int SceneWidth, SceneHeight;
 
 	
@@ -78,6 +80,7 @@ public:
 	bool UpdateDockingScene();
 	int GetWindowWidth(GLFWwindow* window) { int height, width; glfwGetWindowSize(window, &width, &height); return width; }
 	int GetWindowHeight(GLFWwindow* window) { int height, width; glfwGetWindowSize(window, &width, &height); return height; }
+	Backend& GetBackEnd() { return *this; }
 private:
 	
 	float rotationAngle = 0.0f;

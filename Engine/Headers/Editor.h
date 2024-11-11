@@ -2,6 +2,8 @@
 #include "../Headers/Backend.h"
 #include "../Headers/Light.h"
 
+class Backend;
+
 
 class Editor
 {
@@ -17,8 +19,9 @@ public:
 	int selectedDebugModelIndex;
 	std::string editingNameLoggingMsg;
 	std::string editingTempName;
-	GLFWwindow* window;
-	Camera* camera;
+	Backend* myBack = nullptr;
+	GLFWwindow* window = nullptr;
+	Camera* camera = nullptr;
 	ImGuizmo::OPERATION myOperation = ImGuizmo::OPERATION::TRANSLATE;
 	Model* DirectionalLightObject = nullptr;
 	Model* DebugSelectedObj = nullptr;
@@ -34,7 +37,7 @@ public:
 		clear_color = ImVec4(0.098f, 0.098f, 0.098f, 1.0f);
 	}
 
-	void Init();
+	void Init(Backend&);
 	void Task_AlignDirLight();
 	void Task_Delete();
 	void LookAtObject(glm::vec3& ObjPosition);
@@ -43,7 +46,7 @@ public:
 	void Task_ImportModel(std::vector<Model>& ModelList);
 	void Task_DebugNormals(bool&, GLuint);
 	void Exit_Application(GLFWwindow* window);
-	void ToggleFullscreen(GLFWwindow* window);
+	void ToggleFullscreen(GLFWwindow* window, Backend*);
 	void Hide_UI();
 	void Show_UI();
 	void RecursiveDisplayFolders(const std::filesystem::path&);

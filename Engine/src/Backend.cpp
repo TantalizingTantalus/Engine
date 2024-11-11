@@ -37,6 +37,7 @@ int Backend::Initialize()
 {
 	EditorTime.deltaTime = 0.0f;
 	EditorWindow.IsFullscreen = false;
+	
 	camera.Position = (glm::vec3(0.0f, 0.0f, 3.0f));
 	spdlog::info("Initializing GLFW");
 
@@ -84,6 +85,18 @@ int Backend::Initialize()
 
 		glfwSetCursorPosCallback(window, mouse_callback);
 		glfwSetMouseButtonCallback(window, mouse_button_callback);
+
+		// Set full height to glfw window
+		GLFWmonitor* primMonitor = glfwGetPrimaryMonitor();
+		if (primMonitor)
+		{
+			const GLFWvidmode* videoMode = glfwGetVideoMode(primMonitor);
+			if (videoMode)
+			{
+				full_height = videoMode->height;
+				full_width = videoMode->width;
+			}
+		}
 	}
 
 	// Load GL Libraries
@@ -211,7 +224,7 @@ int Backend::Update()
 	// Last minute ImGui io setup
 	ImGuiIO& io = ImGui::GetIO(); (void)io;
 	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-	io.FontDefault = io.Fonts->AddFontFromFileTTF("../Engine/Fonts/arial.ttf", 24.0f);
+	io.FontDefault = io.Fonts->AddFontFromFileTTF(fontPath.c_str(), editor_fontSize);
 	
 
 	ImGuiStyle& Style = ImGui::GetStyle();
@@ -224,7 +237,7 @@ int Backend::Update()
 
 	FrameBuffer sceneBuf(width, height);
 
-	EditorWindow.Init();
+	EditorWindow.Init(GetBackEnd());
 	// Main Loop *CORE*
 	while (!glfwWindowShouldClose(window))
 	{
@@ -248,36 +261,22 @@ int Backend::Update()
 		SceneWidth = ImGui::GetContentRegionAvail().x;
 		SceneHeight = ImGui::GetContentRegionAvail().y;
 
+		
+
 		// Framebuffer setup - for some reason I haven't made time to investigate this
 		// will only work in this update while loop. I've only tried encapsulating in a 
 		// method to no avail. Look into Framebuffers and their scopes involving encapsulation.
 		glViewport(0, 0, (GLsizei)SceneWidth, (GLsizei)SceneHeight);
-		sceneBuf.RescaleFrameBuffer(SceneWidth, SceneHeight);
 
-		if (!EditorWindow.IsFullscreen)
-		{
-			ImGui::Image(
-				(ImTextureID)sceneBuf.getFrameTexture(),
-				ImGui::GetContentRegionAvail(),
-				ImVec2(0, 1),
-				ImVec2(1, 0)
-			);
-		}
-		else
-		{
-			// to do full implementation of fullscreen - this semi-works but the values are slightly off
-			ImVec2 WinSize;
-			int height, width;
-			glfwGetWindowSize(window, &width, &height);
-			WinSize.x = (float)width;
-			WinSize.y = (float)height;
-			ImGui::Image(
-				(ImTextureID)sceneBuf.getFrameTexture(),
-				WinSize,
-				ImVec2(0, 1),
-				ImVec2(1, 0)
-			);
-		}
+		
+		ImGui::Image(
+			(ImTextureID)sceneBuf.getFrameTexture(),
+			ImGui::GetContentRegionAvail(),
+			ImVec2(0, 1),
+			ImVec2(1, 0)
+		);
+
+		sceneBuf.RescaleFrameBuffer(SceneWidth, SceneHeight);
 
 		// Time tracking
 		EditorTime.Update();
@@ -323,6 +322,7 @@ bool Backend::UpdateDockingScene()
 	ImGui::Begin("Engine", 0, ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoScrollbar);
 	ImGui::DockSpace(ImGui::GetID("Dockspace"), ImVec2(0, 0));
 	ImGui::DockSpace(ImGui::GetID("Dockspace1"), ImVec2(0, 0), ImGuiDockNodeFlags_PassthruCentralNode);
+
 	return true;
 }
 
@@ -804,7 +804,7 @@ void Input_Callback(GLFWwindow* window, int key, int scancode, int action, int m
 	case GLFW_KEY_F11:
 		if (action == GLFW_PRESS && !ImGui::IsAnyItemActive())
 		{
-			EditorWindow.ToggleFullscreen(window);
+			EditorWindow.ToggleFullscreen(window, EditorWindow.myBack);
 		}
 		break;
 		// Stop the models from spinning 
