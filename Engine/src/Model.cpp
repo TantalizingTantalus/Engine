@@ -36,9 +36,23 @@ unsigned int TextureFromFile(const char* path, const std::string& directory)
     }
     else
     {
-        std::cout << "Texture failed to load at path: " << directory << std::endl;
-        std::cerr << "FAILURE REASON: " << stbi_failure_reason() << std::endl;
-        stbi_image_free(data);
+        spdlog::error(fmt::format("\nError loading texture at path:\n{}\nReason:\n{}", path, stbi_failure_reason()));
+        int pwidth, pheight, pchannels;
+        unsigned char* placeholderData = stbi_load("../Engine/Textures/Engine/placeholder.png", &pwidth, &pheight, &pchannels, 4);
+        glGenTextures(1, &textureID);
+        glBindTexture(GL_TEXTURE_2D, textureID);
+
+        // Texture params
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, pwidth, pheight, 0, GL_RGBA, GL_UNSIGNED_BYTE, placeholderData);
+        glGenerateMipmap(GL_TEXTURE_2D);
+
+        stbi_image_free(placeholderData);
+        return textureID;
     }
 
     return textureID;
@@ -46,7 +60,7 @@ unsigned int TextureFromFile(const char* path, const std::string& directory)
 
 void Model::Draw()
 {
-    shader->setMat4("model", transform->m_modelMatrix);
+    
 	for (unsigned int i = 0; i < meshes.size(); i++)
 	{
         if (RenderModel)
@@ -70,8 +84,8 @@ void Model::loadModel(std::string path)
     }
 
     std::string fileName = path.substr(path.find_last_of('/')+1);
-    Name = fileName.substr(0, fileName.length() - 4);
-    modelName = Name;
+    modelName = fileName.substr(0, fileName.length() - 4);
+    
     directory = path.substr(0, path.find_last_of('/'));
     processNode(scene->mRootNode, scene);
 
@@ -155,7 +169,6 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene)
         vertices.push_back(vertex);
     }
 
-    
     for (unsigned int i = 0; i < mesh->mNumFaces; i++)
     {
         aiFace face = mesh->mFaces[i];
@@ -171,19 +184,20 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene)
     // 1. diffuse maps
     std::vector<Texture> diffuseMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE, "texture_diffuse");
     textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
-    //// 2. specular maps
+    // 2. specular maps
     //std::vector<Texture> specularMaps = loadMaterialTextures(material, aiTextureType_SPECULAR, "texture_specular");
     //textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
-    //// 3. normal maps
+    // 3. normal maps
     std::vector<Texture> normalMaps = loadMaterialTextures(material, aiTextureType_HEIGHT, "texture_normal");
     textures.insert(textures.end(), normalMaps.begin(), normalMaps.end());
-    //// 4. height maps
+    // 4. height maps
     //std::vector<Texture> heightMaps = loadMaterialTextures(material, aiTextureType_AMBIENT, "texture_height");
     //textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());
 
     
     return Mesh(vertices, indices, textures);
 }
+
 
 
 std::vector<Texture> Model::loadMaterialTextures(aiMaterial* mat, aiTextureType type, std::string typeName)
@@ -199,7 +213,7 @@ std::vector<Texture> Model::loadMaterialTextures(aiMaterial* mat, aiTextureType 
 
         if (temp.find('/') == std::string::npos && temp.find('\\') == std::string::npos)
         {
-            temp = fmt::format("C:/Users/Gaevi/OneDrive/Documents/CodePractice/Engine/Engine/Engine/Models/{}", temp);
+            temp = fmt::format("../Engine/Models/{}", temp);
         }
         bool skip = false;
         for (unsigned int j = 0; j < textures_loaded.size(); j++)

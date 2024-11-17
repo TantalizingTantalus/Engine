@@ -150,61 +150,65 @@ int Backend::Initialize()
 
 	// Component Initialization
 	{
-		std::shared_ptr<Light> light_Component = std::make_shared<Light>();
+		/*std::shared_ptr<Light> light_Component = std::make_shared<Light>();
 		std::shared_ptr<Transform> transform_Component = std::make_shared<Transform>();
 		std::shared_ptr<TestComponent> test_Component = std::make_shared<TestComponent>();
 
-		componentLibrary.AddComponent(std::static_pointer_cast<Component>(light_Component));
-		componentLibrary.AddComponent(std::static_pointer_cast<Component>(transform_Component));
-		componentLibrary.AddComponent(std::static_pointer_cast<Component>(test_Component));
+		*/
 	}
 
 	{
-		// Create model
-		Model LightSourceObj("../Engine/Models/Light_Cube.fbx");
-
-		LightSourceObj.transform->setLocalScale(glm::vec3(0.25f, 0.25f, 0.25f));
-		// LightSourceObj.UpdateModelMatrix();
-		LightSourceObj.IsLight = true;
-		LightSourceObj.SetVisible(false);
+		// Create default light model
 		std::string dLight = "LightSource";
-		LightSourceObj.SetModelName(dLight);
+		Model LightSourceModelComp("../Engine/Models/Light_Cube.fbx");
+		Entity LightSourceEnt(dLight.c_str());
+		LightSourceEnt.transform->setLocalScale(glm::vec3(0.25f, 0.25f, 0.25f));
+		// LightSourceObj.UpdateModelMatrix();
+		LightSourceModelComp.IsLight = true;
+		std::shared_ptr<Model> LightSourceModel = std::make_shared<Model>(LightSourceModelComp);
+		//LightSourceModel->SetParent(&LightSourceEnt);
+		LightSourceEnt.AddComponent(LightSourceModel);
+		LightSourceEnt.GetComponent<Model>().SetVisible(false);
+		LightSourceEnt.GetComponent<Model>().parentEntity = &LightSourceEnt;
+		
 
 		// Add components to model
 		
-		LightSourceObj.AddComponent(LightSourceObj.transform);
+		LightSourceEnt.AddComponent(LightSourceEnt.transform);
 		std::shared_ptr<Light> light_Component = std::make_shared<Light>();
 		//std::shared_ptr<Light> mp = componentLibrary.GetComponent<Light>();
 
-		LightSourceObj.AddComponent(light_Component);
+		LightSourceEnt.AddComponent(light_Component);
 
 		// Ship it
-		ModelList.push_back(LightSourceObj);
+		LightSourceEnt.GetComponent<Model>().parentEntity = &LightSourceEnt;
+		ModelList.push_back(LightSourceEnt);
 
-		// Create model
+		// Create default room model
 		Model Room("../Engine/Models/Room.fbx");
-
+		Entity RoomEnt(Room.GetModelName().c_str());
 		// Add components to model
-		Room.AddComponent(Room.transform);
-		//Room.transform.setLocalRotation(glm::vec3(-90, 0, 0));
-		//Room.transform.DecomposeMM();
+		std::shared_ptr<Model> RoomModelComp = std::make_shared<Model>(Room);
+		RoomEnt.AddComponent(RoomEnt.transform);
+		RoomEnt.AddComponent(RoomModelComp);
+		RoomEnt.GetComponent<Model>().parentEntity = &RoomEnt;
 
 		// Ship it
-		ModelList.push_back(Room);
+		ModelList.push_back(RoomEnt);
 	}
 
 	// Position default render list (mostly unused unless for a demo)
 	{
 		for (int i = 0; i < ModelList.size(); i++)
 		{
-			Model& modelitem = ModelList[i];
+			Entity& modelitem = ModelList[i];
 			modelitem.transform->setLocalPosition(glm::vec3(-i + .5f, 0.0f, 0.0f));
 		}
 	}
 
 	// Auto select the first item in the render list for manipulation.
 	if (ModelList.size() > 0)
-		selectedDebugModelIndex = 0;
+		EditorWindow.DebugSelectedEntity = &ModelList[0];
 
 	//Initialize camera after window creation to update framebuffersize for imguizmo
 	camera.Initialize(window);
@@ -401,7 +405,7 @@ bool Backend::RenderModels()
 		ImGuizmo::BeginFrame();
 
 		// Gizmo Manipulation
-		if (EditorWindow.DebugSelectedObj != nullptr)
+		if (EditorWindow.DebugSelectedEntity != nullptr)
 		{
 			
 
@@ -445,20 +449,21 @@ bool Backend::RenderModels()
 			
 			// Render lights first, models second
 			for (int i = 0; i < ModelList.size(); i++) {
-				Model& modelitem = ModelList[i];
+				Entity& modelItem = ModelList[i];
+				Model& modelitem = modelItem.GetComponent<Model>();
 				if (modelitem.IsLight) {
-					EditorWindow.DirectionalLightObject = &modelitem;
+					EditorWindow.DirectionalLightObject = &ModelList[i];
 
 					// Shader setup for the light objects
 					lightCubeShader.use();
-					lightCubeShader.setMat4("model", modelitem.transform->m_modelMatrix);
+					lightCubeShader.setMat4("model", modelItem.transform->m_modelMatrix);
 					lightCubeShader.setMat4("projection", camera.GetProjectionMatrix());
 					lightCubeShader.setMat4("view", camera.GetViewMatrix());
-					DirectionalColor = &modelitem.GetComponent<Light>().LightColor;
+					DirectionalColor = &modelItem.GetComponent<Light>().LightColor;
 					modelitem.SetShader(lightCubeShader);
 
 					// Draw light objects *** Do we even need to draw lights?
-					modelitem.Draw();
+					modelitem.Draw();		// error here
 				}
 				else
 				{
@@ -469,10 +474,10 @@ bool Backend::RenderModels()
 						TempShader.use();
 						/*if (modelitem.parent)
 							modelitem.forceUpdateSelfAndChild();*/
-						TempShader.setMat4("model", modelitem.transform->m_modelMatrix);
+						TempShader.setMat4("model", modelItem.transform->m_modelMatrix);
 						TempShader.setMat4("projection", camera.GetProjectionMatrix());
 						TempShader.setMat4("view", camera.GetViewMatrix());
-						TempShader.setVec3("lightPos", EditorWindow.DirectionalLightObject->transform->getLocalPosition());
+						TempShader.setVec3("lightPos", EditorWindow.DirectionalLightObject->GetComponent<Transform>().getLocalPosition());
 						TempShader.setVec3("viewPos", camera.Position);
 
 						TempShader.setVec3("lightColor", glm::vec3(DirectionalColor->x, DirectionalColor->y, DirectionalColor->z));
@@ -486,7 +491,7 @@ bool Backend::RenderModels()
 		}
 
 		// Set debug modellist to current frame's model list
-		EditorWindow.DebugModelList = &ModelList;
+		EditorWindow.DebugEntityList = &ModelList;
 
 		return true;
 	}
@@ -828,7 +833,7 @@ void Input_Callback(GLFWwindow* window, int key, int scancode, int action, int m
 				EditorWindow.editingNameLoggingMsg = fmt::format("{}", EditorWindow.editingNameLoggingMsg);
 				EditorWindow.LoggingEntries.push_back(fmt::format("{} to \"{}\" ", EditorWindow.editingNameLoggingMsg, EditorWindow.editingTempName));
 				EditorWindow.editingNameLoggingMsg = "";
-				EditorWindow.DebugSelectedObj->SetModelName(EditorWindow.editingTempName);
+				EditorWindow.DebugSelectedEntity->GetComponent<Model>().SetModelName(EditorWindow.editingTempName);
 				EditorWindow.editingName = false;
 			}
 		}
@@ -836,10 +841,10 @@ void Input_Callback(GLFWwindow* window, int key, int scancode, int action, int m
 	case GLFW_KEY_N:
 		if (action == GLFW_PRESS && !ImGui::IsAnyItemActive())
 		{
-			if (EditorWindow.DebugSelectedObj != nullptr)
+			if (EditorWindow.DebugSelectedEntity->GetComponent<Model>().GetVisible())
 			{
-				EditorWindow.DebugSelectedObj->RenderMode = RENDERTARGETS::NORMAL;
-				EditorWindow.Task_DebugNormals(EditorWindow.DEBUG_NORMAL_MAP, EditorWindow.DebugSelectedObj->GetShaderID());
+				EditorWindow.DebugSelectedEntity->GetComponent<Model>().RenderMode = RENDERTARGETS::NORMAL;
+				EditorWindow.Task_DebugNormals(EditorWindow.DEBUG_NORMAL_MAP, EditorWindow.DebugSelectedEntity->GetComponent<Model>().GetShaderID());
 				EditorWindow.LoggingEntries.push_back(fmt::format("Show normals: {}", EditorWindow.DEBUG_NORMAL_MAP));
 			}
 			else
@@ -851,9 +856,9 @@ void Input_Callback(GLFWwindow* window, int key, int scancode, int action, int m
 	case GLFW_KEY_L:
 		if (action == GLFW_PRESS && !ImGui::IsAnyItemActive())
 		{
-			if (EditorWindow.DebugSelectedObj != nullptr)
+			if (EditorWindow.DebugSelectedEntity != nullptr)
 			{
-				EditorWindow.DebugSelectedObj->RenderMode = RENDERTARGETS::LINES;
+				EditorWindow.DebugSelectedEntity->GetComponent<Model>().RenderMode = RENDERTARGETS::LINES;
 
 				EditorWindow.LoggingEntries.push_back(fmt::format("Rendering lines"));
 			}
@@ -880,7 +885,7 @@ void Input_Callback(GLFWwindow* window, int key, int scancode, int action, int m
 	case GLFW_KEY_O:
 		if (action == GLFW_PRESS && (mods & GLFW_MOD_CONTROL) && !ImGui::IsAnyItemActive())
 		{
-			EditorWindow.Task_ImportModel(*EditorWindow.DebugModelList);
+			EditorWindow.Task_ImportModel(*EditorWindow.DebugEntityList);
 		}
 		break;
 	case GLFW_KEY_F12:

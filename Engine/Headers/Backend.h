@@ -94,8 +94,7 @@ private:
 	GLFWwindow* window;
 
 	// Base instance of ModelList
-	std::vector<Model> ModelList;
+	std::vector<Entity> ModelList;
 	int selectedDebugModelIndex = -1;
 
-	ComponentLibrary componentLibrary;
 };

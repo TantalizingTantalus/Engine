@@ -23,10 +23,8 @@ public:
 	GLFWwindow* window = nullptr;
 	Camera* camera = nullptr;
 	ImGuizmo::OPERATION myOperation = ImGuizmo::OPERATION::TRANSLATE;
-	Model* DirectionalLightObject = nullptr;
-	Model* DebugSelectedObj = nullptr;
+	Entity* DirectionalLightObject = nullptr;
 	ImVec4 clear_color;
-	std::vector<Model>* DebugModelList;
 	std::vector<Entity>* DebugEntityList;
 	Entity* DebugSelectedEntity = nullptr;
 	std::vector<std::string> LoggingEntries;
@@ -43,19 +41,18 @@ public:
 	void LookAtObject(glm::vec3& ObjPosition);
 	void Task_FocusObject();
 	bool Task_LoadDefaultLayout();
-	void Task_ImportModel(std::vector<Model>& ModelList);
+	void Task_ImportModel(std::vector<Entity>& ModelList);
 	void Task_DebugNormals(bool&, GLuint);
 	void Exit_Application(GLFWwindow* window);
 	void ToggleFullscreen(GLFWwindow* window, Backend*);
-	void Hide_UI();
-	void Show_UI();
+	void Toggle_UI();
 	void RecursiveDisplayFolders(const std::filesystem::path&);
 	void RecursiveDisplayChildren(const Entity&);
 	void WindowUpdate(Camera& in_camera, GLFWwindow& in_window);
 	GLuint LoadFileIconID(const char* path);
 
-	Model OpenModelFileDialog(std::vector<Model>& ModelList);
-	void DebugWindow(ImGuiIO& io, std::vector<Model>& ModelList);
+	Model OpenModelFileDialog(std::vector<Entity>& ModelList);
+	void DebugWindow(ImGuiIO& io, std::vector<Entity>& ModelList);
 
 private:
 	std::filesystem::path myPath;

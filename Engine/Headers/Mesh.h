@@ -15,12 +15,7 @@ struct Vertex {
 	glm::vec3 Normal;
 	glm::vec2 TexCoords;
 	glm::vec3 Tangent;
-	// bitangent
 	glm::vec3 Bitangent;
-	//bone indexes which will influence this vertex
-	int m_BoneIDs[MAX_BONE_INFLUENCE];
-	//weights from each bone
-	float m_Weights[MAX_BONE_INFLUENCE];
 };
 
 struct Texture {
@@ -41,15 +36,16 @@ public:
 	std::vector<unsigned int> indices;
 	std::vector<Texture> textures;
 	RENDERTARGETS RenderMode = RENDERTARGETS::NORMAL;
+	//std::vector<glm::mat4> instancedMats;
 
 	Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector<Texture> textures);
-	void SetInstanceCount(int c) { InstanceCount = c; }
+	
 	void Draw(Shader& shader);
 
 private:
 	unsigned int VAO, VBO, EBO;
-	int InstanceCount = 1;
-
+	unsigned int instanceVBO;
+	
 	void SetupMesh();
 
 };

@@ -44,7 +44,7 @@ void Editor::RecursiveDisplayChildren(const Entity& entity)
 	}
 }
 
-void Editor::DebugWindow(ImGuiIO& io, std::vector<Model>& ModelList)
+void Editor::DebugWindow(ImGuiIO& io, std::vector<Entity>& ModelList)
 {
 	if (ImGui::BeginMenuBar())
 	{
@@ -53,7 +53,6 @@ void Editor::DebugWindow(ImGuiIO& io, std::vector<Model>& ModelList)
 			if (ImGui::MenuItem("Open..", "Ctrl+O"))
 			{
 				Task_ImportModel(ModelList);
-
 			}
 			if (ImGui::MenuItem("Close", "'Esc'")) { Exit_Application(window); }
 			ImGui::EndMenu();
@@ -67,7 +66,7 @@ void Editor::DebugWindow(ImGuiIO& io, std::vector<Model>& ModelList)
 		}
 		if (ImGui::BeginMenu("View"))
 		{
-			if (ImGui::MenuItem("Hide Debug Window", "'H'")) { Hide_UI(); }
+			if (ImGui::MenuItem("Hide Debug Window", "'H'")) { Toggle_UI(); }
 			if (ImGui::MenuItem("Hide/Show HUD", "'X'")) { renderUI = !renderUI; }
 			if (ImGui::MenuItem("Change Camera Mode", "'M'")) { camera->mode = static_cast<Camera_Mode>((camera->mode + 1) % 2); }
 			if (ImGui::MenuItem("Reset Window Layout", "'PG DN'")) { Task_LoadDefaultLayout(); }
@@ -99,14 +98,13 @@ void Editor::DebugWindow(ImGuiIO& io, std::vector<Model>& ModelList)
 
 			for (int i = 0; i < ModelList.size(); i++)
 			{
-				Model& model = ModelList[i];
+				Entity& model = ModelList[i];
 				glm::vec3 modelPosition = model.transform->getLocalPosition();
 				glm::vec3 modelScale = model.transform->getLocalScale();
 				glm::vec3 displayModelRotation = model.transform->rotation;
 				glm::vec3 modelRotation = model.transform->getLocalRotation();
 				if (ModelList[i].GetEntity() == DebugSelectedEntity)
 				{
-					DebugSelectedObj = &model;
 					DebugSelectedEntity = model.GetEntity();
 
 					// Display ALL contents of Components list
@@ -114,6 +112,7 @@ void Editor::DebugWindow(ImGuiIO& io, std::vector<Model>& ModelList)
 
 
 					// Debug Buttons **** Ignore for now *****
+					ImGui::SeparatorText("Debug Testing");
 					if (ImGui::Button("Make Parent"))
 					{
 						if (ModelList.size() > 2)
@@ -127,9 +126,9 @@ void Editor::DebugWindow(ImGuiIO& io, std::vector<Model>& ModelList)
 					{
 						if (ModelList.size() > 2)
 						{
-							for (auto&& child : DebugSelectedObj->children)
+							for (auto&& child : DebugSelectedEntity->children)
 							{
-								child->transform->m_modelMatrix = DebugSelectedObj->transform->m_modelMatrix * child->transform->m_modelMatrix;
+								child->transform->m_modelMatrix = DebugSelectedEntity->transform->m_modelMatrix * child->transform->m_modelMatrix;
 							}
 						}
 					}
@@ -190,10 +189,10 @@ void Editor::DebugWindow(ImGuiIO& io, std::vector<Model>& ModelList)
 				if (editingName && selectedDebugModelIndex == i)
 				{
 					char test[12];
-					strcpy_s(test, DebugSelectedObj->GetModelName().c_str());
+					strcpy_s(test, DebugSelectedEntity->GetComponent<Model>().GetModelName().c_str());
 
 					// add update messaage
-					editingNameLoggingMsg = fmt::format("Updated model name from \"{}\"", DebugSelectedObj->GetModelName());
+					editingNameLoggingMsg = fmt::format("Updated model name from \"{}\"", DebugSelectedEntity->Name);
 
 					if (ImGui::InputText("##something", test, IM_ARRAYSIZE(test)))
 					{
@@ -207,13 +206,14 @@ void Editor::DebugWindow(ImGuiIO& io, std::vector<Model>& ModelList)
 					if (ImGui::BeginMenu("Object")) {
 						if (ImGui::MenuItem("Cube")) {
 							Model newCube("../Engine/Models/Light_Cube.fbx");
+							Entity newCubeEntity;
 							if (newCube.GetModelName() != "null_model")
 							{
-								newCube.transform->setLocalPosition(glm::vec3(0.0f));
-								newCube.AddComponent(newCube.transform);
-								ModelList.push_back(newCube);
+								newCubeEntity.transform->setLocalPosition(glm::vec3(0.0f));
+								newCubeEntity.AddComponent(newCubeEntity.transform);
+								ModelList.push_back(newCubeEntity);
 								selectedDebugModelIndex = ModelList.size() - 1;
-								DebugSelectedObj = &ModelList[selectedDebugModelIndex];
+								DebugSelectedEntity = &ModelList[selectedDebugModelIndex];
 							}
 						}
 						ImGui::EndMenu();
@@ -223,28 +223,28 @@ void Editor::DebugWindow(ImGuiIO& io, std::vector<Model>& ModelList)
 						if (ImGui::MenuItem("Test Component 1")) {
 							std::shared_ptr<TestComponent> TestC = std::make_unique<TestComponent>();
 							TestC->compName = "hey-heypeople";
-							DebugSelectedObj->AddComponent(TestC);
+							DebugSelectedEntity->AddComponent(TestC);
 							LoggingEntries.push_back("Added a new component!");
 						}
 						ImGui::Separator();
 						if (ImGui::MenuItem("Test Component 2")) {
 							std::shared_ptr<TestComponent> TestC = std::make_unique<TestComponent>();
 							TestC->compName = "whats crackin'";
-							DebugSelectedObj->AddComponent(TestC);
+							DebugSelectedEntity->AddComponent(TestC);
 							LoggingEntries.push_back("Added a new component!");
 						}
 						ImGui::Separator();
 						if (ImGui::MenuItem("Transform")) {
 							std::shared_ptr<Transform> TestT = std::make_unique<Transform>();
 
-							DebugSelectedObj->AddComponent(TestT);
+							DebugSelectedEntity->AddComponent(TestT);
 							LoggingEntries.push_back("Added a new component!");
 						}
 						ImGui::Separator();
 						if (ImGui::MenuItem("Light")) {
 							std::shared_ptr<Light> TestT = std::make_unique<Light>();
 
-							DebugSelectedObj->AddComponent(TestT);
+							DebugSelectedEntity->AddComponent(TestT);
 							LoggingEntries.push_back("Added a new component!");
 						}
 
@@ -262,22 +262,26 @@ void Editor::DebugWindow(ImGuiIO& io, std::vector<Model>& ModelList)
 				ImGui::Separator();
 				if (ImGui::MenuItem("Duplicate")) {
 
-					Model DuplicateItem(DebugSelectedObj->fullFilePath);
-					int numDupes = 0;
-					LoggingEntries.push_back("Keep in mind this duplicate is not instanced :(");
-					for (int i = 0; i < ModelList.size(); i++)
-					{
-						if (ModelList[i].GetModelFileName() == DuplicateItem.GetModelFileName())
-						{
-							numDupes++;
-						}
-					}
-					if (numDupes > 0)
-						DuplicateItem.SetModelName(fmt::format("{}({})", DuplicateItem.GetModelName(), numDupes));
-					DuplicateItem.AddComponent(DuplicateItem.transform);
-					ModelList.push_back(DuplicateItem);
-					selectedDebugModelIndex = ModelList.size() - 1;
-					DebugSelectedObj = &ModelList[selectedDebugModelIndex];
+					//Model DuplicateItem(DebugSelectedEntity->GetModel().fullFilePath); // error due to ECS, needs DebugSelectedEntity
+					//													 // instead of DebugSelectedObj
+					//int numDupes = 0;
+					//LoggingEntries.push_back("Keep in mind this duplicate is not instanced :(");
+					//for (int i = 0; i < ModelList.size(); i++)
+					//{
+					//	if (ModelList[i].GetModelFileName() == DuplicateItem.GetModelFileName())
+					//	{
+					//		numDupes++;
+					//	}
+					//}
+					//if (numDupes > 0)
+					//	DuplicateItem.SetModelName(fmt::format("{}({})", DuplicateItem.GetModelName(), numDupes));
+					//DuplicateItem.AddComponent(DuplicateItem.transform);
+					//ModelList.push_back(DuplicateItem);
+					///*selectedDebugModelIndex = ModelList.size() - 1;
+					//DebugSelectedObj = &ModelList[selectedDebugModelIndex];*/
+					//DebugSelectedEntity = ModelList[ModelList.size() - 1].GetEntity();
+
+					LoggingEntries.push_back("Under Construction");
 				}
 				ImGui::Separator();
 				if (ImGui::MenuItem("Delete"))
@@ -292,7 +296,7 @@ void Editor::DebugWindow(ImGuiIO& io, std::vector<Model>& ModelList)
 			ImGui::End();
 		}
 
-		// Debug properties - to do cleanup
+		// Debug properties 
 		{
 			ImGui::Begin("Debug", nullptr);
 			if (ImGui::Button("Toggle Fullscreen Mode"))
@@ -455,8 +459,6 @@ void Editor::DebugWindow(ImGuiIO& io, std::vector<Model>& ModelList)
 				ImGui::EndTable();
 			}
 
-
-
 			ImGui::EndChild();
 
 			ImGui::End();
@@ -464,10 +466,6 @@ void Editor::DebugWindow(ImGuiIO& io, std::vector<Model>& ModelList)
 
 		// Prepare render to draw
 		ImGui::Render();
-
-		// Draw it if Debug mode true - todo fix this, bug in program where entire window stalls when false, 
-		// this is mostly likely due to the openGL renderer being rendered to a 'scene' window inside of the 
-		// debug menu.
 
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 	}
@@ -495,16 +493,13 @@ void Editor::RecursiveDisplayFolders(const std::filesystem::path& directoryPath)
 
 	if (isOpened)
 	{
-
 		for (auto& entry : std::filesystem::directory_iterator(directoryPath))
 		{
 			if (entry.is_directory())
 			{
-
 				RecursiveDisplayFolders(entry.path());
 			}
 		}
-
 		ImGui::TreePop();
 	}
 	
@@ -517,8 +512,23 @@ GLuint Editor::LoadFileIconID(const char* path)
 
 	unsigned char* data = stbi_load(path, &width, &height, &channels, 4);
 	if (data == nullptr) {
-		std::cerr << "Error loading icon for reason: " << stbi_failure_reason() << std::endl;
-		return 0; 
+		spdlog::error(fmt::format("\nError loading icon at path:\n{}\nReason:\n{}", path, stbi_failure_reason()));
+		int pwidth, pheight, pchannels;
+		unsigned char* placeholderData = stbi_load("../Engine/Textures/Engine/placeholder.png", &pwidth, &pheight, &pchannels, 4);
+		glGenTextures(1, &textureID);
+		glBindTexture(GL_TEXTURE_2D, textureID);
+
+		// Texture params
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, pwidth, pheight, 0, GL_RGBA, GL_UNSIGNED_BYTE, placeholderData);
+		glGenerateMipmap(GL_TEXTURE_2D);
+
+		stbi_image_free(placeholderData);
+		return textureID;
 	}
 
 	glGenTextures(1, &textureID);
@@ -537,16 +547,10 @@ GLuint Editor::LoadFileIconID(const char* path)
 	return textureID;
 }
 
-// Quick toggle function for debug mode
-void Editor::Show_UI()
-{
-	DEBUG_MODE = true;
-}
-
 // Quick hide function for debug ui elements
-void Editor::Hide_UI()
+void Editor::Toggle_UI()
 {
-	DEBUG_MODE = false;
+	DEBUG_MODE = !DEBUG_MODE;
 }
 
 bool Editor::Task_LoadDefaultLayout()
@@ -603,19 +607,6 @@ void Editor::ToggleFullscreen(GLFWwindow* window, Backend* backObject)
 		Editor::IsFullscreen = !Editor::IsFullscreen;
 		glfwSetWindowMonitor(window, NULL, 0, 0, backObject->full_width, backObject->full_height, 0);
 	}
-	/*if (Editor::IsFullscreen)
-	{
-		Editor::IsFullscreen = !Editor::IsFullscreen;
-		spdlog::info(Editor::IsFullscreen);
-		glfwSetWindowMonitor(window, NULL, 100, 100, Backend::width, Backend::height, 0);
-		camera->Zoom = 45.0f;
-	}
-	else {
-		Editor::IsFullscreen = !Editor::IsFullscreen;
-		spdlog::info(Editor::IsFullscreen);
-		glfwSetWindowMonitor(window, glfwGetPrimaryMonitor(), 100, 100, Backend::full_width, Backend::full_height, 0);
-		camera->Zoom = 90.0f;
-	}*/
 }
 
 void Editor::LookAtObject(glm::vec3& ObjPosition)
@@ -634,18 +625,18 @@ void Editor::LookAtObject(glm::vec3& ObjPosition)
 
 void Editor::Task_FocusObject()
 {
-	if (DebugSelectedObj == nullptr)
+	if (DebugSelectedEntity == nullptr)
 	{
 		LoggingEntries.push_back("Debug Selected Object is empty (null)");
 	}
 	else
 	{
-		glm::vec3 ObjPosition = DebugSelectedObj->transform->getLocalPosition();
+		glm::vec3 ObjPosition = DebugSelectedEntity->transform->getLocalPosition();
 		if (camera->Position != ObjPosition)
 		{
-			glm::vec3 ObjPosition = DebugSelectedObj->transform->getLocalPosition();
+			glm::vec3 ObjPosition = DebugSelectedEntity->transform->getLocalPosition();
 			LookAtObject(ObjPosition);
-			std::string message = std::format("Focused '{}' Object", DebugSelectedObj->GetModelName());
+			std::string message = std::format("Focused '{}' Object", DebugSelectedEntity->Name);
 			LoggingEntries.push_back(message);
 		}
 	}
@@ -659,15 +650,15 @@ void Editor::Task_DebugNormals(bool& flag, GLuint sId)
 
 void Editor::Task_Delete()
 {
-	if (DebugSelectedObj != nullptr)
+	if (DebugSelectedEntity != nullptr)
 	{
-		if (!DebugModelList->empty())
+		if (!DebugEntityList->empty())
 		{
-			for (auto iModel = DebugModelList->begin(); iModel != DebugModelList->end(); )
+			for (auto iModel = DebugEntityList->begin(); iModel != DebugEntityList->end(); )
 			{
-				if (iModel->GetModelName() == DebugSelectedObj->GetModelName())
+				if (iModel->Name == DebugSelectedEntity->Name)
 				{
-					iModel = DebugModelList->erase(iModel);
+					iModel = DebugEntityList->erase(iModel);
 				}
 				else
 				{
@@ -682,21 +673,21 @@ void Editor::Task_Delete()
 	}
 }
 
-void Editor::Task_ImportModel(std::vector<Model>& ModelList)
+void Editor::Task_ImportModel(std::vector<Entity>& ModelList)
 {
 	std::filesystem::path originalWorkingDir = std::filesystem::current_path();
 	
 	Model newModel = OpenModelFileDialog(ModelList);
 	if (newModel.GetModelName() != "null_model")
 	{
-		ModelList.push_back(newModel);
+		ModelList.push_back(*newModel.parentEntity);
 		DebugSelectedEntity = ModelList[ModelList.size() - 1].GetEntity();
 	}
 
 	std::filesystem::current_path(originalWorkingDir);
 }
 
-Model Editor::OpenModelFileDialog(std::vector<Model>& ModelList)
+Model Editor::OpenModelFileDialog(std::vector<Entity>& ModelList)
 {																			
 	// Buffer to hold the file name
 	wchar_t fileName[MAX_PATH] = L"";
@@ -736,7 +727,7 @@ Model Editor::OpenModelFileDialog(std::vector<Model>& ModelList)
 			int numDupes = 0;
 			for (int i = 0; i < ModelList.size(); i++)
 			{
-				if (ModelList[i].GetModelFileName() == baseFileName)
+				if (ModelList[i].GetComponent<Model>().GetModelFileName() == baseFileName)
 				{
 					numDupes++;
 				}
@@ -752,9 +743,10 @@ Model Editor::OpenModelFileDialog(std::vector<Model>& ModelList)
 
 		// Load Model
 		Model loadedModel(ofnName);
-		loadedModel.SetModelName(extName);
+		Entity loadedModelEntity;
+		loadedModelEntity.Name = extName;
 		loadedModel.SetModelFileName(baseFileName);
-		loadedModel.AddComponent(loadedModel.transform);
+		loadedModelEntity.AddComponent(loadedModelEntity.transform);
 
 		return loadedModel;
 	}

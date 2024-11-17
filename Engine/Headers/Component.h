@@ -7,30 +7,16 @@
 #include <iostream>
 #include <vector>
 
+class Entity;
+
 class Component
 {
 public:
+	Entity* parentEntity;
 	virtual void ShowImGuiPanel() = 0;
-	
-};
-
-class ComponentLibrary
-{
-public:
-	std::vector<std::shared_ptr<Component>> c_Library;
-
-	void AddComponent(std::shared_ptr<Component> myComp)
+	void SetParent(Entity* parent)
 	{
-		c_Library.push_back(myComp);
-	}
-
-	template <typename T>
-	T& GetComponent() {
-		for (auto& component : c_Library) {
-			if (auto castedComponent = std::dynamic_pointer_cast<T>(component)) {
-				return castedComponent;
-			}
-		}
-		throw std::runtime_error("Component not found!");
+		parentEntity = parent;
 	}
 };
+

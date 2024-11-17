@@ -13,8 +13,15 @@ public:
 	{
 		Name = "NewEntity";
 		parent = nullptr;
+
 	}
 
+	Entity(const char* name)
+	{
+		Name = name;
+		parent = nullptr;
+
+	}
 
 	void AddChild(Entity*);
 	Entity* GetEntity() { return this; }
@@ -48,6 +55,9 @@ public:
 	void AddComponent(std::shared_ptr<Component> component)
 	{
 		components.push_back(component);
+		components[components.size() - 1]->SetParent(this);
+		
+
 	}
 
 	void ShowComponents() {
@@ -55,8 +65,7 @@ public:
 		if (components.size() > 0)
 		{
 			for (const auto& component : components) {
-				if(component != nullptr)
-					component->ShowImGuiPanel();  
+				component->ShowImGuiPanel();
 			}
 		}
 	}
@@ -68,8 +77,10 @@ public:
 				return *castedComponent;
 			}
 		}
-		throw std::runtime_error("Component not found!");
+		throw std::runtime_error("Component not found!"); 
 	}
+
+	
 
 	Entity* parent;
 	std::vector<Entity*> children;

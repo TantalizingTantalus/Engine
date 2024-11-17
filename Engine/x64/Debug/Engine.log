@@ -1,8 +1,8 @@
 ﻿  Editor.cpp
-C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\Headers\Transform.h(98,16): warning C4101: 'Pdum3': unreferenced local variable
+C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\Headers\Transform.h(97,16): warning C4101: 'Pdum3': unreferenced local variable
   (compiling source file 'src/Editor.cpp')
   
-C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\Headers\Transform.h(198,16): warning C4101: 'Pdum3': unreferenced local variable
+C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\Headers\Transform.h(195,16): warning C4101: 'Pdum3': unreferenced local variable
   (compiling source file 'src/Editor.cpp')
   
 C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\Headers\FrameBuffer.h(17,49): warning C4244: 'argument': conversion from 'float' to 'GLsizei', possible loss of data
@@ -45,5 +45,4 @@ C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\Headers\Back
   (compiling source file 'src/Editor.cpp')
   
 C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\src\Editor.cpp(215,52): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
-C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\Engine\src\Editor.cpp(279,49): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
   Engine.vcxproj -> C:\Users\Gaevi\OneDrive\Documents\CodePractice\Engine\Engine\x64\Debug\Engine.exe
