@@ -15,6 +15,7 @@ public:
 		IsFullscreen = false
 	;
 
+	float OutlineThickness = 1.01f;
 	char InputName[30];
 	int selectedDebugModelIndex;
 	std::string editingNameLoggingMsg;
@@ -49,7 +50,6 @@ public:
 	void RecursiveDisplayFolders(const std::filesystem::path&);
 	void RecursiveDisplayChildren(const Entity&);
 	void WindowUpdate(Camera& in_camera, GLFWwindow& in_window);
-	GLuint LoadFileIconID(const char* path);
 
 	Model OpenModelFileDialog(std::vector<Entity>& ModelList);
 	void DebugWindow(ImGuiIO& io, std::vector<Entity>& ModelList);
@@ -57,9 +57,5 @@ public:
 private:
 	std::filesystem::path myPath;
 	std::filesystem::path myNavWindowPath;
-	const char* fileFolderIconPath = "C:\\Users\\Gaevi\\OneDrive\\Documents\\Extracted Icons\\4.png";
-	const char* fileFileIconPath = "C:\\Users\\Gaevi\\OneDrive\\Documents\\Extracted Icons\\1.png";
-	const char* backButtonIconPath = "C:\\Users\\Gaevi\\OneDrive\\Documents\\Extracted Icons\\UpArrow.png";
-	ImTextureID folderIcon, fileIcon, backButtonIcon;
 	float minIconSize = 20.0f, maxIconSize = 100.0f, currentIconSize = 75.0f;
 };

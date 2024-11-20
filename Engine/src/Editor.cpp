@@ -1,12 +1,12 @@
 #include "../Headers/Editor.h"
 #include <cstring>
 
+
+
 void Editor::Init(Backend& backend)
 {
-	folderIcon = (void*)(intptr_t)LoadFileIconID(fileFolderIconPath);
-	fileIcon = (void*)(intptr_t)LoadFileIconID(fileFileIconPath);
-	backButtonIcon = (void*)(intptr_t)LoadFileIconID(backButtonIconPath);
-	myBack = &backend.GetBackEnd();
+	
+	myBack = &backend;
 }
 
 void Editor::WindowUpdate(Camera& in_camera, GLFWwindow& in_window)
@@ -50,7 +50,7 @@ void Editor::DebugWindow(ImGuiIO& io, std::vector<Entity>& ModelList)
 	{
 		if (ImGui::BeginMenu("File"))
 		{
-			if (ImGui::MenuItem("Open..", "Ctrl+O"))
+			if (ImGui::MenuItem("Import Model..", "Ctrl+O"))
 			{
 				Task_ImportModel(ModelList);
 			}
@@ -87,9 +87,6 @@ void Editor::DebugWindow(ImGuiIO& io, std::vector<Entity>& ModelList)
 	
 	if (DEBUG_MODE)
 	{
-		
-		
-
 		// Properties Panel
 		{
 			std::string PanelTitle = "Properties";
@@ -132,6 +129,7 @@ void Editor::DebugWindow(ImGuiIO& io, std::vector<Entity>& ModelList)
 							}
 						}
 					}
+					ImGui::Text(fmt::format("Entity ID: {}",DebugSelectedEntity->ID).c_str());
 				}
 			}
 
@@ -173,14 +171,6 @@ void Editor::DebugWindow(ImGuiIO& io, std::vector<Entity>& ModelList)
 					ImGui::TreePop();
 				}
 
-				// Selectable for testing purposes - delete later
-				//if (ImGui::Selectable(ModelList[i].GetModelName().c_str(), isSelected))
-				//{
-				//	// to do 
-				//	selectedDebugModelIndex = i;
-				//	LoggingEntries.push_back(fmt::format("{} Selected", ModelList[i].GetModelName().c_str()));
-				//}
-
 				if (ImGui::IsItemHovered() && ImGui::IsMouseReleased(1))
 				{
 					ImGui::OpenPopup("ContextMenu");
@@ -205,7 +195,7 @@ void Editor::DebugWindow(ImGuiIO& io, std::vector<Entity>& ModelList)
 				if (ImGui::BeginMenu("Add")) {
 					if (ImGui::BeginMenu("Object")) {
 						if (ImGui::MenuItem("Cube")) {
-							Model newCube("../Engine/Models/Light_Cube.fbx");
+							Model newCube("../Engine/Models/Light_Cube.fbx", &myBack->Icons);
 							Entity newCubeEntity;
 							if (newCube.GetModelName() != "null_model")
 							{
@@ -224,28 +214,28 @@ void Editor::DebugWindow(ImGuiIO& io, std::vector<Entity>& ModelList)
 							std::shared_ptr<TestComponent> TestC = std::make_unique<TestComponent>();
 							TestC->compName = "hey-heypeople";
 							DebugSelectedEntity->AddComponent(TestC);
-							LoggingEntries.push_back("Added a new component!");
+							LoggingEntries.push_back(fmt::format("Added a new component to {}!", DebugSelectedEntity->Name));
 						}
 						ImGui::Separator();
 						if (ImGui::MenuItem("Test Component 2")) {
 							std::shared_ptr<TestComponent> TestC = std::make_unique<TestComponent>();
 							TestC->compName = "whats crackin'";
 							DebugSelectedEntity->AddComponent(TestC);
-							LoggingEntries.push_back("Added a new component!");
+							LoggingEntries.push_back(fmt::format("Added a new component to {}!", DebugSelectedEntity->Name));
 						}
 						ImGui::Separator();
 						if (ImGui::MenuItem("Transform")) {
 							std::shared_ptr<Transform> TestT = std::make_unique<Transform>();
 
 							DebugSelectedEntity->AddComponent(TestT);
-							LoggingEntries.push_back("Added a new component!");
+							LoggingEntries.push_back(fmt::format("Added a new component to {}!", DebugSelectedEntity->Name));
 						}
 						ImGui::Separator();
 						if (ImGui::MenuItem("Light")) {
 							std::shared_ptr<Light> TestT = std::make_unique<Light>();
 
 							DebugSelectedEntity->AddComponent(TestT);
-							LoggingEntries.push_back("Added a new component!");
+							LoggingEntries.push_back(fmt::format("Added a new component to {}!", DebugSelectedEntity->Name));
 						}
 
 						ImGui::EndMenu();
@@ -326,6 +316,8 @@ void Editor::DebugWindow(ImGuiIO& io, std::vector<Entity>& ModelList)
 			ImGui::SeparatorText("Camera Speed: ");
 			ImGui::SliderFloat("##CameraSpeed", &camera->MovementSpeed, camera->Min_MoveSpeed, camera->Max_MoveSpeed);
 
+			ImGui::SeparatorText("Outline Thickness");
+			ImGui::SliderFloat("##linethickness", &OutlineThickness, 1.0, 1.5);
 
 			// Color picker
 			ImGui::SeparatorText("Viewport Color:");
@@ -401,7 +393,7 @@ void Editor::DebugWindow(ImGuiIO& io, std::vector<Entity>& ModelList)
 				float spacing = 5.0f;
 				ImGui::SetCursorPosY(ImGui::GetCursorPosY() + spacing);
 				ImGui::TableNextColumn();
-				if (ImGui::ImageButton("../", backButtonIcon, ImVec2(currentIconSize, currentIconSize)))
+				if (ImGui::ImageButton("../", myBack->Icons.backButtonIcon, ImVec2(currentIconSize, currentIconSize)))
 				{
 					// Go up a directory
 					if (myPath.has_parent_path())
@@ -422,7 +414,7 @@ void Editor::DebugWindow(ImGuiIO& io, std::vector<Entity>& ModelList)
 						if (p.is_directory())
 						{
 							fileNames = p_path.filename().string();
-							if (ImGui::ImageButton(s.c_str(), folderIcon, ImVec2(currentIconSize, currentIconSize)))
+							if (ImGui::ImageButton(s.c_str(), myBack->Icons.folderIcon, ImVec2(currentIconSize, currentIconSize)))
 							{
 								myPath /= p_path.filename();
 							}
@@ -438,7 +430,7 @@ void Editor::DebugWindow(ImGuiIO& io, std::vector<Entity>& ModelList)
 						else
 						{
 							fileNames = p_path.filename().string();
-							ImGui::ImageButton(s.c_str(), fileIcon, ImVec2(currentIconSize, currentIconSize));
+							ImGui::ImageButton(s.c_str(), myBack->Icons.fileIcon, ImVec2(currentIconSize, currentIconSize));
 							ImGui::Spacing();
 							ImGui::SetCursorPosY(ImGui::GetCursorPosY() + spacing);
 							
@@ -505,48 +497,6 @@ void Editor::RecursiveDisplayFolders(const std::filesystem::path& directoryPath)
 	
 }
 
-GLuint Editor::LoadFileIconID(const char* path)
-{
-	GLuint textureID;
-	int height, width, channels;
-
-	unsigned char* data = stbi_load(path, &width, &height, &channels, 4);
-	if (data == nullptr) {
-		spdlog::error(fmt::format("\nError loading icon at path:\n{}\nReason:\n{}", path, stbi_failure_reason()));
-		int pwidth, pheight, pchannels;
-		unsigned char* placeholderData = stbi_load("../Engine/Textures/Engine/placeholder.png", &pwidth, &pheight, &pchannels, 4);
-		glGenTextures(1, &textureID);
-		glBindTexture(GL_TEXTURE_2D, textureID);
-
-		// Texture params
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, pwidth, pheight, 0, GL_RGBA, GL_UNSIGNED_BYTE, placeholderData);
-		glGenerateMipmap(GL_TEXTURE_2D);
-
-		stbi_image_free(placeholderData);
-		return textureID;
-	}
-
-	glGenTextures(1, &textureID);
-	glBindTexture(GL_TEXTURE_2D, textureID);
-
-	// Texture params
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-	glGenerateMipmap(GL_TEXTURE_2D);
-
-	stbi_image_free(data); 
-	return textureID;
-}
-
 // Quick hide function for debug ui elements
 void Editor::Toggle_UI()
 {
@@ -582,7 +532,7 @@ bool Editor::Task_LoadDefaultLayout()
 
 void Editor::Task_AlignDirLight()
 {
-	LoggingEntries.push_back("Under Construction...");
+	LoggingEntries.push_back("Aligned light to camera position");
 
 	DirectionalLightObject->transform->setLocalPosition(camera->Position);
 }
@@ -645,7 +595,7 @@ void Editor::Task_FocusObject()
 void Editor::Task_DebugNormals(bool& flag, GLuint sId)
 {
 	flag = !flag;
-	glUniform1i(glGetUniformLocation(sId, "DEBUG_NORMAL"), flag);
+	
 }
 
 void Editor::Task_Delete()
@@ -678,10 +628,16 @@ void Editor::Task_ImportModel(std::vector<Entity>& ModelList)
 	std::filesystem::path originalWorkingDir = std::filesystem::current_path();
 	
 	Model newModel = OpenModelFileDialog(ModelList);
-	if (newModel.GetModelName() != "null_model")
+	Entity newEntity(newModel.GetModelName().c_str());
+
+	if (newEntity.Name != "null_model")
 	{
-		ModelList.push_back(*newModel.parentEntity);
+		std::shared_ptr<Model> modelComp = std::make_shared<Model>(newModel);
+		newEntity.AddComponent(newEntity.transform);
+		newEntity.AddComponent(modelComp);
+		ModelList.push_back(newEntity);
 		DebugSelectedEntity = ModelList[ModelList.size() - 1].GetEntity();
+		DebugSelectedEntity->ID = ModelList.size();
 	}
 
 	std::filesystem::current_path(originalWorkingDir);
@@ -727,7 +683,7 @@ Model Editor::OpenModelFileDialog(std::vector<Entity>& ModelList)
 			int numDupes = 0;
 			for (int i = 0; i < ModelList.size(); i++)
 			{
-				if (ModelList[i].GetComponent<Model>().GetModelFileName() == baseFileName)
+				if (ModelList[i].Name == extName || ModelList[i].Name == (fmt::format("{}({})", extName, i)))
 				{
 					numDupes++;
 				}
@@ -742,12 +698,9 @@ Model Editor::OpenModelFileDialog(std::vector<Entity>& ModelList)
 		LoggingEntries.push_back(logMsg);
 
 		// Load Model
-		Model loadedModel(ofnName);
-		Entity loadedModelEntity;
-		loadedModelEntity.Name = extName;
+		Model loadedModel(ofnName, &myBack->Icons);
 		loadedModel.SetModelFileName(baseFileName);
-		loadedModelEntity.AddComponent(loadedModelEntity.transform);
-
+		
 		return loadedModel;
 	}
 	else

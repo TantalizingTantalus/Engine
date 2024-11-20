@@ -66,7 +66,7 @@ public:
 	float editor_fontSize = 24.0f;
 	std::string fontPath = "../Engine/Fonts/arial.ttf";
 	int SceneWidth, SceneHeight;
-
+	SystemIcons Icons;
 	
 	Backend();
 	int Initialize();
@@ -78,6 +78,8 @@ public:
 	bool StartImGui();
 	bool LoadEngineIcon();
 	bool UpdateDockingScene();
+	void HandleMouseClick(GLuint);
+	void SelectEntity(int id);
 	int GetWindowWidth(GLFWwindow* window) { int height, width; glfwGetWindowSize(window, &width, &height); return width; }
 	int GetWindowHeight(GLFWwindow* window) { int height, width; glfwGetWindowSize(window, &width, &height); return height; }
 	Backend& GetBackEnd() { return *this; }
@@ -89,7 +91,7 @@ private:
 	Shader TempShader; 
 	Shader lightCubeShader;
 	Shader textShader;
-	FrameBuffer sceneBuf;
+	Shader StencilShader;
 
 	GLFWwindow* window;
 

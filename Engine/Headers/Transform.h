@@ -56,11 +56,11 @@ public:
 			}
 
 			Separator();
-			TextWrapped("Model Matrix");
+			/*TextWrapped("Model Matrix");
 			TextWrapped("Row 1: %.3f %.3f %.3f %.3f", m_modelMatrix[0][0], m_modelMatrix[0][1], m_modelMatrix[0][2], m_modelMatrix[0][3]);
 			TextWrapped("Row 2: %.3f %.3f %.3f %.3f", m_modelMatrix[1][0], m_modelMatrix[1][1], m_modelMatrix[1][2], m_modelMatrix[1][3]);
 			TextWrapped("Row 3: %.3f %.3f %.3f %.3f", m_modelMatrix[2][0], m_modelMatrix[2][1], m_modelMatrix[2][2], m_modelMatrix[2][3]);
-			TextWrapped("Row 4: %.3f %.3f %.3f %.3f", m_modelMatrix[3][0], m_modelMatrix[3][1], m_modelMatrix[3][2], m_modelMatrix[3][3]);
+			TextWrapped("Row 4: %.3f %.3f %.3f %.3f", m_modelMatrix[3][0], m_modelMatrix[3][1], m_modelMatrix[3][2], m_modelMatrix[3][3]);*/
 
 			PopTextWrapPos();
 		}
@@ -269,6 +269,28 @@ public:
 		m_isDirty = false;
 	}
 
+	void updateModelMatrix()
+	{
+		if (m_isDirty)
+		{
+			// Create individual transformation matrices
+			glm::mat4 translationMatrix = glm::translate(glm::mat4(1.0f), position);
+			glm::mat4 rotationMatrix = glm::mat4(1.0f); // Identity by default
+
+			// Apply rotations around each axis
+			rotationMatrix = glm::rotate(rotationMatrix, glm::radians(rotation.x), glm::vec3(1.0f, 0.0f, 0.0f)); // X-axis
+			rotationMatrix = glm::rotate(rotationMatrix, glm::radians(rotation.y), glm::vec3(0.0f, 1.0f, 0.0f)); // Y-axis
+			rotationMatrix = glm::rotate(rotationMatrix, glm::radians(rotation.z), glm::vec3(0.0f, 0.0f, 1.0f)); // Z-axis
+
+			glm::mat4 scaleMatrix = glm::scale(glm::mat4(1.0f), scale);
+
+			// Combine transformations: T * R * S
+			m_modelMatrix = translationMatrix * rotationMatrix * scaleMatrix;
+
+			m_isDirty = false;
+		}
+	}
+
 	void updateRotationMatrix()
 	{
 		// under construction
@@ -319,19 +341,21 @@ public:
 	{
 		position = newPosition;
 		m_isDirty = true;
-		updatePositionMatrix();
+		updateModelMatrix();
 	}
 
 	void setLocalRotation(const glm::vec3& newRotation)
 	{
 		rotation = newRotation;
 		m_isDirty = true;
+		updateModelMatrix();
 	}
 
 	void setLocalScale(const glm::vec3& newScale)
 	{
 		scale = newScale;
 		m_isDirty = true;
+		updateModelMatrix();
 	}
 
 	const glm::vec3& getGlobalPosition() const

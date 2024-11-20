@@ -9,6 +9,30 @@ Editor EditorWindow;
 Camera camera;
 Time EditorTime;
 
+// testing
+GLuint pickingFramebuffer;
+GLuint pickingTexture;
+
+void SetupPickingFramebuffer(int x, int y) {
+	// Create the texture for storing entity IDs
+	glGenTextures(1, &pickingTexture);
+	glBindTexture(GL_TEXTURE_2D, pickingTexture);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_R32I, x, y, 0, GL_RED_INTEGER, GL_INT, nullptr);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+	// Create the framebuffer for picking
+	glGenFramebuffers(1, &pickingFramebuffer);
+	glBindFramebuffer(GL_FRAMEBUFFER, pickingFramebuffer);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, pickingTexture, 0);
+
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+		std::cerr << "Picking framebuffer is not complete!" << std::endl;
+	}
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0); // Unbind framebuffer
+}
+
 struct Character {
 	unsigned int TextureID; 
 	glm::ivec2   Size;      
@@ -124,7 +148,7 @@ int Backend::Initialize()
 	{
 		Shader shaders("../Engine/Shaders/LitMaterial_Shader.vert", "../Engine/Shaders/LitMaterial_Shader.frag");
 		Shader lightShader("../Engine/Shaders/lightSource.vert", "../Engine/Shaders/lightSource.frag");
-		Shader stencilShader("../Engine/Shaders/LitMaterial_Shader.vert", "../Engine/Shaders/shaderSingleColor.frag");
+		//Shader stencilShader("../Engine/Shaders/LitMaterial_Shader.vert", "../Engine/Shaders/shaderSingleColor.frag");
 		Shader myTextShader("../Engine/Shaders/TextGlyph.vert", "../Engine/Shaders/TextGlyph.frag");
 		TempShader = shaders;
 		lightCubeShader = lightShader;
@@ -155,18 +179,22 @@ int Backend::Initialize()
 		std::shared_ptr<TestComponent> test_Component = std::make_shared<TestComponent>();
 
 		*/
+		
+		Icons.Initialize();
+		
 	}
 
 	{
 		// Create default light model
 		std::string dLight = "LightSource";
-		Model LightSourceModelComp("../Engine/Models/Light_Cube.fbx");
+		Model LightSourceModelComp("../Engine/Models/Light_Cube.fbx", &Icons);
 		Entity LightSourceEnt(dLight.c_str());
 		LightSourceEnt.transform->setLocalScale(glm::vec3(0.25f, 0.25f, 0.25f));
 		// LightSourceObj.UpdateModelMatrix();
 		LightSourceModelComp.IsLight = true;
 		std::shared_ptr<Model> LightSourceModel = std::make_shared<Model>(LightSourceModelComp);
 		//LightSourceModel->SetParent(&LightSourceEnt);
+		LightSourceEnt.AddComponent(LightSourceEnt.transform);
 		LightSourceEnt.AddComponent(LightSourceModel);
 		LightSourceEnt.GetComponent<Model>().SetVisible(false);
 		LightSourceEnt.GetComponent<Model>().parentEntity = &LightSourceEnt;
@@ -174,7 +202,7 @@ int Backend::Initialize()
 
 		// Add components to model
 		
-		LightSourceEnt.AddComponent(LightSourceEnt.transform);
+		
 		std::shared_ptr<Light> light_Component = std::make_shared<Light>();
 		//std::shared_ptr<Light> mp = componentLibrary.GetComponent<Light>();
 
@@ -182,16 +210,18 @@ int Backend::Initialize()
 
 		// Ship it
 		LightSourceEnt.GetComponent<Model>().parentEntity = &LightSourceEnt;
+		LightSourceEnt.ID = ModelList.size() + 1;
 		ModelList.push_back(LightSourceEnt);
 
 		// Create default room model
-		Model Room("../Engine/Models/Room.fbx");
+		Model Room("../Engine/Models/Room.fbx", &Icons);
 		Entity RoomEnt(Room.GetModelName().c_str());
 		// Add components to model
 		std::shared_ptr<Model> RoomModelComp = std::make_shared<Model>(Room);
 		RoomEnt.AddComponent(RoomEnt.transform);
 		RoomEnt.AddComponent(RoomModelComp);
 		RoomEnt.GetComponent<Model>().parentEntity = &RoomEnt;
+		RoomEnt.ID = ModelList.size() + 1;
 
 		// Ship it
 		ModelList.push_back(RoomEnt);
@@ -241,6 +271,59 @@ int Backend::Update()
 
 	FrameBuffer sceneBuf(width, height);
 
+
+	// Picking texture creation
+	GLuint pickingTexture;
+	glGenTextures(1, &pickingTexture);
+	glBindTexture(GL_TEXTURE_2D, pickingTexture);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+	// Attach picking texture to framebuffer
+	glBindFramebuffer(GL_FRAMEBUFFER, sceneBuf.fbo);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, pickingTexture, 0);
+
+	// Specify the draw buffers
+	GLenum drawBuffers[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
+	glDrawBuffers(2, drawBuffers);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0); 
+
+	// Stencil buffer creation
+	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LESS);
+	glEnable(GL_STENCIL_TEST);
+	glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+	glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+
+	// Stencil shader setup - todo
+	Shader stencilShader("../Engine/Shaders/shaderSingleColor.vert", "../Engine/Shaders/shaderSingleColor.frag");
+	StencilShader = stencilShader;
+
+	glBindFramebuffer(GL_FRAMEBUFFER, sceneBuf.fbo);
+
+	// Attach color textures as in your code
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, pickingTexture, 0);
+
+	// Create and attach the stencil buffer
+	GLuint stencilRenderbufferID;
+	glGenRenderbuffers(1, &stencilRenderbufferID);
+	glBindRenderbuffer(GL_RENDERBUFFER, stencilRenderbufferID);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height); // or GL_STENCIL_INDEX8 for stencil only
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, stencilRenderbufferID);
+
+	// Check completeness
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+		std::cerr << "Framebuffer not complete!" << std::endl;
+	}
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	
+	int prevSceneWidth = 0, prevSceneHeight = 0;
+
 	EditorWindow.Init(GetBackEnd());
 	// Main Loop *CORE*
 	while (!glfwWindowShouldClose(window))
@@ -248,12 +331,14 @@ int Backend::Update()
 
 		glfwPollEvents(); // Start Frame
 		PollInputs(window);
+		
 
 		// Begin ImGui Inits
 		StartImGui();
 
 		// Bind framebuffer
 		sceneBuf.Bind();
+		
 
 		// Docking space for ImGui setup
 		UpdateDockingScene();
@@ -265,7 +350,15 @@ int Backend::Update()
 		SceneWidth = ImGui::GetContentRegionAvail().x;
 		SceneHeight = ImGui::GetContentRegionAvail().y;
 
-		
+		if (SceneWidth != prevSceneWidth || SceneHeight != prevSceneHeight) {
+			glBindTexture(GL_TEXTURE_2D, pickingTexture);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, SceneWidth, SceneHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+			glBindTexture(GL_TEXTURE_2D, 0);
+
+			sceneBuf.RescaleFrameBuffer(SceneWidth, SceneHeight);
+			prevSceneWidth = SceneWidth;
+			prevSceneHeight = SceneHeight;
+		}
 
 		// Framebuffer setup - for some reason I haven't made time to investigate this
 		// will only work in this update while loop. I've only tried encapsulating in a 
@@ -280,13 +373,13 @@ int Backend::Update()
 			ImVec2(1, 0)
 		);
 
-		sceneBuf.RescaleFrameBuffer(SceneWidth, SceneHeight);
-
 		// Time tracking
 		EditorTime.Update();
 
 		// Editor window setup
 		EditorWindow.WindowUpdate(camera, *window);
+
+		HandleMouseClick(sceneBuf.fbo);
 
 		// Render ModelList
 		RenderModels();
@@ -298,6 +391,7 @@ int Backend::Update()
 		ImGui::End();
 
 		// Unbind the scene buffer
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		sceneBuf.Unbind();
 
 		// Send io for editor menus
@@ -391,6 +485,62 @@ bool Backend::RenderUI()
 	return true;
 }
 
+void Backend::SelectEntity(int id)
+{
+	for (auto& p : *EditorWindow.DebugEntityList)
+	{
+		if (p.ID == id)
+			EditorWindow.DebugSelectedEntity = &p;
+	}
+}
+
+//void Backend::HandleMouseClick() {
+//	if (ImGui::IsMouseClicked(0)) {
+//		ImVec2 mousePos = ImGui::GetMousePos();
+//		int mouseX = static_cast<int>(mousePos.x);
+//		int mouseY = SceneHeight - static_cast<int>(mousePos.y);  // Flip Y for OpenGL coordinates
+//
+//		
+//		GLint entityID;
+//		glReadPixels(mouseX, mouseY, 1, 1, GL_RED_INTEGER, GL_INT, &entityID);
+//		spdlog::info(entityID);
+//		
+//		if (entityID != 0) {
+//			SelectEntity(entityID);
+//		}
+//	}
+//}
+
+void Backend::HandleMouseClick(GLuint framebuffer) {
+	if (ImGui::IsMouseClicked(0)) {
+		ImVec2 mousePos = ImGui::GetMousePos();
+
+		int mouseX = static_cast<int>(mousePos.x - ImGui::GetWindowPos().x);
+		int mouseY = static_cast<int>(mousePos.y - ImGui::GetWindowPos().y);
+
+		// Flip Y-axis for OpenGL
+		mouseY = SceneHeight - mouseY;
+
+		// Read from picking framebuffer
+		glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+		glReadBuffer(GL_COLOR_ATTACHMENT1);
+
+		GLubyte pixel[4] = { 0 };
+		glReadPixels(mouseX, mouseY, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, pixel);
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+		
+
+		// Convert to object ID
+		int entityID = pixel[0] + pixel[1] * 256 + pixel[2] * 256 * 256;
+
+
+		if (entityID > 0) {
+			SelectEntity(entityID);
+		}
+	}
+}
+
 bool Backend::RenderModels()
 {
 	try
@@ -398,7 +548,7 @@ bool Backend::RenderModels()
 		// Update camera matrices every frame
 		camera.UpdateViewAndProjectionMatrices();
 
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 		glClearColor(EditorWindow.clear_color.x, EditorWindow.clear_color.y, EditorWindow.clear_color.z, EditorWindow.clear_color.w);
 
 		// Begin Gizmo frame
@@ -459,6 +609,7 @@ bool Backend::RenderModels()
 					lightCubeShader.setMat4("model", modelItem.transform->m_modelMatrix);
 					lightCubeShader.setMat4("projection", camera.GetProjectionMatrix());
 					lightCubeShader.setMat4("view", camera.GetViewMatrix());
+					lightCubeShader.setInt("entityID", modelItem.ID);
 					DirectionalColor = &modelItem.GetComponent<Light>().LightColor;
 					modelitem.SetShader(lightCubeShader);
 
@@ -469,22 +620,64 @@ bool Backend::RenderModels()
 				{
 					// Render Models second
 					if (!modelitem.IsLight && modelitem.GetVisible()) {
-
+						glEnable(GL_STENCIL_TEST);
+						glStencilFunc(GL_ALWAYS, 1, 0xFF);  // Always pass, write 1 to stencil
+						glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE); // Replace stencil value with 1
+						glStencilMask(0xFF); // Enable writing to stencil buffer
+						glDepthMask(GL_TRUE); // Enable writing to depth buffer
+						glEnable(GL_DEPTH_TEST);
 						// Shader setup for lit models
 						TempShader.use();
-						/*if (modelitem.parent)
-							modelitem.forceUpdateSelfAndChild();*/
+						
 						TempShader.setMat4("model", modelItem.transform->m_modelMatrix);
 						TempShader.setMat4("projection", camera.GetProjectionMatrix());
 						TempShader.setMat4("view", camera.GetViewMatrix());
 						TempShader.setVec3("lightPos", EditorWindow.DirectionalLightObject->GetComponent<Transform>().getLocalPosition());
 						TempShader.setVec3("viewPos", camera.Position);
-
+						TempShader.setInt("entityID", modelItem.ID);
 						TempShader.setVec3("lightColor", glm::vec3(DirectionalColor->x, DirectionalColor->y, DirectionalColor->z));
 						
 						modelitem.SetShader(TempShader);
 						// Draw the model item, this is 1 draw call per frame 60fps = 60 draw calls
 						modelitem.Draw();
+
+						// 2nd draw pass for stencil
+						if (modelItem.ID == EditorWindow.DebugSelectedEntity->ID)
+						{
+							glStencilFunc(GL_NOTEQUAL, 1, 0xFF);  // Pass if stencil value is not 1
+							glStencilMask(0x00); // Disable stencil writes
+							glDepthMask(GL_FALSE); // Disable depth writes
+							glDisable(GL_DEPTH_TEST);
+							//glDepthMask(GL_FALSE);
+							StencilShader.use();
+							/*if (modelitem.parent)
+								modelitem.forceUpdateSelfAndChild();*/
+								// Calculate a temporary scaled model matrix
+							
+							glm::mat4 scaledModelMatrix = glm::scale(
+								modelItem.transform->m_modelMatrix,
+								glm::vec3(EditorWindow.OutlineThickness, EditorWindow.OutlineThickness, EditorWindow.OutlineThickness) // Scale factor for stencil
+							);
+
+							//StencilShader.setMat4("model", modelItem.GetComponent<Transform>().m_modelMatrix);
+							StencilShader.setMat4("model", scaledModelMatrix);
+							StencilShader.setMat4("projection", camera.GetProjectionMatrix());
+							StencilShader.setMat4("view", camera.GetViewMatrix());
+							StencilShader.setVec3("lightPos", EditorWindow.DirectionalLightObject->GetComponent<Transform>().getLocalPosition());
+							StencilShader.setVec3("viewPos", camera.Position);
+							StencilShader.setInt("entityID", modelItem.ID);
+							StencilShader.setVec3("lightColor", glm::vec3(DirectionalColor->x, DirectionalColor->y, DirectionalColor->z));
+
+
+							modelItem.GetComponent<Model>().SetShader(StencilShader);
+							// Draw the model item, this is 1 draw call per frame 60fps = 60 draw calls
+							modelItem.GetComponent<Model>().Draw();
+							glDepthMask(GL_TRUE); // Re-enable depth writes
+							glEnable(GL_DEPTH_TEST); // Re-enable depth testing
+							glStencilMask(0xFF); // Re-enable stencil writes
+							glStencilFunc(GL_ALWAYS, 0, 0xFF);
+						}
+
 					}
 				}
 			}
@@ -843,9 +1036,15 @@ void Input_Callback(GLFWwindow* window, int key, int scancode, int action, int m
 		{
 			if (EditorWindow.DebugSelectedEntity->GetComponent<Model>().GetVisible())
 			{
-				EditorWindow.DebugSelectedEntity->GetComponent<Model>().RenderMode = RENDERTARGETS::NORMAL;
-				EditorWindow.Task_DebugNormals(EditorWindow.DEBUG_NORMAL_MAP, EditorWindow.DebugSelectedEntity->GetComponent<Model>().GetShaderID());
-				EditorWindow.LoggingEntries.push_back(fmt::format("Show normals: {}", EditorWindow.DEBUG_NORMAL_MAP));
+				if (EditorWindow.DebugSelectedEntity->GetComponent<Model>().RenderMode == RENDERTARGETS::NORMAL)
+				{
+					EditorWindow.DebugSelectedEntity->GetComponent<Model>().RenderMode = RENDERTARGETS::LIT;
+				}
+				else {
+					EditorWindow.DebugSelectedEntity->GetComponent<Model>().RenderMode = RENDERTARGETS::NORMAL;
+				}
+				
+				
 			}
 			else
 			{
@@ -858,9 +1057,16 @@ void Input_Callback(GLFWwindow* window, int key, int scancode, int action, int m
 		{
 			if (EditorWindow.DebugSelectedEntity != nullptr)
 			{
-				EditorWindow.DebugSelectedEntity->GetComponent<Model>().RenderMode = RENDERTARGETS::LINES;
-
-				EditorWindow.LoggingEntries.push_back(fmt::format("Rendering lines"));
+				if (EditorWindow.DebugSelectedEntity->GetComponent<Model>().GetVisible())
+				{
+					if (EditorWindow.DebugSelectedEntity->GetComponent<Model>().RenderMode == RENDERTARGETS::LINES)
+					{
+						EditorWindow.DebugSelectedEntity->GetComponent<Model>().RenderMode = RENDERTARGETS::LIT;
+					}
+					else {
+						EditorWindow.DebugSelectedEntity->GetComponent<Model>().RenderMode = RENDERTARGETS::LINES;
+					}
+				}
 			}
 			else
 			{

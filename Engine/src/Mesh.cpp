@@ -48,7 +48,7 @@ void Mesh::SetupMesh()
     glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, m_Weights));*/
 
     // Depth Testing
-    glEnable(GL_DEPTH_TEST);
+    //glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
 
     // Cull back faces
@@ -96,11 +96,17 @@ void Mesh::Draw(Shader& shader)
     // DrawElementsInstanced is important here for future instancing implementation
     switch (RenderMode)
     {
-    case RENDERTARGETS::NORMAL:
+    case RENDERTARGETS::LIT:
+        glUniform1i(glGetUniformLocation(shader.ID, "DEBUG_NORMAL"), false);
         glDrawElementsInstanced(GL_TRIANGLES, static_cast<unsigned int>(indices.size()), GL_UNSIGNED_INT, 0, 1);
         break;
     case RENDERTARGETS::LINES:
+        glUniform1i(glGetUniformLocation(shader.ID, "DEBUG_NORMAL"), false);
         glDrawElementsInstanced(GL_LINES, static_cast<unsigned int>(indices.size()), GL_UNSIGNED_INT, 0, 1);
+        break;
+    case RENDERTARGETS::NORMAL:
+        glUniform1i(glGetUniformLocation(shader.ID, "DEBUG_NORMAL"), true);
+        glDrawElementsInstanced(GL_TRIANGLES, static_cast<unsigned int>(indices.size()), GL_UNSIGNED_INT, 0, 1);
         break;
     }
     

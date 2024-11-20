@@ -1,6 +1,6 @@
 #include "../Headers/Model.h"
 
-unsigned int TextureFromFile(const char* path, const std::string& directory)
+unsigned int TextureFromFile(const char* path, const std::string& directory, unsigned int placeholderID)
 {
     std::string filename = std::string(path);
     filename = directory + '/' + filename;
@@ -37,22 +37,7 @@ unsigned int TextureFromFile(const char* path, const std::string& directory)
     else
     {
         spdlog::error(fmt::format("\nError loading texture at path:\n{}\nReason:\n{}", path, stbi_failure_reason()));
-        int pwidth, pheight, pchannels;
-        unsigned char* placeholderData = stbi_load("../Engine/Textures/Engine/placeholder.png", &pwidth, &pheight, &pchannels, 4);
-        glGenTextures(1, &textureID);
-        glBindTexture(GL_TEXTURE_2D, textureID);
-
-        // Texture params
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, pwidth, pheight, 0, GL_RGBA, GL_UNSIGNED_BYTE, placeholderData);
-        glGenerateMipmap(GL_TEXTURE_2D);
-
-        stbi_image_free(placeholderData);
-        return textureID;
+        textureID = placeholderID;
     }
 
     return textureID;
@@ -65,10 +50,17 @@ void Model::Draw()
 	{
         if (RenderModel)
         {
-            // should render mode be coupled to the mesh? or left to the parent Model?
             meshes[i].RenderMode = this->RenderMode;
-            // may be point of contention due to dereference
-		    meshes[i].Draw(*shader);
+            if (meshes[i].RenderMode == RENDERTARGETS::NORMAL)
+            {
+                //meshes[i].Draw(*shader);
+            }
+            else
+            {
+                //glUniform1i(glGetUniformLocation(shader->ID, "DEBUG_NORMAL"), false);
+                
+            }
+            meshes[i].Draw(*shader);
         }
 	}
 }
@@ -228,7 +220,7 @@ std::vector<Texture> Model::loadMaterialTextures(aiMaterial* mat, aiTextureType 
         if (!skip)
         {   // if texture hasn't been loaded already, load it
             Texture texture;
-            texture.id = TextureFromFile(temp.c_str() , this->directory);
+            texture.id = TextureFromFile(temp.c_str() , this->directory, (int)Icons->placeholderIcon);
             texture.type = typeName;
             texture.path = str.C_Str();
             textures.push_back(texture);

@@ -14,6 +14,7 @@ struct Vertex {
 	glm::vec3 Position;
 	glm::vec3 Normal;
 	glm::vec2 TexCoords;
+	int entityID;
 	glm::vec3 Tangent;
 	glm::vec3 Bitangent;
 };
@@ -25,8 +26,9 @@ struct Texture {
 };
 
 enum RENDERTARGETS {
-	NORMAL,
+	LIT,
 	LINES,
+	NORMAL,
 	RENDER_COUNT
 };
 
@@ -35,7 +37,7 @@ public:
 	std::vector<Vertex> vertices;
 	std::vector<unsigned int> indices;
 	std::vector<Texture> textures;
-	RENDERTARGETS RenderMode = RENDERTARGETS::NORMAL;
+	RENDERTARGETS RenderMode = RENDERTARGETS::LIT;
 	//std::vector<glm::mat4> instancedMats;
 
 	Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector<Texture> textures);

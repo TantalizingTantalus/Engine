@@ -5,6 +5,7 @@
 class FrameBuffer
 {
 public:
+	unsigned int fbo;
 	FrameBuffer(float width, float height)
 	{
 		this->width = width;
@@ -25,7 +26,7 @@ public:
 		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);
 
 		if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-			spdlog::error("ERROR::FRAMEBUFFER:: Framebuffer is not complete!");
+			spdlog::error("Framebuffer is not complete!");
 
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		glBindTexture(GL_TEXTURE_2D, 0);
@@ -97,7 +98,7 @@ public:
 	float GetHeight() { return height; }
 
 private:
-	unsigned int fbo;
+	
 	float height, width;
 	unsigned int texture;
 	unsigned int rbo;
