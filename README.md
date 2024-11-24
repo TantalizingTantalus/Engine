@@ -5,7 +5,7 @@ This is a simple engine written in C++ using OpenGL and GLFW.
 # The Goal
 My Goal is to learn the broader aspects of graphics engine programming. This is my first attempt at a larger system using Object Oriented Programming principles.
 
-![alt text](/Engine/EngineScreenshot.png?raw=true "title")
+![alt text](/Engine/EngineDemo.gif?raw=true "title")
 
 # File Browser
 ![alt text](/Engine/FileViewerScreenshot.png?raw=true "file_viewer")
