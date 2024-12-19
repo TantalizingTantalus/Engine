@@ -9,6 +9,7 @@ My Goal is to learn the broader aspects of graphics engine programming.
 
 # ECS (Entity Component System)
 This engine uses an ECS design for ease of applying behavior to objects. Create a new entity, then add relevant components!
+
 ![view of the Entity hierarchy](/Engine/Hierarchy.png?raw=true "Hierarchy")
 
 The newly created Entities are added to the scene hierarchy.
