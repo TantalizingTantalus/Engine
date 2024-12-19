@@ -29,7 +29,7 @@
 #endif
 #include "../imgui/imgui-master/imgui.h"
 
-#include "imgui-master/imgui_internal.h"
+#include "imgui/imgui-master/imgui_internal.h"
 #include "../Headers/ImGuizmo.h"
 
 #if defined(_MSC_VER) || defined(__MINGW32__)

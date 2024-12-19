@@ -1,9 +1,15 @@
 #pragma once
-#include "imgui-master/backends/imgui_impl_glfw.h"
-#include "imgui-master/backends/imgui_impl_opengl3.h"
+#include "imgui/imgui-master/backends/imgui_impl_glfw.h"
+#include "imgui/imgui-master/backends/imgui_impl_opengl3.h"
 #include <glm/gtc/type_ptr.hpp>
-#include "imgui-master/imgui.h"
-#include "imgui-master/imgui_internal.h"
+#include <glm/glm.hpp>
+#include <glad/glad.h>
+#include <GLFW/glfw3.h>
+#include "../Headers/stb_image.h"
+#include "spdlog/spdlog.h"
+#include "imgui/imgui-master/imgui.h"
+#include "imgui/imgui-master/imgui_internal.h"
+#include "../Headers/SystemIcons.h"
 #include <iostream>
 #include <vector>
 
@@ -12,11 +18,13 @@ class Entity;
 class Component
 {
 public:
-	Entity* parentEntity;
+	Entity* parent;
+
 	virtual void ShowImGuiPanel() = 0;
-	void SetParent(Entity* parent)
+	void SetParent(Entity* parentEntity)
 	{
-		parentEntity = parent;
+		parent = parentEntity;
+		
 	}
 };
 

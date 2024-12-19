@@ -10,6 +10,11 @@ class Entity
 public:
 	std::string Name;
 	int ID;
+
+	bool operator==(const Entity& other) const {
+		return this->ID == other.ID; 
+	}
+
 	Entity()
 	{
 		Name = "NewEntity";
@@ -73,15 +78,29 @@ public:
 
 	template <typename T>
 	T& GetComponent() {
+		
 		for (auto& component : components) {
 			if (auto castedComponent = std::dynamic_pointer_cast<T>(component)) {
 				return *castedComponent;
 			}
 		}
-		throw std::runtime_error("Component not found!"); 
+		throw std::runtime_error("Component not found at Entity.h");
+		
 	}
 
-	
+	template <typename T>
+	bool HasComponent() {
+
+		for (auto& component : components) {
+			if (auto castedComponent = std::dynamic_pointer_cast<T>(component)) {
+				return true;
+			}
+		}
+		return false;
+		
+
+	}
+
 
 	Entity* parent;
 	std::vector<Entity*> children;

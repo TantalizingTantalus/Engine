@@ -1,6 +1,9 @@
 #pragma once
 #include "../Headers/Backend.h"
 #include "../Headers/Light.h"
+#include "../Headers/Material.h"
+#include "../physx/PxPhysicsAPI.h"
+
 
 class Backend;
 
@@ -12,9 +15,10 @@ public:
 		renderUI = false,
 		DEBUG_MODE = true,
 		DEBUG_NORMAL_MAP = false,
-		IsFullscreen = false
+		IsFullscreen = false,
+		m_SceneHovered = false,
+		m_LoadNewLayout = false;
 	;
-
 	float OutlineThickness = 1.01f;
 	char InputName[30];
 	int selectedDebugModelIndex;
@@ -24,7 +28,6 @@ public:
 	GLFWwindow* window = nullptr;
 	Camera* camera = nullptr;
 	ImGuizmo::OPERATION myOperation = ImGuizmo::OPERATION::TRANSLATE;
-	Entity* DirectionalLightObject = nullptr;
 	ImVec4 clear_color;
 	std::vector<Entity>* DebugEntityList;
 	Entity* DebugSelectedEntity = nullptr;
@@ -37,9 +40,7 @@ public:
 	}
 
 	void Init(Backend&);
-	void Task_AlignDirLight();
 	void Task_Delete();
-	void LookAtObject(glm::vec3& ObjPosition);
 	void Task_FocusObject();
 	bool Task_LoadDefaultLayout();
 	void Task_ImportModel(std::vector<Entity>& ModelList);

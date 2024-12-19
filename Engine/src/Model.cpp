@@ -1,7 +1,8 @@
 #include "../Headers/Model.h"
 
-unsigned int TextureFromFile(const char* path, const std::string& directory, unsigned int placeholderID)
+unsigned int TextureFromFile(const char* path, std::string directory, unsigned int placeholderID)
 {
+    std::string tempDir = std::filesystem::current_path().string();
     std::string filename = std::string(path);
     filename = directory + '/' + filename;
 
@@ -40,6 +41,7 @@ unsigned int TextureFromFile(const char* path, const std::string& directory, uns
         textureID = placeholderID;
     }
 
+    std::filesystem::current_path(tempDir);
     return textureID;
 }
 
@@ -48,16 +50,18 @@ void Model::Draw()
     
 	for (unsigned int i = 0; i < meshes.size(); i++)
 	{
+        meshes[i].textures = textures_loaded;
         if (RenderModel)
         {
             meshes[i].RenderMode = this->RenderMode;
             if (meshes[i].RenderMode == RENDERTARGETS::NORMAL)
             {
-                //meshes[i].Draw(*shader);
+                
+                meshes[i].Draw(*shader);
             }
             else
             {
-                //glUniform1i(glGetUniformLocation(shader->ID, "DEBUG_NORMAL"), false);
+                glUniform1i(glGetUniformLocation(shader->ID, "DEBUG_NORMAL"), false);
                 
             }
             meshes[i].Draw(*shader);
@@ -174,13 +178,13 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene)
     // Currently ignoring specular and height maps, only taking diffuse and normal for debugging
     
     // 1. diffuse maps
-    std::vector<Texture> diffuseMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE, "texture_diffuse");
+    std::vector<Texture> diffuseMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE, "material.texture_diffuse");
     textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
     // 2. specular maps
-    //std::vector<Texture> specularMaps = loadMaterialTextures(material, aiTextureType_SPECULAR, "texture_specular");
-    //textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
+    std::vector<Texture> specularMaps = loadMaterialTextures(material, aiTextureType_SPECULAR, "material.texture_specular");
+    textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
     // 3. normal maps
-    std::vector<Texture> normalMaps = loadMaterialTextures(material, aiTextureType_HEIGHT, "texture_normal");
+    std::vector<Texture> normalMaps = loadMaterialTextures(material, aiTextureType_HEIGHT, "material.texture_normal");
     textures.insert(textures.end(), normalMaps.begin(), normalMaps.end());
     // 4. height maps
     //std::vector<Texture> heightMaps = loadMaterialTextures(material, aiTextureType_AMBIENT, "texture_height");
@@ -188,6 +192,7 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene)
 
     
     return Mesh(vertices, indices, textures);
+    
 }
 
 
@@ -220,8 +225,13 @@ std::vector<Texture> Model::loadMaterialTextures(aiMaterial* mat, aiTextureType 
         if (!skip)
         {   // if texture hasn't been loaded already, load it
             Texture texture;
-            texture.id = TextureFromFile(temp.c_str() , this->directory, (int)Icons->placeholderIcon);
+            texture.id = TextureFromFile(temp.c_str(), directory, (int)SystemIcons::GetPlaceholderIcon());
             texture.type = typeName;
+            if (typeName == "material.texture_normal")
+            {
+                hasNormal = true;
+                
+            }
             texture.path = str.C_Str();
             textures.push_back(texture);
             textures_loaded.push_back(texture); 

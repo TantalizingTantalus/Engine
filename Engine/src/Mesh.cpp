@@ -47,17 +47,7 @@ void Mesh::SetupMesh()
    /* glEnableVertexAttribArray(6);
     glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, m_Weights));*/
 
-    // Depth Testing
-    //glEnable(GL_DEPTH_TEST);
-    glDepthFunc(GL_LESS);
-
-    // Cull back faces
-    glEnable(GL_CULL_FACE);
-    glCullFace(GL_BACK);
-    glFrontFace(GL_CCW);
-    glDisable(GL_BLEND);
-
-
+    
     glBindVertexArray(0);
 }
 
@@ -70,24 +60,23 @@ void Mesh::Draw(Shader& shader)
     unsigned int heightNr = 1;
     for (unsigned int i = 0; i < textures.size(); i++)
     {
-        // active proper texture unit before binding
         glActiveTexture(GL_TEXTURE0 + i); 
-        
-        std::string number;
-        std::string name = textures[i].type;
-        if (name == "texture_diffuse")
-            number = std::to_string(diffuseNr++);
-        else if (name == "texture_specular")
-            number = std::to_string(specularNr++); 
-        else if (name == "texture_normal")
-            number = std::to_string(normalNr++); 
-        else if (name == "texture_height")
-            number = std::to_string(heightNr++); 
 
-        
-        glUniform1i(glGetUniformLocation(shader.ID, (name + number).c_str()), i);
-        
-        glBindTexture(GL_TEXTURE_2D, textures[i].id);
+        std::string name = textures[i].type;
+        int uniformLocation = -1;
+
+        if (name == "material.texture_diffuse")
+            uniformLocation = glGetUniformLocation(shader.ID, "material.texture_diffuse");
+        else if (name == "material.texture_normal")
+            uniformLocation = glGetUniformLocation(shader.ID, "material.texture_normal");
+        else if (name == "material.texture_specular")
+            uniformLocation = glGetUniformLocation(shader.ID, "material.texture_specular");
+
+        if (uniformLocation != -1)
+        {
+            glUniform1i(uniformLocation, i); 
+            glBindTexture(GL_TEXTURE_2D, textures[i].id); 
+        }
     }
 
     // draw mesh

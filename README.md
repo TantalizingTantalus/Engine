@@ -3,9 +3,19 @@
 This is a simple engine written in C++ using OpenGL and GLFW.
 
 # The Goal
-My Goal is to learn the broader aspects of graphics engine programming. This is my first attempt at a larger system using Object Oriented Programming principles.
+My Goal is to learn the broader aspects of graphics engine programming. 
 
-![alt text](/Engine/EngineScreenshot.png?raw=true "title")
+![demo gif of the engine in action!](/Engine/EngineDemo.gif?raw=true "Demo!")
+
+# ECS (Entity Component System)
+This engine uses an ECS design for ease of applying behavior to objects. Create a new entity, then add relevant components!
+![view of the Entity hierarchy](/Engine/Hierarchy.png?raw=true "Hierarchy")
+
+The newly created Entities are added to the scene hierarchy.
+
+![view of the Component panel](/Engine/Components.png?raw=true "Components")
+
+Modify added components directly in the component properties panel.
 
 # File Browser
 ![alt text](/Engine/FileViewerScreenshot.png?raw=true "file_viewer")
@@ -21,7 +31,7 @@ Each file is represented as "ImGui::Selectable()".
 - Physics Engine Implementation
 
 # Installation
-Currently, I am not using valid CMake to build the project. The .sln is included in the root "Engine" directory to help with building the project.
+Currently, I am not using valid CMake to build the project. The .sln is included in the root "Engine" directory to help with building the project. 
 
 # Libraries Used
 - OpenGL
@@ -31,3 +41,5 @@ Currently, I am not using valid CMake to build the project. The .sln is included
 - spdlog
 - Assimp
 - stb_image
+- PhysX
+- FreeType

@@ -22,19 +22,53 @@ public:
 	}
 };
 
+enum LightType
+{
+	DIRECTIONAL,
+	POINTLIGHT,
+	SPOT, 
+	COUNT
+};
+
+
+
 class Light : public Component
 {
 public:
 	ImVec4 LightColor = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
-
+	float lightIntensity = 1.0f;
+	LightType lightType = LightType::POINTLIGHT;
+	
+	
 	void ShowImGuiPanel() override
 	{
 		using namespace ImGui;
 		if (CollapsingHeader("Light"))
 		{
 			PushTextWrapPos(GetWindowContentRegionMax().x);
+			TextWrapped("Light Type:");
+			const char* lightTypeNames[] = { "Directional", "Point", "Spot" };
+			if (Combo("##LightType", reinterpret_cast<int*>(&lightType), lightTypeNames, LightType::COUNT))
+			{
+				switch (lightType)
+				{
+				case LightType::DIRECTIONAL:
+					lightType = LightType::DIRECTIONAL;
+					break;
+				case LightType::POINTLIGHT:
+					lightType = LightType::POINTLIGHT;
+					break;
+				case LightType::SPOT:
+					lightType = LightType::SPOT;
+					break;
+				}
+			}
+			Spacing();
 			TextWrapped("Light Color:");
-			ColorEdit3("##lightColor", (float*)&LightColor);
+			ColorEdit3("##lightColor", (float*)&LightColor, ImGuiColorEditFlags_PickerHueWheel);
+			TextWrapped("Intensity:");
+			InputFloat("##lightIntensity", &lightIntensity);
+			
 			PopTextWrapPos();
 
 		}

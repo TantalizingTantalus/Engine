@@ -1,11 +1,9 @@
 #include "../Headers/Editor.h"
 #include <cstring>
 
-
-
 void Editor::Init(Backend& backend)
 {
-	
+
 	myBack = &backend;
 }
 
@@ -14,7 +12,7 @@ void Editor::WindowUpdate(Camera& in_camera, GLFWwindow& in_window)
 	this->camera = &in_camera;
 	this->window = &in_window;
 
-	
+
 }
 
 void Editor::RecursiveDisplayChildren(const Entity& entity)
@@ -27,7 +25,7 @@ void Editor::RecursiveDisplayChildren(const Entity& entity)
 	}
 	else {
 		for (const auto& child : entity.children) {
-			if (child->children.size() <= 0) // problem here somewhere
+			if (!child->children.empty())
 			{
 				if (ImGui::Selectable(child->Name.c_str()))
 				{
@@ -46,6 +44,7 @@ void Editor::RecursiveDisplayChildren(const Entity& entity)
 
 void Editor::DebugWindow(ImGuiIO& io, std::vector<Entity>& ModelList)
 {
+	using namespace ImGui;
 	if (ImGui::BeginMenuBar())
 	{
 		if (ImGui::BeginMenu("File"))
@@ -59,7 +58,7 @@ void Editor::DebugWindow(ImGuiIO& io, std::vector<Entity>& ModelList)
 		}
 		if (ImGui::BeginMenu("Edit"))
 		{
-			if (ImGui::MenuItem("Set Light Position to Camera", "'G'")) { Task_AlignDirLight(); }
+			//if (ImGui::MenuItem("Set Light Position to Camera", "'G'")) { Task_AlignDirLight(); }
 			if (ImGui::MenuItem("Focus Camera to Selected", "'F'")) { Task_FocusObject(); }
 			if (ImGui::MenuItem("Rename Selected Object", "'CTRL+R'")) { editingName = true; }
 			ImGui::EndMenu();
@@ -84,9 +83,10 @@ void Editor::DebugWindow(ImGuiIO& io, std::vector<Entity>& ModelList)
 		ImGui::EndMenuBar();
 	}
 	ImGui::End();
-	
+
 	if (DEBUG_MODE)
 	{
+		
 		// Properties Panel
 		{
 			std::string PanelTitle = "Properties";
@@ -110,16 +110,17 @@ void Editor::DebugWindow(ImGuiIO& io, std::vector<Entity>& ModelList)
 
 					// Debug Buttons **** Ignore for now *****
 					ImGui::SeparatorText("Debug Testing");
-					if (ImGui::Button("Make Parent"))
+					ImGui::PushTextWrapPos(ImGui::GetWindowContentRegionMax().x);
+					if (ImGui::Button("Parent", ImVec2((ImGui::GetWindowContentRegionMax().x * .8f) / 2.0f, 50)))
 					{
 						if (ModelList.size() > 2)
 						{
 							ModelList[1].AddChild(ModelList[2].GetEntity());
-							//ModelList[1].UpdateSelfAndChild();
+							
 						}
 					}
-
-					if (ImGui::Button("Update Matrix"))
+					ImGui::SameLine();
+					if (ImGui::Button("Update MM", ImVec2((ImGui::GetWindowContentRegionMax().x * .8f) / 2.0f, 50)))
 					{
 						if (ModelList.size() > 2)
 						{
@@ -129,7 +130,8 @@ void Editor::DebugWindow(ImGuiIO& io, std::vector<Entity>& ModelList)
 							}
 						}
 					}
-					ImGui::Text(fmt::format("Entity ID: {}",DebugSelectedEntity->ID).c_str());
+					ImGui::PopTextWrapPos();
+					ImGui::Text(fmt::format("Entity ID: {}", DebugSelectedEntity->ID).c_str());
 				}
 			}
 
@@ -154,6 +156,7 @@ void Editor::DebugWindow(ImGuiIO& io, std::vector<Entity>& ModelList)
 						if (ImGui::Selectable(ModelList[i].Name.c_str()))
 						{
 							DebugSelectedEntity = ModelList[i].GetEntity();
+							camera->OrbitTarget = DebugSelectedEntity->GetComponent<Transform>().position;
 						}
 					}
 				}
@@ -162,6 +165,7 @@ void Editor::DebugWindow(ImGuiIO& io, std::vector<Entity>& ModelList)
 				{
 					//selectedDebugModelIndex = i;
 					DebugSelectedEntity = ModelList[i].GetEntity();
+					camera->OrbitTarget = DebugSelectedEntity->GetComponent<Transform>().position;
 				}
 
 
@@ -195,7 +199,7 @@ void Editor::DebugWindow(ImGuiIO& io, std::vector<Entity>& ModelList)
 				if (ImGui::BeginMenu("Add")) {
 					if (ImGui::BeginMenu("Object")) {
 						if (ImGui::MenuItem("Cube")) {
-							Model newCube("../Engine/Models/Light_Cube.fbx", &myBack->Icons);
+							Model newCube("../Engine/Models/Light_Cube.fbx");
 							Entity newCubeEntity;
 							if (newCube.GetModelName() != "null_model")
 							{
@@ -211,29 +215,36 @@ void Editor::DebugWindow(ImGuiIO& io, std::vector<Entity>& ModelList)
 
 					if (ImGui::BeginMenu("Component")) {
 						if (ImGui::MenuItem("Test Component 1")) {
-							std::shared_ptr<TestComponent> TestC = std::make_unique<TestComponent>();
+							std::shared_ptr<TestComponent> TestC = std::make_shared<TestComponent>();
 							TestC->compName = "hey-heypeople";
 							DebugSelectedEntity->AddComponent(TestC);
 							LoggingEntries.push_back(fmt::format("Added a new component to {}!", DebugSelectedEntity->Name));
 						}
 						ImGui::Separator();
 						if (ImGui::MenuItem("Test Component 2")) {
-							std::shared_ptr<TestComponent> TestC = std::make_unique<TestComponent>();
+							std::shared_ptr<TestComponent> TestC = std::make_shared<TestComponent>();
 							TestC->compName = "whats crackin'";
 							DebugSelectedEntity->AddComponent(TestC);
 							LoggingEntries.push_back(fmt::format("Added a new component to {}!", DebugSelectedEntity->Name));
 						}
 						ImGui::Separator();
 						if (ImGui::MenuItem("Transform")) {
-							std::shared_ptr<Transform> TestT = std::make_unique<Transform>();
+							std::shared_ptr<Transform> TestT = std::make_shared<Transform>();
 
 							DebugSelectedEntity->AddComponent(TestT);
 							LoggingEntries.push_back(fmt::format("Added a new component to {}!", DebugSelectedEntity->Name));
 						}
 						ImGui::Separator();
 						if (ImGui::MenuItem("Light")) {
-							std::shared_ptr<Light> TestT = std::make_unique<Light>();
+							std::shared_ptr<Light> TestT = std::make_shared<Light>();
 
+							DebugSelectedEntity->AddComponent(TestT);
+							LoggingEntries.push_back(fmt::format("Added a new component to {}!", DebugSelectedEntity->Name));
+						}
+						ImGui::Separator();
+						if (ImGui::MenuItem("Material")) {
+							std::shared_ptr<Material> TestT = std::make_shared<Material>(DebugSelectedEntity);
+							TestT->Initialize(DebugSelectedEntity->GetComponent<Model>());
 							DebugSelectedEntity->AddComponent(TestT);
 							LoggingEntries.push_back(fmt::format("Added a new component to {}!", DebugSelectedEntity->Name));
 						}
@@ -288,50 +299,65 @@ void Editor::DebugWindow(ImGuiIO& io, std::vector<Entity>& ModelList)
 
 		// Debug properties 
 		{
-			ImGui::Begin("Debug", nullptr);
-			if (ImGui::Button("Toggle Fullscreen Mode"))
+			Begin("Debug", nullptr);
+			if (Button("Toggle Fullscreen Mode"))
 				ToggleFullscreen(window, myBack);
 
 
 			// Camera Position
-			ImGui::SeparatorText("Camera:");
-			ImGui::Text("X position: %.2f", camera->Position.x);
-			ImGui::Text("Y position: %.2f", camera->Position.y);
-			ImGui::Text("Z position: %.2f", camera->Position.z);
+			SeparatorText("Camera:");
+			Text("X position: %.2f", camera->Position.x);
+			Text("Y position: %.2f", camera->Position.y);
+			Text("Z position: %.2f", camera->Position.z);
 
 			// Camera Rotation
-			ImGui::Text("Yaw: %.2f", camera->Yaw);
-			ImGui::Text("Pitch: %.2f", camera->Pitch);
+			Text("Yaw: %.2f", camera->Yaw);
+			Text("Pitch: %.2f", camera->Pitch);
 
 			// Field of view
-			ImGui::SeparatorText("Field of View (FOV):");
-			ImGui::SliderFloat("##fov", &camera->Zoom, 0, 100);
-			// Near clipping
-			ImGui::SeparatorText("Camera near clipping: ");
-			ImGui::InputFloat("##nearClipping", &camera->NearClippingPlane);
-			// Far clipping
-			ImGui::SeparatorText("Camera far clipping: ");
-			ImGui::InputFloat("##farClipping", &camera->FarClippingPlane);
-			// Adjust camera Speed
-			ImGui::SeparatorText("Camera Speed: ");
-			ImGui::SliderFloat("##CameraSpeed", &camera->MovementSpeed, camera->Min_MoveSpeed, camera->Max_MoveSpeed);
+			SeparatorText("Field of View (FOV):");
+			SliderFloat("##fov", &camera->Zoom, 0, 100);
 
-			ImGui::SeparatorText("Outline Thickness");
-			ImGui::SliderFloat("##linethickness", &OutlineThickness, 1.0, 1.5);
+			// Zoom Scrolling
+			SeparatorText("Zoom Scroll Factor: ");
+			SliderFloat("##zoomScrollFac", &camera->m_ZoomScrollFactor, 0.1f, 10.0f);
+
+			// Near clipping
+			SeparatorText("Camera near clipping: ");
+			InputFloat("##nearClipping", &camera->NearClippingPlane);
+			// Far clipping
+			SeparatorText("Camera far clipping: ");
+			InputFloat("##farClipping", &camera->FarClippingPlane);
+			// Adjust camera Speed
+			SeparatorText("Camera Speed: ");
+			SliderFloat("##CameraSpeed", &camera->MovementSpeed, camera->Min_MoveSpeed, camera->Max_MoveSpeed);
+
+			SeparatorText("Outline Thickness");
+			SliderFloat("##linethickness", &OutlineThickness, 1.0, 1.5);
 
 			// Color picker
-			ImGui::SeparatorText("Viewport Color:");
-			ImGui::ColorEdit3("##viewportColor", (float*)&clear_color, ImGuiColorEditFlags_Float);
+			SeparatorText("Directional Color");
+			if (ColorEdit3("##directionalColor", (float*)&myBack->MyDirLight.m_Color, ImGuiColorEditFlags_PickerHueWheel))
+			{
+				myBack->MyDirLight.m_DirShader->setVec3("dirLight.color", glm::vec3(myBack->MyDirLight.m_Color.x, myBack->MyDirLight.m_Color.y, myBack->MyDirLight.m_Color.z));
+			}
+			SeparatorText("Directional Intensity");
+			if (InputFloat("##DirIntensity", &myBack->MyDirLight.m_Intensity))
+			{
+				myBack->MyDirLight.m_DirShader->setFloat("dirLight.intensity", myBack->MyDirLight.m_Intensity);
+			}
+			SeparatorText("Viewport Color:");
+			ColorEdit3("##viewportColor", (float*)&clear_color, ImGuiColorEditFlags_PickerHueWheel);
 
 			// Version/Renderer info
 			const GLubyte* glVersion = glGetString(GL_VERSION);
 			const GLubyte* glRenderer = glGetString(GL_RENDERER);
-			ImGui::SeparatorText("Misc: ");
-			ImGui::Text("GPU: %s", glRenderer);
-			ImGui::Text("Application %.1f FPS", io.Framerate);
-			ImGui::Text("GLFW Version: %s", glfwGetVersionString());
-			ImGui::Text("OpenGL Version: %s", glVersion);
-			ImGui::End();
+			SeparatorText("Misc: ");
+			Text("GPU: %s", glRenderer);
+			Text("Application %.1f FPS", io.Framerate);
+			Text("GLFW Version: %s", glfwGetVersionString());
+			Text("OpenGL Version: %s", glVersion);
+			End();
 		}
 
 		// Logging window! a personal favorite
@@ -378,6 +404,11 @@ void Editor::DebugWindow(ImGuiIO& io, std::vector<Entity>& ModelList)
 			strcpy_s(buffer, myPath.string().c_str());
 			if (ImGui::InputText("##WorkingDirectoryInput", buffer, IM_ARRAYSIZE(buffer)))
 			{
+				std::filesystem::path tempPath(buffer);
+				if (std::filesystem::exists(tempPath))
+				{
+					myNavWindowPath = tempPath;
+				}
 				// to do:
 				//  make editable text input
 			}
@@ -393,7 +424,7 @@ void Editor::DebugWindow(ImGuiIO& io, std::vector<Entity>& ModelList)
 				float spacing = 5.0f;
 				ImGui::SetCursorPosY(ImGui::GetCursorPosY() + spacing);
 				ImGui::TableNextColumn();
-				if (ImGui::ImageButton("../", myBack->Icons.backButtonIcon, ImVec2(currentIconSize, currentIconSize)))
+				if (ImGui::ImageButton("../", SystemIcons::GetBackButtonIcon(), ImVec2(currentIconSize, currentIconSize)))
 				{
 					// Go up a directory
 					if (myPath.has_parent_path())
@@ -414,29 +445,29 @@ void Editor::DebugWindow(ImGuiIO& io, std::vector<Entity>& ModelList)
 						if (p.is_directory())
 						{
 							fileNames = p_path.filename().string();
-							if (ImGui::ImageButton(s.c_str(), myBack->Icons.folderIcon, ImVec2(currentIconSize, currentIconSize)))
+							if (ImGui::ImageButton(s.c_str(),SystemIcons::GetFolderIcon(), ImVec2(currentIconSize, currentIconSize)))
 							{
 								myPath /= p_path.filename();
 							}
 							ImGui::Spacing();
 
-							
-							
+
+
 							ImGui::TextWrapped(fmt::format("{}", fileNames.c_str()).c_str()); // may be a point of contention with const char* and 
-							
-						
+
+
 
 						}
 						else
 						{
 							fileNames = p_path.filename().string();
-							ImGui::ImageButton(s.c_str(), myBack->Icons.fileIcon, ImVec2(currentIconSize, currentIconSize));
+							ImGui::ImageButton(s.c_str(), SystemIcons::GetFileIcon(), ImVec2(currentIconSize, currentIconSize));
 							ImGui::Spacing();
 							ImGui::SetCursorPosY(ImGui::GetCursorPosY() + spacing);
-							
-							
+
+
 							ImGui::TextWrapped(fmt::format("{}", fileNames.c_str()).c_str());
-							
+
 						}
 
 
@@ -462,11 +493,11 @@ void Editor::DebugWindow(ImGuiIO& io, std::vector<Entity>& ModelList)
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 	}
 	else {
-		
+
 		ImGui::Render();
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 	}
-	
+
 }
 
 void Editor::RecursiveDisplayFolders(const std::filesystem::path& directoryPath)
@@ -494,7 +525,7 @@ void Editor::RecursiveDisplayFolders(const std::filesystem::path& directoryPath)
 		}
 		ImGui::TreePop();
 	}
-	
+
 }
 
 // Quick hide function for debug ui elements
@@ -505,36 +536,32 @@ void Editor::Toggle_UI()
 
 bool Editor::Task_LoadDefaultLayout()
 {
-	std::ifstream src("DefaultLayout.ini", std::ios::binary);
-	std::ofstream dst("imgui.ini", std::ios::binary);
+	// This loads the window layout from default file
+	std::ifstream src("../Engine/DefaultLayout.ini", std::ios::binary);
+	std::ofstream dst("../Engine/imgui.ini", std::ios::binary);
 
-	if (src && dst)
+	std::filesystem::path defaultLayoutPath = "../Engine/DefaultLayout.ini";
+	std::filesystem::path imGuiLayoutPath = "../Engine/imgui.ini";
+
+	if (!std::filesystem::exists(defaultLayoutPath))
 	{
-		dst << src.rdbuf();
+		spdlog::error("Default ini could not be found, check if the directory exists.");
+
 	}
-	else
+
+	try
 	{
-		std::cerr << "Error loading layout";
-		return false;
-	}
-	// Reload the layout settings from imgui.ini
-	ImGui::LoadIniSettingsFromDisk("imgui.ini");  
+		std::filesystem::copy_file(defaultLayoutPath, imGuiLayoutPath, std::filesystem::copy_options::overwrite_existing);
 
-	// Close all currently open windows (this resets the layout to the new one)
-	ImGuiContext& g = *ImGui::GetCurrentContext();
-	for (int i = 0; i < g.Windows.Size; i++) {
-		ImGui::CloseCurrentPopup(); 
 	}
-
+	catch (const std::filesystem::filesystem_error& err)
+	{
+		spdlog::error(fmt::format("Ran into issues while loading defaultlayout.ini, error here:\n{}", err.what()));
+	}
 	
+
+
 	return true;
-}
-
-void Editor::Task_AlignDirLight()
-{
-	LoggingEntries.push_back("Aligned light to camera position");
-
-	DirectionalLightObject->transform->setLocalPosition(camera->Position);
 }
 
 void Editor::Exit_Application(GLFWwindow* window)
@@ -549,29 +576,16 @@ void Editor::ToggleFullscreen(GLFWwindow* window, Backend* backObject)
 	if (Editor::IsFullscreen)
 	{
 		Editor::IsFullscreen = !Editor::IsFullscreen;
-		
-		glfwSetWindowMonitor(window, glfwGetWindowMonitor(window), 100, 100, backObject->width, backObject->height, 0);
+
+		glfwSetWindowMonitor(window, glfwGetWindowMonitor(window), 100, 100, backObject->m_Width, backObject->m_Height, 0);
 	}
 	else
 	{
 		Editor::IsFullscreen = !Editor::IsFullscreen;
-		glfwSetWindowMonitor(window, NULL, 0, 0, backObject->full_width, backObject->full_height, 0);
+		glfwSetWindowMonitor(window, NULL, 0, 0, backObject->m_FullWidth, backObject->m_FullHeight, 0);
 	}
 }
 
-void Editor::LookAtObject(glm::vec3& ObjPosition)
-{
-
-	glm::vec3 zoffset = glm::vec3(0, 0, 3.0f);
-
-	if (camera->Position != (ObjPosition - zoffset))
-	{
-		camera->Position = glm::vec3(ObjPosition.x, ObjPosition.y, ObjPosition.z - zoffset.z);
-		camera->LookAtWithYaw(ObjPosition);
-		camera->Pitch = -15.0f;
-		camera->updateCameraVectors();
-	}
-}
 
 void Editor::Task_FocusObject()
 {
@@ -581,21 +595,26 @@ void Editor::Task_FocusObject()
 	}
 	else
 	{
-		glm::vec3 ObjPosition = DebugSelectedEntity->transform->getLocalPosition();
+		/*glm::vec3 ObjPosition = DebugSelectedEntity->transform->getLocalPosition();
 		if (camera->Position != ObjPosition)
 		{
 			glm::vec3 ObjPosition = DebugSelectedEntity->transform->getLocalPosition();
 			LookAtObject(ObjPosition);
 			std::string message = std::format("Focused '{}' Object", DebugSelectedEntity->Name);
 			LoggingEntries.push_back(message);
-		}
+		}*/
+		LoggingEntries.push_back("Focused object");
+		
+		//camera->m_ViewMatrix = glm::lookAt(camera->Position, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		camera->LookAtWithYaw(DebugSelectedEntity->GetComponent<Transform>().position);
+		//camera->updateCameraVectors();
 	}
 }
 
 void Editor::Task_DebugNormals(bool& flag, GLuint sId)
 {
 	flag = !flag;
-	
+
 }
 
 void Editor::Task_Delete()
@@ -626,16 +645,28 @@ void Editor::Task_Delete()
 void Editor::Task_ImportModel(std::vector<Entity>& ModelList)
 {
 	std::filesystem::path originalWorkingDir = std::filesystem::current_path();
-	
+
 	Model newModel = OpenModelFileDialog(ModelList);
 	Entity newEntity(newModel.GetModelName().c_str());
+	Material material(&newEntity);
 
 	if (newEntity.Name != "null_model")
 	{
+		// create components
 		std::shared_ptr<Model> modelComp = std::make_shared<Model>(newModel);
-		newEntity.AddComponent(newEntity.transform);
-		newEntity.AddComponent(modelComp);
-		ModelList.push_back(newEntity);
+		std::shared_ptr<Material> matComp = std::make_shared<Material>(material);
+		
+
+		// add components
+		newEntity.AddComponent(newEntity.transform); // Transform Component
+		newEntity.AddComponent(modelComp); // Model Component
+		newEntity.AddComponent(matComp); // Material Component
+
+		// Initialize components
+		matComp->Initialize(newEntity.GetComponent<Model>()); // bug bc newModel goes out of scope
+
+		// Send it
+		ModelList.push_back(newEntity); 
 		DebugSelectedEntity = ModelList[ModelList.size() - 1].GetEntity();
 		DebugSelectedEntity->ID = ModelList.size();
 	}
@@ -644,7 +675,7 @@ void Editor::Task_ImportModel(std::vector<Entity>& ModelList)
 }
 
 Model Editor::OpenModelFileDialog(std::vector<Entity>& ModelList)
-{																			
+{
 	// Buffer to hold the file name
 	wchar_t fileName[MAX_PATH] = L"";
 	std::string logMsg;
@@ -698,9 +729,9 @@ Model Editor::OpenModelFileDialog(std::vector<Entity>& ModelList)
 		LoggingEntries.push_back(logMsg);
 
 		// Load Model
-		Model loadedModel(ofnName, &myBack->Icons);
+		Model loadedModel(ofnName);
 		loadedModel.SetModelFileName(baseFileName);
-		
+
 		return loadedModel;
 	}
 	else

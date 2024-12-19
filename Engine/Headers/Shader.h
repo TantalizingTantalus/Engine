@@ -9,6 +9,13 @@
 #include <sstream>
 #include <iostream>
 
+struct ShaderLightProperties
+{
+    
+    glm::vec3 position;
+    glm::vec3 color;
+};
+
 class Shader
 {
 public:
@@ -167,6 +174,13 @@ public:
         
     }
     // utility uniform functions
+    void SetLightArray(const std::string& arrayName, const std::vector<ShaderLightProperties>& lights) {
+        for (size_t i = 0; i < lights.size(); ++i) {
+            setVec3(arrayName + "[" + std::to_string(i) + "].Position", lights[i].position);
+            setVec3(arrayName + "[" + std::to_string(i) + "].color", lights[i].color);
+        }
+        setInt("NumLights", lights.size());
+    }
     // ------------------------------------------------------------------------
     void setBool(const std::string& name, bool value) const
     {

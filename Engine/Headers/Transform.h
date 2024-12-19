@@ -21,12 +21,12 @@ protected:
 		// Y * X * Z
 		const glm::mat4 rotationMatrix = transformY * transformX * transformZ;
 
-		// translation * rotation * scale (also know as TRS matrix)
+		// translation * rotation * scale 
 		return glm::translate(glm::mat4(1.0f), position) * rotationMatrix * glm::scale(glm::mat4(1.0f), scale);
 	}
 public:
 	glm::vec3 position = { 0.0f, 0.0f, 0.0f };
-	glm::vec3 rotation = { 0.0f, 0.0f, 0.0f }; //In degrees
+	glm::vec3 rotation = { 0.0f, 0.0f, 0.0f }; 
 	glm::vec3 scale = { 1.0f, 1.0f, 1.0f };
 	glm::mat4 m_modelMatrix = glm::mat4(1.0f);
 	bool m_isDirty = true;
@@ -111,7 +111,7 @@ public:
 
 		
 #if 0
-		Pdum3 = cross(Row[1], Row[2]); // v3Cross(row[1], row[2], Pdum3);
+		Pdum3 = cross(Row[1], Row[2]);
 		if (dot(Row[0], Pdum3) < 0)
 		{
 			for (length_t i = 0; i < 3; i++)
@@ -136,30 +136,6 @@ public:
 
 		return true;
 
-		//// Extract translation
-		//position = glm::vec3(m_modelMatrix[3]);
-
-		//// Extract scale
-		//scale = glm::vec3(
-		//	glm::length(m_modelMatrix[0]),
-		//	glm::length(m_modelMatrix[1]),
-		//	glm::length(m_modelMatrix[2])
-		//);
-
-		//// Remove scale from the matrix
-		//glm::mat4 rotationMatrix = m_modelMatrix;
-		//rotationMatrix[0] /= scale.x;
-		//rotationMatrix[1] /= scale.y;
-		//rotationMatrix[2] /= scale.z;
-
-		//// Extract rotation (this is tricky and depends on the order of rotation)
-		//rotation.z = rotationMatrix[1].z;
-		//rotation.x = rotationMatrix[1].x;
-		//rotation.y = rotationMatrix[1].y;
-
-		//m_isDirty = true;
-
-		//return true;
 	}
 
 
@@ -239,25 +215,24 @@ public:
 
 	bool DecomposeModelMatrix(const glm::mat4& modelMatrix, glm::vec3& translation, glm::vec3& rot, glm::vec3& scl)
 	{
-		// Identity matrix to check for errors
+		
 		glm::mat4 identityMatrix(1.0f);
 
-		// Decompose the matrix into translation, rotation (quaternion), and scale
+		
 		glm::vec3 skew;
 		glm::vec4 perspective;
-		glm::quat orientation;  // This will hold the rotation in quaternion form
+		glm::quat orientation;  
 
-		// Use glm::decompose to extract the values from the model matrix
 		if (!glm::decompose(modelMatrix, scl, orientation, translation, skew, perspective))
-			return false;  // Decomposition failed
+			return false;  
 
-		// Convert quaternion to Euler angles (in radians)
+		
 		rot = glm::eulerAngles(orientation);
 
-		// Optional: Convert the Euler angles to degrees
+		
 		rot = glm::degrees(rot);
 
-		return true;  // Decomposition successful
+		return true;  
 	}
 
 	void updatePositionMatrix()
@@ -273,57 +248,27 @@ public:
 	{
 		if (m_isDirty)
 		{
-			// Create individual transformation matrices
+			
 			glm::mat4 translationMatrix = glm::translate(glm::mat4(1.0f), position);
 			glm::mat4 rotationMatrix = glm::mat4(1.0f); // Identity by default
 
-			// Apply rotations around each axis
+			
 			rotationMatrix = glm::rotate(rotationMatrix, glm::radians(rotation.x), glm::vec3(1.0f, 0.0f, 0.0f)); // X-axis
 			rotationMatrix = glm::rotate(rotationMatrix, glm::radians(rotation.y), glm::vec3(0.0f, 1.0f, 0.0f)); // Y-axis
 			rotationMatrix = glm::rotate(rotationMatrix, glm::radians(rotation.z), glm::vec3(0.0f, 0.0f, 1.0f)); // Z-axis
 
 			glm::mat4 scaleMatrix = glm::scale(glm::mat4(1.0f), scale);
 
-			// Combine transformations: T * R * S
+			//  T * R * S
 			m_modelMatrix = translationMatrix * rotationMatrix * scaleMatrix;
 
 			m_isDirty = false;
 		}
 	}
 
-	void updateRotationMatrix()
-	{
-		// under construction
-	}
+	
 
-	void updateScaleMatrix()
-	{
-		// under construction
-	}
-
-	void DecomposeMM()
-	{
-
-		// Decompose the matrix after manipulation
-		//glm::vec3 newPosition, newRotation, newScale;
-		//DecomposeTransform(m_modelMatrix, position, rotation, scale);
-
-		// Update object's internal transformation data
-		setLocalPosition(position);
-		setLocalRotation(rotation);
-		setLocalScale(scale);
-
-		// Recompute model matrix to apply the new transformation
-		m_isDirty = true;
-		//computeModelMatrix();
-	}
-
-	void computeModelMatrix()
-	{
-		m_modelMatrix = getLocalModelMatrix();
-		
-		m_isDirty = false;
-	}
+	
 
 	void computeModelMatrix(const glm::mat4& parentGlobalModelMatrix)
 	{
