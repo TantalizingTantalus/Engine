@@ -146,11 +146,12 @@ int Backend::Initialize()
 
 	// Shader Setup
 	{
-		Shader shaders("../Engine/Shaders/LitMaterial_Shader.vert", "../Engine/Shaders/LitMaterial_Shader.frag");
-		Shader lightShader("../Engine/Shaders/lightSource.vert", "../Engine/Shaders/lightSource.frag");
-		//Shader stencilShader("../Engine/Shaders/LitMaterial_Shader.vert", "../Engine/Shaders/shaderSingleColor.frag");
-		Shader myTextShader("../Engine/Shaders/TextGlyph.vert", "../Engine/Shaders/TextGlyph.frag");
-		Shader shadShader("../Engine/Shaders/ShadowMapShader.vert", "../Engine/Shaders/EmptyFragment.frag");
+		Shader shaders("Shaders/LitMaterial_Shader.vert", "Shaders/LitMaterial_Shader.frag");
+		Shader lightShader("Shaders/lightSource.vert", "Shaders/lightSource.frag");
+		
+		Shader myTextShader("Shaders/TextGlyph.vert", "Shaders/TextGlyph.frag");
+		Shader shadShader("Shaders/ShadowMapShader.vert", "Shaders/EmptyFragment.frag");
+
 		m_LitMaterialShader = shaders;
 		m_LightShader = lightShader;
 		m_TextShader = myTextShader;
@@ -178,7 +179,7 @@ int Backend::Initialize()
 	{
 		// Create default light model
 		std::string dLight = "LightSource";
-		Model LightSourceModelComp("../Engine/Models/Light_Cube.fbx");
+		Model LightSourceModelComp("Models/Light_Cube.fbx");
 		Entity LightSourceEnt(dLight.c_str());
 		LightSourceEnt.transform->setLocalScale(glm::vec3(0.25f, 0.25f, 0.25f));
 		LightSourceModelComp.IsLight = true;
@@ -187,10 +188,12 @@ int Backend::Initialize()
 		LightSourceEnt.AddComponent(LightSourceEnt.transform);
 		LightSourceEnt.GetComponent<Transform>().setLocalPosition(glm::vec3(2.8f, 1.0f, -2.5));
 		std::shared_ptr<Model> LightSourceModel = std::make_shared<Model>(LightSourceModelComp);
+
 		LightSourceEnt.AddComponent(LightSourceModel);
 		LightSourceEnt.GetComponent<Model>().SetVisible(false);
 		LightSourceEnt.GetComponent<Model>().parentEntity = &LightSourceEnt;
 		std::shared_ptr<Light> light_Component = std::make_shared<Light>();
+
 		LightSourceEnt.AddComponent(light_Component);
 		LightSourceEnt.GetComponent<Light>().LightColor = ImVec4(0.0f / 255.0f, 4.0f / 255.0f, 251.0f / 255.0f, 1.0f);
 
@@ -201,7 +204,7 @@ int Backend::Initialize()
 
 		// Create default light model
 		std::string dLight2 = "LightSource2";
-		Model LightSourceModelComp2("../Engine/Models/Light_Cube.fbx");
+		Model LightSourceModelComp2("Models/Light_Cube.fbx");
 		Entity LightSourceEnt2(dLight2.c_str());
 		LightSourceEnt2.transform->setLocalScale(glm::vec3(0.25f, 0.25f, 0.25f));
 		LightSourceModelComp2.IsLight = true;
@@ -224,7 +227,7 @@ int Backend::Initialize()
 		m_PointLights.push_back(LightSourceEnt2);
 
 		// Create default room model
-		Model Room("../Engine/Models/Paveway.obj");
+		Model Room("Models/Paveway.obj");
 		Entity RoomEnt(Room.GetModelName().c_str());
 		
 		Material TheRoomMat(&RoomEnt);
@@ -244,15 +247,6 @@ int Backend::Initialize()
 		ModelList.push_back(RoomEnt);
 	}
 
-	// Position default render list (mostly unused unless for a demo)
-	{
-		/*for (int i = 0; i < ModelList.size(); i++)
-		{
-			Entity& modelitem = ModelList[i];
-			modelitem.transform->setLocalPosition(glm::vec3(-i + .5f, 0.0f, 0.0f));
-		}*/
-	}
-
 	// Auto select the first item in the render list for manipulation.
 	if (ModelList.size() > 0)
 		EditorWindow.DebugSelectedEntity = &ModelList[0];
@@ -269,11 +263,11 @@ int Backend::Initialize()
 int Backend::Update()
 {
 	// This loads the window layout from default file
-	std::ifstream src("../Engine/DefaultLayout.ini", std::ios::binary);
-	std::ofstream dst("../Engine/imgui.ini", std::ios::binary);
+	std::ifstream src("DefaultLayout.ini", std::ios::binary);
+	std::ofstream dst("imgui.ini", std::ios::binary);
 
-	std::filesystem::path defaultLayoutPath = "../Engine/DefaultLayout.ini";
-	std::filesystem::path imGuiLayoutPath = "../Engine/imgui.ini";
+	std::filesystem::path defaultLayoutPath = "DefaultLayout.ini";
+	std::filesystem::path imGuiLayoutPath = "imgui.ini";
 
 	if (!std::filesystem::exists(defaultLayoutPath))
 	{
@@ -340,7 +334,7 @@ int Backend::Update()
 	glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
 
 	// Stencil shader setup - todo
-	Shader stencilShader("../Engine/Shaders/shaderSingleColor.vert", "../Engine/Shaders/shaderSingleColor.frag");
+	Shader stencilShader("Shaders/shaderSingleColor.vert", "Shaders/shaderSingleColor.frag");
 	m_StencilShader = stencilShader;
 
 	// Bind framebuffer for config
@@ -416,14 +410,6 @@ int Backend::Update()
 	// Initialize icons used by the renderer/editor
 	SystemIcons::Initialize();
 
-	float near_plane = 1.0f, far_plane = 7.5f;
-	glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
-
-	glm::mat4 lightView = glm::lookAt(glm::vec3(-2.0f, 4.0f, -1.0f),
-		glm::vec3(0.0f, 0.0f, 0.0f),
-		glm::vec3(0.0f, 1.0f, 0.0f));
-	glm::mat4 lightSpaceMatrix = lightProjection * lightView;
-
 	// Main Loop *CORE*
 	while (!glfwWindowShouldClose(m_Window))
 	{
@@ -440,6 +426,7 @@ int Backend::Update()
 		for (int i = 0; i < m_PointLights.size(); i++)
 		{
 			m_LitMaterialShader.setFloat(fmt::format("pointLights[{}].intensity", i), m_PointLights[i].GetComponent<Light>().lightIntensity);
+			m_LitMaterialShader.setVec3(fmt::format("pointLights[{}].position", i), m_PointLights[i].GetComponent<Transform>().position);
 			m_LitMaterialShader.setVec3(fmt::format("pointLights[{}].color", i), glm::vec3(m_PointLights[i].GetComponent<Light>().LightColor.x, m_PointLights[i].GetComponent<Light>().LightColor.y, m_PointLights[i].GetComponent<Light>().LightColor.z));
 			m_LitMaterialShader.setFloat(fmt::format("pointLights[{}].constant", i), 1.0f);
 			m_LitMaterialShader.setFloat(fmt::format("pointLights[{}].linear", i), 0.09f);
@@ -466,7 +453,6 @@ int Backend::Update()
 		ImVec2 mousePos = ImGui::GetIO().MousePos;
 
 		
-
 		// Check if the mouse is inside the Scene Window's boundaries
 		if (mousePos.x >= scenePos.x && mousePos.x <= scenePos.x + sceneSize.x &&
 			mousePos.y >= scenePos.y && mousePos.y <= scenePos.y + sceneSize.y) {
@@ -568,7 +554,7 @@ bool Backend::LoadEngineIcon()
 {
 	// Load the image
 	int width, height, channels;
-	unsigned char* data = stbi_load("../Engine/icon.png", &width, &height, &channels, 4);
+	unsigned char* data = stbi_load("icon.png", &width, &height, &channels, 4);
 	if (!data) {
 		spdlog::error("ran into issues loading window icon...");
 		glfwDestroyWindow(m_Window);
@@ -709,7 +695,7 @@ bool Backend::RenderModels()
 				glm::value_ptr(camera.GetViewMatrix()),
 				glm::value_ptr(camera.GetProjectionMatrix()),
 				EditorWindow.myOperation,
-				ImGuizmo::WORLD,
+				ImGuizmo::LOCAL,
 				glm::value_ptr(modelMatrix)))
 			{
 				glm::vec3 translation = glm::vec3(1.0f), rotation = glm::vec3(1.0f), scale = glm::vec3(1.0f);
@@ -726,6 +712,7 @@ bool Backend::RenderModels()
 			}
 		}
 
+		// Check any new lights created and add them
 		for (auto& light : ModelList)
 		{
 			if (light.HasComponent<Light>())

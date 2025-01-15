@@ -12,28 +12,28 @@
 #include <GLFW/glfw3.h>
 
 #include <glm/gtc/matrix_transform.hpp>
-#include "../Headers/Shader.h"
+#include "Shader.h"
 #include <glm/gtc/type_ptr.hpp>
 
-#include "../Headers/Model.h"
-#include "../Headers/Camera.h"
-#include "../Headers/stb_image.h"
-#include "../Headers/FrameBuffer.h"
+#include "Model.h"
+#include "Camera.h"
+#include "stb_image.h"
+#include "FrameBuffer.h"
 
 #include "imgui/imgui-master/imgui.h"
 #include "imgui/imgui-master/imgui_internal.h"
-#include "../Headers/Logging.h"
-#include "../Headers/Light.h"
-#include "../Headers/SystemIcons.h"
+#include "Logging.h"
+#include "Light.h"
+#include "SystemIcons.h"
 
 
 #include <filesystem>
 #include "spdlog/spdlog.h"
 #include <map>
-#include "../Headers/Util.h"
+#include "Util.h"
 #include "ft2build.h"
-#include "../Headers/Editor.h"
-#include "../Headers/Component.h"
+#include "Editor.h"
+#include "Component.h"
 
 #include FT_FREETYPE_H
 
@@ -78,7 +78,7 @@ public:
 	static const int m_Height = 900, m_Width = 1400;
 	int m_FullHeight = 1080, m_FullWidth = 1920;
 	float m_EditorSetting_FontSize = 24.0f;
-	std::string fontPath = "../Engine/Fonts/arial.ttf";
+	std::string fontPath = "Fonts/arial.ttf";
 	int m_SceneWidth, m_SceneHeight;
 	
 	std::vector<Entity> m_PointLights;

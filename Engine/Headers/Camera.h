@@ -4,8 +4,8 @@
 #include <glad/glad.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include "../Headers/Backend.h"
-#include "../Headers/Util.h"
+#include "Backend.h"
+#include "Util.h"
 
 // Defines several possible options for camera movement. Used as abstraction to stay away from window-system specific input methods
 enum Camera_Movement {
@@ -112,20 +112,20 @@ public:
     
 
     void LookAtWithYaw(glm::vec3 target) {
-        // Get direction to the target
+        
         glm::vec3 direction = glm::normalize(target - Position);
 
-        // get yaw based on the direction
+       
         Yaw = atan2(direction.z, direction.x) * 180.0f / glm::pi<float>();
         Pitch = atan2(direction.y, sqrt(direction.x * direction.x + direction.z * direction.z)) * 180.0f / glm::pi<float>();
 
         Pitch = glm::clamp(Pitch, -89.0f, 89.0f);
 
-        // Ensure yaw is between -180 and 180
+        
         if (Yaw < -180.0f) Yaw += 360.0f;
         if (Yaw > 180.0f) Yaw -= 360.0f;
 
-        // Update camera vectors
+        
         updateCameraVectors();
     }
 
@@ -208,7 +208,7 @@ public:
         LookAtWithYaw(target);
     }
 
-    // processes input received from a mouse input system. Expects the offset value in both the x and y direction.
+    
     void ProcessMouseMovement(float xoffset, float yoffset, GLboolean constrainPitch = true)
     {
         xoffset *= MouseSensitivity;
@@ -268,14 +268,14 @@ public:
 
     void updateCameraVectors()
     {
-        // calculate the new Front vector
+       
         glm::vec3 front;
         front.x = cos(glm::radians(Yaw)) * cos(glm::radians(Pitch));
         front.y = sin(glm::radians(Pitch));
         front.z = sin(glm::radians(Yaw)) * cos(glm::radians(Pitch));
         Front = glm::normalize(front);
-        // also re-calculate the Right and Up vector
-        Right = glm::normalize(glm::cross(Front, WorldUp));  // normalize the vectors, because their length gets closer to 0 the more you look up or down which results in slower movement.
+        
+        Right = glm::normalize(glm::cross(Front, WorldUp));  
         Up = glm::normalize(glm::cross(Right, Front));
 
         m_ViewMatrix = glm::lookAt(Position, Position + Front, Up);

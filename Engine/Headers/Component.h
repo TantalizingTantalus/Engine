@@ -5,11 +5,11 @@
 #include <glm/glm.hpp>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
-#include "../Headers/stb_image.h"
+#include "stb_image.h"
 #include "spdlog/spdlog.h"
 #include "imgui/imgui-master/imgui.h"
 #include "imgui/imgui-master/imgui_internal.h"
-#include "../Headers/SystemIcons.h"
+#include "SystemIcons.h"
 #include <iostream>
 #include <vector>
 

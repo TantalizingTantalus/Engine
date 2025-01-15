@@ -1,6 +1,6 @@
 #pragma once
-#include "../Headers/Component.h"
-#include "../Headers/Model.h"
+#include "Component.h"
+#include "Model.h"
 
 
 unsigned int TextureFromFile(const char* path, std::string directory, unsigned int placeholderID);

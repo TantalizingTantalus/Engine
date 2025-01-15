@@ -8,15 +8,13 @@
 #include <vector>
 #include <string>
 #include <filesystem>
-#include "../Headers/Entity.h"
-#include "../Headers/Model.h"
-#include "../Headers/Transform.h"
-#include "../Headers/Shader.h"
-#include "../Headers/Mesh.h"
-#include "../Headers/stb_image.h"
-#include "../Headers/SystemIcons.h"
-
-
+#include "Entity.h"
+#include "Model.h"
+#include "Transform.h"
+#include "Shader.h"
+#include "Mesh.h"
+#include "stb_image.h"
+#include "SystemIcons.h"
 
 
 
@@ -118,7 +116,6 @@ public:
 		}
 	}
 
-	
 
 	// Setters and Getters
 

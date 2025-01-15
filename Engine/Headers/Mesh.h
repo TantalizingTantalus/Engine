@@ -5,8 +5,8 @@
 #include <glm/glm.hpp>
 #include <vector>
 #include <string>
-#include "../Headers/Shader.h"
-#include "../Headers/Component.h"
+#include "Shader.h"
+#include "Component.h"
 
 #define MAX_BONE_INFLUENCE 4
 

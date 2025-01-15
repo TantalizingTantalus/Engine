@@ -6,7 +6,7 @@
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/matrix_decompose.hpp>
-#include "../Headers/Component.h"
+#include "Component.h"
 #include <vector>
 
 class Transform : public Component

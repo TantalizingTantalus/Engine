@@ -76,14 +76,12 @@ void main()
     vec3 viewDir = normalize(viewPos - fs_in.FragPos);
     vec3 result = vec3(0.0);
     
-    // Directional Light
     if(dirLight.inUse)
     {
         result += CalcDirLight(dirLight, norm, viewDir);
     }
 
 
-    // Point Lights
     for(int i = 0; i < NR_POINT_LIGHTS; i++)
     {
         result += CalcPointLight(pointLights[i], norm, fs_in.FragPos, viewDir);    
@@ -110,32 +108,28 @@ void main()
     );
 }
 
-// calculates the color when using a directional light.
 vec3 CalcDirLight(DirLight light, vec3 normal, vec3 viewDir)
 {
     vec3 lightDir = normalize(-light.direction);
     vec3 halfwayDir = normalize(lightDir + viewDir);
-    // diffuse shading
+    
     float diff = max(dot(normal, lightDir), 0.0);
-    // specular shading
+    
     vec3 reflectDir = reflect(-lightDir, normal);
     float spec = material.specularIntensity * pow(max(dot(normal, halfwayDir), 0.0), material.shininess);
-    // combine results
+    
     vec3 ambient = light.intensity * light.ambient * light.color * vec3(texture(material.texture_diffuse, fs_in.TexCoords));
     vec3 diffuse =  light.intensity * light.diffuse * light.color * diff * vec3(texture(material.texture_diffuse, fs_in.TexCoords));
     vec3 specular =   light.specular * light.color * spec * vec3(texture(material.texture_diffuse, fs_in.TexCoords));
     return (ambient + diffuse + specular);
 }
 
-// calculates the color when using a point light.
 
 
 vec3 CalcPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir)
 {
-    // Calculate light direction
     vec3 lightDir = normalize(light.position - fragPos);
     
-    // Diffuse shading
     float diff = max(dot(normal, lightDir), 0.0);
     vec3 diffuse = diff * light.diffuse * light.color;
 
@@ -143,22 +137,19 @@ vec3 CalcPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir)
     float spec = pow(max(dot(normal, halfwayDir), 0.0), material.shininess);
     vec3 specular = spec * material.specularIntensity * light.specular * light.color;
 
-    // Attenuation calculation
 //    float distance = length(light.position - fragPos);
 //    float attenuation = 1.0 / (light.constant + light.linear * distance + 
 //                               light.quadratic * (distance * distance));
-                               
-    // Ambient component
+                             
     vec3 ambient = light.ambient * light.color;
 
-     //Combine results with attenuation
     ambient *= light.intensity;
     diffuse *= light.intensity;
     specular *= light.intensity;
 
-    // Apply texture sampling (optional)
     vec3 texColor = vec3(texture(material.texture_diffuse, fs_in.TexCoords));
     vec3 result = (ambient + diffuse + specular) * texColor;
+    vec3 debugResult = lightDir;
 
     return result;
 

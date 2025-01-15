@@ -1,5 +1,5 @@
 #pragma once
-#include "../Headers/Component.h"
+#include "Component.h"
 
 class TestComponent : public Component
 {

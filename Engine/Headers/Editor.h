@@ -1,7 +1,7 @@
 #pragma once
-#include "../Headers/Backend.h"
-#include "../Headers/Light.h"
-#include "../Headers/Material.h"
+#include "Backend.h"
+#include "Light.h"
+#include "Material.h"
 #include "../physx/PxPhysicsAPI.h"
 
 
