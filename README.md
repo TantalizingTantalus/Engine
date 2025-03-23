@@ -44,3 +44,5 @@ Currently, I am not using valid CMake to build the project. The .sln is included
 - stb_image
 - PhysX
 - FreeType
+- ImGUI
+- Imguizmo
