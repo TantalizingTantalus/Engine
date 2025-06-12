@@ -21,6 +21,7 @@ public:
 	Entity* parent;
 
 	virtual void ShowImGuiPanel() = 0;
+	virtual void CleanUp() = 0;
 	void SetParent(Entity* parentEntity)
 	{
 		parent = parentEntity;

@@ -1,37 +1,6 @@
 #include "../Headers/Backend.h"
 
-
-//									 Global variables 
-
-
-
 Editor EditorWindow;
-Camera camera;
-Time EditorTime;
-
-// testing
-GLuint pickingFramebuffer;
-GLuint pickingTexture;
-
-void SetupPickingFramebuffer(int x, int y) {
-	// Create the texture for storing entity IDs
-	glGenTextures(1, &pickingTexture);
-	glBindTexture(GL_TEXTURE_2D, pickingTexture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_R32I, x, y, 0, GL_RED_INTEGER, GL_INT, nullptr);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
-	// Create the framebuffer for picking
-	glGenFramebuffers(1, &pickingFramebuffer);
-	glBindFramebuffer(GL_FRAMEBUFFER, pickingFramebuffer);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, pickingTexture, 0);
-
-	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-		std::cerr << "Picking framebuffer is not complete!" << std::endl;
-	}
-
-	glBindFramebuffer(GL_FRAMEBUFFER, 0); // Unbind framebuffer
-}
 
 struct Character {
 	unsigned int TextureID; 
@@ -43,19 +12,19 @@ struct Character {
 std::map<GLchar, Character> Characters;
 unsigned int VAO, VBO;
 
-//									 Function protos
-
 void RenderText(Shader& shader, std::string text, float x, float y, float scale, glm::vec3 color, float, float);
-void InitializeUserInterface();
 
-void PollInputs(GLFWwindow* window);
 Backend::Backend()
 {
 	spdlog::info("Initializing Backend");
 }
 
+Backend::~Backend()
+{
+	FT_Done_Face(face);
+	FT_Done_FreeType(ft);
+}
 
-//																									Main Logic
 int Backend::Initialize()
 {
 	EditorTime.deltaTime = 0.0f;
@@ -72,6 +41,9 @@ int Backend::Initialize()
 			spdlog::error("GLFW failed intialization...");
 			return 0;
 		}
+
+		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
 
 		if (EditorWindow.IsFullscreen)
 		{
@@ -98,7 +70,7 @@ int Backend::Initialize()
 	{
 		// Set the current context to the openGL window
 		glfwMakeContextCurrent(m_Window);
-		glfwSetFramebufferSizeCallback(m_Window, framebuffer_size_callback);
+		glfwSwapInterval(0);
 
 		//Lock cursor to window
 		if (camera.GetFreeLook())
@@ -106,11 +78,8 @@ int Backend::Initialize()
 		else
 			glfwSetInputMode(m_Window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 
-		glfwSetCursorPosCallback(m_Window, mouse_callback);
-		glfwSetMouseButtonCallback(m_Window, mouse_button_callback);
-		glfwSetScrollCallback(m_Window, scroll_callback);
+		
 
-		// Set full height to glfw window
 		GLFWmonitor* primMonitor = glfwGetPrimaryMonitor();
 		if (primMonitor)
 		{
@@ -133,11 +102,10 @@ int Backend::Initialize()
 		glEnable(GL_STENCIL_TEST);
 	}
 
+
 	// Debug display framework versioning
 	{
-		// Display GLFW Version
 		spdlog::info("GLFW Version : {}", glfwGetVersionString());	
-		// Display OpenGL Version
 		const GLubyte* glVersion = glGetString(GL_VERSION);
 		const GLubyte* glRenderer = glGetString(GL_RENDERER);
 		spdlog::info("OpenGL Version: {}", reinterpret_cast<const char*>(glVersion));
@@ -163,95 +131,27 @@ int Backend::Initialize()
 		IMGUI_CHECKVERSION();
 		ImGui::CreateContext();
 		ImGui::StyleColorsDark();
-		ImGui_ImplGlfw_InitForOpenGL(m_Window, true);
+		ImGui_ImplGlfw_InitForOpenGL(m_Window, false);
+		
 		ImGui_ImplOpenGL3_Init("#version 410");
+		ImGui_ImplGlfw_InstallCallbacks(m_Window);
 	}
 	
-	// Setup glfw input Callbacks
+	// Setup glfw input Callbacks - disabled for now for default callback handling, enabling this requires
+	// custom backspace, tab, and carriage return functionality which I do not care to implement right now.
 	{
-		glfwSetCharCallback(m_Window, ImGui_ImplGlfw_CharCallback);
+		/*glfwSetCharCallback(m_Window, ImGui_ImplGlfw_CharCallback);
 		glfwSetKeyCallback(m_Window, ImGui_ImplGlfw_KeyCallback);
 		glfwSetMouseButtonCallback(m_Window, ImGui_ImplGlfw_MouseButtonCallback);
-		glfwSetScrollCallback(m_Window, ImGui_ImplGlfw_ScrollCallback);
-	}
-
-
-	{
-		// Create default light model
-		std::string dLight = "LightSource";
-		Model LightSourceModelComp("Models/Light_Cube.fbx");
-		Entity LightSourceEnt(dLight.c_str());
-		LightSourceEnt.transform->setLocalScale(glm::vec3(0.25f, 0.25f, 0.25f));
-		LightSourceModelComp.IsLight = true;
-
-		// Add components to model
-		LightSourceEnt.AddComponent(LightSourceEnt.transform);
-		LightSourceEnt.GetComponent<Transform>().setLocalPosition(glm::vec3(2.8f, 1.0f, -2.5));
-		std::shared_ptr<Model> LightSourceModel = std::make_shared<Model>(LightSourceModelComp);
-
-		LightSourceEnt.AddComponent(LightSourceModel);
-		LightSourceEnt.GetComponent<Model>().SetVisible(false);
-		LightSourceEnt.GetComponent<Model>().parentEntity = &LightSourceEnt;
-		std::shared_ptr<Light> light_Component = std::make_shared<Light>();
-
-		LightSourceEnt.AddComponent(light_Component);
-		LightSourceEnt.GetComponent<Light>().LightColor = ImVec4(0.0f / 255.0f, 4.0f / 255.0f, 251.0f / 255.0f, 1.0f);
-
-		// Ship it
-		LightSourceEnt.ID = ModelList.size() + 1;
-		ModelList.push_back(LightSourceEnt);
-		m_PointLights.push_back(LightSourceEnt);
-
-		// Create default light model
-		std::string dLight2 = "LightSource2";
-		Model LightSourceModelComp2("Models/Light_Cube.fbx");
-		Entity LightSourceEnt2(dLight2.c_str());
-		LightSourceEnt2.transform->setLocalScale(glm::vec3(0.25f, 0.25f, 0.25f));
-		LightSourceModelComp2.IsLight = true;
-
-		// Add components to model
-		
-		LightSourceEnt2.AddComponent(LightSourceEnt2.transform);
-		LightSourceEnt2.GetComponent<Transform>().setLocalPosition(glm::vec3(-5.3f, 1.0f, 3.5f));
-		std::shared_ptr<Model> LightSourceModel2 = std::make_shared<Model>(LightSourceModelComp2);
-		LightSourceEnt2.AddComponent(LightSourceModel2);
-		LightSourceEnt2.GetComponent<Model>().SetVisible(false);
-		LightSourceEnt2.GetComponent<Model>().parentEntity = &LightSourceEnt2;
-		std::shared_ptr<Light> light_Component2 = std::make_shared<Light>();
-		LightSourceEnt2.AddComponent(light_Component2);
-		LightSourceEnt2.GetComponent<Light>().LightColor = ImVec4(1.0f, 0.0f, 0.0f, 1.0f);
-
-		// Ship it
-		LightSourceEnt2.ID = ModelList.size() + 1;
-		ModelList.push_back(LightSourceEnt2);
-		m_PointLights.push_back(LightSourceEnt2);
-
-		// Create default room model
-		Model Room("Models/Paveway.obj");
-		Entity RoomEnt(Room.GetModelName().c_str());
-		
-		Material TheRoomMat(&RoomEnt);
-
-		// Add components to model
-		std::shared_ptr<Model> RoomModelComp = std::make_shared<Model>(Room);
-		std::shared_ptr<Material> RoomMat = std::make_shared<Material>(TheRoomMat);
-		RoomEnt.AddComponent(RoomEnt.transform);
-		RoomEnt.AddComponent(RoomModelComp);
-		RoomEnt.AddComponent(RoomMat);
-		RoomEnt.GetComponent<Model>().parentEntity = &RoomEnt;
-		RoomEnt.GetComponent<Material>().Initialize(RoomEnt.GetComponent<Model>());
-		RoomEnt.GetComponent<Material>().pModel->SetShader(m_LitMaterialShader);
-		RoomEnt.ID = ModelList.size() + 1;
-
-		// Ship it
-		ModelList.push_back(RoomEnt);
+		glfwSetScrollCallback(m_Window, ImGui_ImplGlfw_ScrollCallback);*/
+		//glfwSetCursorPosCallback(m_Window, mouse_callback);
 	}
 
 	// Auto select the first item in the render list for manipulation.
-	if (ModelList.size() > 0)
-		EditorWindow.DebugSelectedEntity = &ModelList[0];
+	if (m_ModelMap.size() > 0)
+		SelectEntity(0);
 
-	//Initialize camera after window creation to update framebuffersize for imguizmo
+
 	camera.Initialize(m_Window);
 	
 	camera.Position = glm::vec3(.6f, .83f, 1.3f);
@@ -308,48 +208,12 @@ int Backend::Update()
 
 
 	// Picking texture creation
-	GLuint pickingTexture;
-	glGenTextures(1, &pickingTexture);
-	glBindTexture(GL_TEXTURE_2D, pickingTexture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, m_Width, m_Height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glBindTexture(GL_TEXTURE_2D, 0);
+	GLuint PickingTexture = sceneBuf.SetupMousePicking(m_Width, m_Height);
 
-	// Attach picking texture to framebuffer
-	glBindFramebuffer(GL_FRAMEBUFFER, sceneBuf.fbo);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, pickingTexture, 0);
-
-	// Specify the draw buffers
-	GLenum drawBuffers[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
-	glDrawBuffers(2, drawBuffers);
-
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-	// Stencil buffer creation
-	glEnable(GL_DEPTH_TEST);
-	glDepthFunc(GL_LESS);
-	glEnable(GL_STENCIL_TEST);
-	glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
-	glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
-
-	// Stencil shader setup - todo
 	Shader stencilShader("Shaders/shaderSingleColor.vert", "Shaders/shaderSingleColor.frag");
 	m_StencilShader = stencilShader;
 
-	// Bind framebuffer for config
-	glBindFramebuffer(GL_FRAMEBUFFER, sceneBuf.fbo);
-
-	// Attach color textures as in your code
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, pickingTexture, 0);
-
-	// Create and attach the stencil buffer
-	GLuint stencilRenderbufferID;
-	glGenRenderbuffers(1, &stencilRenderbufferID);
-	glBindRenderbuffer(GL_RENDERBUFFER, stencilRenderbufferID);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, m_Width, m_Height); // or GL_STENCIL_INDEX8 for stencil only
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, stencilRenderbufferID);
-
+	
 	// Shadow map buffer creation
 	//unsigned int depthMapFBO;
 	//glGenFramebuffers(1, &depthMapFBO);
@@ -368,22 +232,59 @@ int Backend::Update()
 
 	//glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
 	//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMap, 0);
-	//glDrawBuffer(GL_NONE); // No color output in the bound framebuffer
+	//glDrawBuffer(GL_NONE); 
 	//glReadBuffer(GL_NONE);
 
-	// Check completeness
-	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-		std::cerr << "Framebuffer not complete!" << std::endl;
-	}
+	// //Check completeness
+	//if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+	//	spdlog::error("Framebuffer not complete!\n");
+	//}
 
 	// Unbind Framebuffer
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	//glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	// Scene vars
 	int prevSceneWidth = 0, prevSceneHeight = 0;
 
 	// Initialize the imgui editor windows
 	EditorWindow.Init(GetBackEnd());
+
+
+	// project explorer loader? Nested for loops bad practice
+	{
+		for (auto& p : std::filesystem::directory_iterator(EditorWindow.myPath))
+		{
+			if (p.exists())
+			{
+				if (!p.path().empty())
+				{
+					for (auto& t : std::filesystem::directory_iterator(p))
+					{
+						if (t.path().extension() == ".fbx" || t.path().extension() == ".obj")
+						{
+							Model t_LoadedModel(t.path().string());
+							Entity E_LoadedModel(t_LoadedModel.GetModelName().c_str());
+							Material Mat_LoadedModel(&E_LoadedModel);
+
+							std::shared_ptr<Model> t_LoadedModelComp = std::make_shared<Model>(t_LoadedModel);
+							std::shared_ptr<Material> Mat_LoadedModelComp = std::make_shared<Material>(Mat_LoadedModel);
+
+							E_LoadedModel.AddComponent(E_LoadedModel.transform);
+							E_LoadedModel.AddComponent(t_LoadedModelComp);
+							E_LoadedModel.AddComponent(Mat_LoadedModelComp);
+							E_LoadedModel.GetComponent<Model>().parentEntity = &E_LoadedModel;
+							E_LoadedModel.GetComponent<Material>().Initialize(E_LoadedModel.GetComponent<Model>());
+							E_LoadedModel.GetComponent<Material>().pModel->SetShader(m_LitMaterialShader);
+							E_LoadedModel.ID = m_LoadedModelsList.size() + 1;
+
+							m_LoadedModelsList.push_back(E_LoadedModel);
+
+						}
+					}
+				}
+			}
+		}
+	}
 
 
 	// Pre-Load directional light
@@ -394,17 +295,24 @@ int Backend::Update()
 	m_LitMaterialShader.setFloat("dirLight.intensity", MyDirLight.m_Intensity);
 	m_LitMaterialShader.setBool("dirLight.inUse", MyDirLight.isActive);
 	MyDirLight.m_DirShader = &m_LitMaterialShader;
-	for (int i = 0; i < m_PointLights.size(); i++) {
-
-		// pre-load point lights
-		m_LitMaterialShader.use();
-		m_LitMaterialShader.setVec3(fmt::format("pointLights[{}].ambient", i), 0.05f, 0.05f, 0.05f);
-		m_LitMaterialShader.setVec3(fmt::format("pointLights[{}].diffuse", i), 0.8f, 0.8f, 0.8f);
-		m_LitMaterialShader.setVec3(fmt::format("pointLights[{}].specular", i), 1.0f, 1.0f, 1.0f);
-		m_LitMaterialShader.setFloat(fmt::format("pointLights[{}].intensity", i), m_PointLights[i].GetComponent<Light>().lightIntensity);
-		m_LitMaterialShader.setFloat(fmt::format("pointLights[{}].constant", i), 1.0f);
-		m_LitMaterialShader.setFloat(fmt::format("pointLights[{}].linear", i), 0.09f);
-		m_LitMaterialShader.setFloat(fmt::format("pointLights[{}].quadratic", i), 0.032f);
+	
+	// Handle point lights
+	for (auto& light : m_PointLightsEntityMap)
+	{
+		if (light.second.HasComponent<Light>())
+		{
+			// to fix... init values for light component to default due to default objects being destructed during Backend::Init()...
+			light.second.GetComponent<Light>().lightIntensity = 1.0f;
+			light.second.GetComponent<Light>().LightColor = ImVec4(1, 0, 0, 1);
+			m_LitMaterialShader.use();
+			m_LitMaterialShader.setVec3(fmt::format("pointLights[{}].ambient", light.first), 0.05f, 0.05f, 0.05f);
+			m_LitMaterialShader.setVec3(fmt::format("pointLights[{}].diffuse", light.first), 0.8f, 0.8f, 0.8f);
+			m_LitMaterialShader.setVec3(fmt::format("pointLights[{}].specular", light.first), 1.0f, 1.0f, 1.0f);
+			m_LitMaterialShader.setFloat(fmt::format("pointLights[{}].intensity", light.first), light.second.GetComponent<Light>().lightIntensity);
+			m_LitMaterialShader.setFloat(fmt::format("pointLights[{}].constant", light.first), 1.0f);
+			m_LitMaterialShader.setFloat(fmt::format("pointLights[{}].linear", light.first), 0.09f);
+			m_LitMaterialShader.setFloat(fmt::format("pointLights[{}].quadratic", light.first), 0.032f);
+		}
 	}
 
 	// Initialize icons used by the renderer/editor
@@ -416,49 +324,44 @@ int Backend::Update()
 		// Start Frame
 		glfwPollEvents();
 		PollInputs(m_Window);
+		EditorWindow.PollEditorInput(m_Window);
 
+		// Handle directional light
 		m_LitMaterialShader.use();
 		m_LitMaterialShader.setVec3("dirLight.direction", MyDirLight.m_Direction);
 		m_LitMaterialShader.setVec3("dirLight.color", glm::vec3(MyDirLight.m_Color.x, MyDirLight.m_Color.y, MyDirLight.m_Color.z));
 		m_LitMaterialShader.setFloat("dirLight.intensity", MyDirLight.m_Intensity);
 
-		// Point light update, quite expensive at the moment
-		for (int i = 0; i < m_PointLights.size(); i++)
+		// Handle point lights
+		for (auto& light : m_PointLightsEntityMap)
 		{
-			m_LitMaterialShader.setFloat(fmt::format("pointLights[{}].intensity", i), m_PointLights[i].GetComponent<Light>().lightIntensity);
-			m_LitMaterialShader.setVec3(fmt::format("pointLights[{}].position", i), m_PointLights[i].GetComponent<Transform>().position);
-			m_LitMaterialShader.setVec3(fmt::format("pointLights[{}].color", i), glm::vec3(m_PointLights[i].GetComponent<Light>().LightColor.x, m_PointLights[i].GetComponent<Light>().LightColor.y, m_PointLights[i].GetComponent<Light>().LightColor.z));
-			m_LitMaterialShader.setFloat(fmt::format("pointLights[{}].constant", i), 1.0f);
-			m_LitMaterialShader.setFloat(fmt::format("pointLights[{}].linear", i), 0.09f);
-			m_LitMaterialShader.setFloat(fmt::format("pointLights[{}].quadratic", i), 0.032f);
-
+			m_LitMaterialShader.setFloat(fmt::format("pointLights[{}].intensity", light.first), light.second.GetComponent<Light>().lightIntensity);
+			m_LitMaterialShader.setVec3(fmt::format("pointLights[{}].position", light.first), light.second.GetComponent<Transform>().position);
+			m_LitMaterialShader.setVec3(fmt::format("pointLights[{}].color", light.first), glm::vec3(light.second.GetComponent<Light>().LightColor.x, light.second.GetComponent<Light>().LightColor.y, light.second.GetComponent<Light>().LightColor.z));
+			m_LitMaterialShader.setFloat(fmt::format("pointLights[{}].constant", light.first), 1.0f);
+			m_LitMaterialShader.setFloat(fmt::format("pointLights[{}].linear", light.first), 0.09f);
+			m_LitMaterialShader.setFloat(fmt::format("pointLights[{}].quadratic", light.first), 0.032f);
 		}
 
 		// Begin ImGui Inits
 		StartImGui();
-
 		// Bind framebuffer
 		sceneBuf.Bind();
 
 		// Docking space for ImGui setup
 		UpdateDockingScene();
+		
 
 		// Begin Scene window frame
 		ImGui::Begin("Scene", nullptr);
+		EditorWindow.m_SceneWindowPosition = ImGui::GetWindowPos();
 
-		ImVec2 scenePos = ImGui::GetWindowPos();
-		ImVec2 sceneSize = ImGui::GetWindowSize();
-
-		// Get the mouse position from ImGui's IO
-		ImVec2 mousePos = ImGui::GetIO().MousePos;
-
-		
-		// Check if the mouse is inside the Scene Window's boundaries
-		if (mousePos.x >= scenePos.x && mousePos.x <= scenePos.x + sceneSize.x &&
-			mousePos.y >= scenePos.y && mousePos.y <= scenePos.y + sceneSize.y) {
+		if (ImGui::IsWindowHovered())
+		{
 			EditorWindow.m_SceneHovered = true;
 		}
-		else {
+		else
+		{
 			EditorWindow.m_SceneHovered = false;
 		}
 
@@ -466,27 +369,32 @@ int Backend::Update()
 		m_SceneWidth = ImGui::GetContentRegionAvail().x;
 		m_SceneHeight = ImGui::GetContentRegionAvail().y;
 
+		glfwGetCursorPos(m_Window, &EditorWindow.MouseX, &EditorWindow.MouseY);
+		
+
 		// If screen is resized, update the picking texture
 		if (m_SceneWidth != prevSceneWidth || m_SceneHeight != prevSceneHeight) {
-			glBindTexture(GL_TEXTURE_2D, pickingTexture);
+			glBindTexture(GL_TEXTURE_2D, PickingTexture);
 			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, m_SceneWidth, m_SceneHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
 			glBindTexture(GL_TEXTURE_2D, 0);
 
 			sceneBuf.RescaleFrameBuffer(m_SceneWidth, m_SceneHeight);
 			prevSceneWidth = m_SceneWidth;
 			prevSceneHeight = m_SceneHeight;
+
+			spdlog::info(fmt::format("Screen resized to: \nX: {}\nY: {}", m_SceneWidth, m_SceneHeight));
 		}
 
 		glViewport(0, 0, (GLsizei)m_SceneWidth, (GLsizei)m_SceneHeight);
 
 		// To do: Implement Depth Map (Shadow maps)
 		// 
-		// 1. first render to depth map
+		//  first render to depth map
 		//glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
 		//glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
 		//glClear(GL_DEPTH_BUFFER_BIT);
 		//glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		//// 2. then render scene as normal with shadow mapping 
+		//// then render scene as normal with shadow mapping 
 		//glViewport(0, 0, m_SceneWidth, m_SceneHeight);
 		//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		//glBindTexture(GL_TEXTURE_2D, depthMap);
@@ -497,6 +405,8 @@ int Backend::Update()
 			ImVec2(0, 1),
 			ImVec2(1, 0)
 		);
+
+		
 
 		// Time tracking
 		EditorTime.Update();
@@ -516,11 +426,10 @@ int Backend::Update()
 		ImGui::End();
 
 		// Unbind the scene buffer
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		sceneBuf.Unbind();
 
 		// Send io for editor menus
-		EditorWindow.DebugWindow(io, ModelList);
+		EditorWindow.DebugWindow(io, m_ModelMap);
 
 		// Final
 		glfwSwapBuffers(m_Window);
@@ -536,8 +445,6 @@ int Backend::Update()
 	// Return out
 	return 1;
 }
-
- //												Definitions
 
 bool Backend::UpdateDockingScene()
 {
@@ -613,17 +520,25 @@ bool Backend::RenderUI()
 
 void Backend::SelectEntity(int id)
 {
-	for (auto& p : *EditorWindow.DebugEntityList)
+	for (auto& ent : m_ModelMap)
 	{
-		if (p.ID == id)
+		if (ent.first == id)
 		{
-			EditorWindow.DebugSelectedEntity = &p;
+			EditorWindow.DebugSelectedEntity = &m_ModelMap[id];
 			if (EditorWindow.camera)
 			{
-				EditorWindow.camera->OrbitTarget = p.GetComponent<Transform>().position;
+				EditorWindow.camera->OrbitTarget = m_ModelMap[id].GetComponent<Transform>().position;
 			}
 		}
-			
+		else
+		{
+			EditorWindow.DebugSelectedEntity = &m_ModelMap.begin()->second;
+			if (EditorWindow.camera && m_ModelMap.begin()->second.HasComponent<Transform>())
+			{
+				
+				EditorWindow.camera->OrbitTarget = m_ModelMap.begin()->second.GetComponent<Transform>().position;
+			}
+		}
 	}
 }
 
@@ -662,8 +577,11 @@ bool Backend::RenderModels()
 		// Update camera matrices every frame
 		camera.UpdateViewAndProjectionMatrices();
 
+		//EditorWindow.UpdateEntities(m_ModelMap);    <---- why is this commented?
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 		glClearColor(EditorWindow.clear_color.x, EditorWindow.clear_color.y, EditorWindow.clear_color.z, EditorWindow.clear_color.w);
+
+		
 
 		// Begin Gizmo frame
 		ImGuizmo::BeginFrame();
@@ -671,15 +589,12 @@ bool Backend::RenderModels()
 		// Gizmo Manipulation
 		if (EditorWindow.DebugSelectedEntity != nullptr)
 		{
-			
-
-			if (camera.mode == Camera_Mode::ORTHO)
+			switch (camera.mode)
 			{
+			case Camera_Mode::ORTHO:
 				ImGuizmo::SetOrthographic(true);
-				
-			}
-			else
-			{
+				break;
+			case Camera_Mode::PERSPECTIVE:
 				ImGuizmo::SetOrthographic(false);
 			}
 				
@@ -694,7 +609,7 @@ bool Backend::RenderModels()
 			if (ImGuizmo::Manipulate( 
 				glm::value_ptr(camera.GetViewMatrix()),
 				glm::value_ptr(camera.GetProjectionMatrix()),
-				EditorWindow.myOperation,
+				EditorWindow.EditorTransformationOperation,
 				ImGuizmo::LOCAL,
 				glm::value_ptr(modelMatrix)))
 			{
@@ -712,129 +627,117 @@ bool Backend::RenderModels()
 			}
 		}
 
-		// Check any new lights created and add them
-		for (auto& light : ModelList)
+		for (auto& m_Model : m_ModelMap)
 		{
-			if (light.HasComponent<Light>())
+			if (m_Model.second.HasComponent<Light>() )
 			{
-				if (light.GetComponent<Light>().lightType == LightType::POINTLIGHT)
+				if (m_Model.second.GetComponent<Light>().lightType == LightType::POINTLIGHT)
 				{
-					if (std::find(m_PointLights.begin(), m_PointLights.end(), light) == m_PointLights.end())
-					{
-						m_PointLights.push_back(light);
-					}
-
+					m_PointLightsEntityMap.emplace(m_Model.first, m_Model.second);
 				}
-
 			}
 		}
 
 		// Render Models
-		if (!ModelList.empty())
+		if (!m_ModelMap.empty())
 		{
-			for (int i = 0; i < m_PointLights.size(); i++)
+			// Render lights first, models second
+			for (auto& light : m_PointLightsEntityMap)
 			{
 				m_LitMaterialShader.use();
-				m_LitMaterialShader.setVec3(fmt::format("pointLights[{}].position", i), m_PointLights[i].GetComponent<Transform>().position);
-				m_LitMaterialShader.setVec3(fmt::format("pointLights[{}].color", i), glm::vec3(m_PointLights[i].GetComponent<Light>().LightColor.x, m_PointLights[i].GetComponent<Light>().LightColor.y, m_PointLights[i].GetComponent<Light>().LightColor.z));
+				m_LitMaterialShader.setVec3(fmt::format("pointLights[{}].position", light.first), light.second.GetComponent<Transform>().position);
+				m_LitMaterialShader.setVec3(fmt::format("pointLights[{}].color", light.first), glm::vec3(light.second.GetComponent<Light>().LightColor.x, light.second.GetComponent<Light>().LightColor.y, light.second.GetComponent<Light>().LightColor.z));
 			}
-			
-			
+
 			ImVec4* DirectionalColor = nullptr;
-			// Render lights first, models second
-			for (int i = 0; i < ModelList.size(); i++) {
-				Entity& modelItem = ModelList[i];
-				
-				modelItem.GetComponent<Model>().SetShader(m_LightShader);
-				if (modelItem.HasComponent<Light>()) {
-					
+			
+			for (auto& modelItem : m_ModelMap)
+			{
+
+				modelItem.second.GetComponent<Model>().SetShader(m_LightShader);
+				if (modelItem.second.HasComponent<Light>()) {
+
 					// Shader setup for the light objects
 					m_LightShader.use();
-					m_LightShader.setMat4("model", modelItem.GetComponent<Transform>().m_modelMatrix);
+					m_LightShader.setMat4("model", modelItem.second.GetComponent<Transform>().m_modelMatrix);
 					m_LightShader.setMat4("projection", camera.GetProjectionMatrix());
 					m_LightShader.setMat4("view", camera.GetViewMatrix());
-					m_LightShader.setInt("entityID", modelItem.ID);
-					DirectionalColor = &modelItem.GetComponent<Light>().LightColor;
+					m_LightShader.setInt("entityID", modelItem.first);
+					DirectionalColor = &modelItem.second.GetComponent<Light>().LightColor;
 
-					modelItem.GetComponent<Model>().SetShader(m_LightShader);
+					modelItem.second.GetComponent<Model>().SetShader(m_LightShader);
 
 					// Draw light objects
-					modelItem.GetComponent<Model>().Draw();
+					modelItem.second.GetComponent<Model>().Draw();
 				}
 				else
 				{
 					// Render Models second
-					if (!modelItem.HasComponent<Light>() && modelItem.GetComponent<Model>().GetVisible()) {
+					if (!modelItem.second.HasComponent<Light>() && modelItem.second.GetComponent<Model>().GetVisible()) {
 						glEnable(GL_STENCIL_TEST);
-						glStencilFunc(GL_ALWAYS, 1, 0xFF); 
-						glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE); 
-						glStencilMask(0xFF); 
-						glDepthMask(GL_TRUE); 
+						glStencilFunc(GL_ALWAYS, 1, 0xFF);
+						glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+						glStencilMask(0xFF);
+						glDepthMask(GL_TRUE);
 						glEnable(GL_DEPTH_TEST);
-						modelItem.GetComponent<Model>().SetShader(m_LitMaterialShader);
+						modelItem.second.GetComponent<Model>().SetShader(m_LitMaterialShader);
+
 						// Shader setup for lit models
 						m_LitMaterialShader.use();
-						
-						m_LitMaterialShader.setMat4("model", modelItem.transform->m_modelMatrix);
+
+						m_LitMaterialShader.setMat4("model", modelItem.second.transform->m_modelMatrix);
 						m_LitMaterialShader.setMat4("projection", camera.GetProjectionMatrix());
 						m_LitMaterialShader.setMat4("view", camera.GetViewMatrix());
 						m_LitMaterialShader.setVec3("viewPos", camera.Position);
-						if (modelItem.HasComponent<Material>())
+						if (modelItem.second.HasComponent<Material>())
 						{
-							m_LitMaterialShader.setBool("material.hasSpecular", modelItem.GetComponent<Model>().hasSpecular);
-							m_LitMaterialShader.setBool("material.hasNormal", modelItem.GetComponent<Model>().hasNormal);
-							m_LitMaterialShader.setFloat("material.specularIntensity", modelItem.GetComponent<Material>().m_SpecIntensity);
-							m_LitMaterialShader.setFloat("material.shininess", modelItem.GetComponent<Material>().m_Shininess);
+							m_LitMaterialShader.setBool("material.hasSpecular", modelItem.second.GetComponent<Model>().hasSpecular);
+							m_LitMaterialShader.setBool("material.hasNormal", modelItem.second.GetComponent<Model>().hasNormal);
+							m_LitMaterialShader.setFloat("material.specularIntensity", modelItem.second.GetComponent<Material>().m_SpecIntensity);
+							m_LitMaterialShader.setFloat("material.shininess", modelItem.second.GetComponent<Material>().m_Shininess);
 						}
-						m_LitMaterialShader.setInt("entityID", modelItem.ID);
-						/*m_ShadowShader.use();
-						m_ShadowShader.setMat4("model", modelItem.GetComponent<Transform>().m_modelMatrix);*/
-						
+
+						m_LitMaterialShader.setInt("entityID", modelItem.first);
+
 						// Draw the model item, this is 1 draw call per frame 60fps = 60 draw calls
-						modelItem.GetComponent<Model>().Draw();
+						modelItem.second.GetComponent<Model>().Draw();
 
-						
-						if (modelItem.ID == EditorWindow.DebugSelectedEntity->ID && !EditorWindow.DEBUG_NORMAL_MAP)
+
+						if (modelItem.first == EditorWindow.DebugSelectedEntity->ID && !EditorWindow.DEBUG_NORMAL_MAP)
 						{
-							
+
 							glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
-							glStencilMask(0x00); 
+							glStencilMask(0x00);
 
-							
-							glDisable(GL_DEPTH_TEST);
-
-							
 							m_StencilShader.use();
 							glm::mat4 scaledModelMatrix = glm::scale(
-								modelItem.transform->m_modelMatrix,
+								modelItem.second.transform->m_modelMatrix,
 								glm::vec3(EditorWindow.OutlineThickness, EditorWindow.OutlineThickness, EditorWindow.OutlineThickness)
 							);
 							m_StencilShader.setMat4("model", scaledModelMatrix);
 							m_StencilShader.setMat4("projection", camera.GetProjectionMatrix());
 							m_StencilShader.setMat4("view", camera.GetViewMatrix());
 							m_StencilShader.setVec3("viewPos", camera.Position);
-							m_StencilShader.setInt("entityID", modelItem.ID);
-							/*m_ShadowShader.use();
-							m_ShadowShader.setMat4("model", modelItem.GetComponent<Transform>().m_modelMatrix);*/
+							m_StencilShader.setInt("entityID", modelItem.first);
 							
-							modelItem.GetComponent<Model>().SetShader(m_StencilShader);
-							modelItem.GetComponent<Model>().Draw();
+							modelItem.second.GetComponent<Model>().SetShader(m_StencilShader);
+							modelItem.second.GetComponent<Model>().Draw();
 
-							
 							glEnable(GL_DEPTH_TEST);
-							glStencilMask(0xFF); 
-							glStencilFunc(GL_ALWAYS, 0, 0xFF); 
+							glStencilMask(0xFF);
+							glStencilFunc(GL_ALWAYS, 0, 0xFF);
 						}
-
 					}
 
 					glDisable(GL_STENCIL_TEST);
 				}
+
 			}
+
 		}
 
 		// Set debug modellist to current frame's model list
-		EditorWindow.DebugEntityList = &ModelList;
+		EditorWindow.m_DebugEntityMap = &m_ModelMap;
 
 		return true;
 	}
@@ -845,8 +748,6 @@ bool Backend::RenderModels()
 	}
 	return true;
 }
-
-
 
 bool Backend::Run()
 {
@@ -865,12 +766,6 @@ bool Backend::Run()
 	}
 
 	return true;
-}
-
-void framebuffer_size_callback(GLFWwindow* window, int width, int height)
-{
-
-	glViewport(0, 0, width, height);
 }
 
 void RenderText(Shader& shader, std::string text, float x, float y, float scale, glm::vec3 color, float screen_width, float screen_height)
@@ -928,14 +823,82 @@ void RenderText(Shader& shader, std::string text, float x, float y, float scale,
 	glEnable(GL_DEPTH_TEST);
 }
 
+bool Backend::InitializeFreeType(const std::string& fontPath) {
+	// Initialize FreeType library
+	if (FT_Init_FreeType(&ft)) {
+		spdlog::error("ERROR::FREETYPE: Could not init FreeType Library");
+		return false;
+	}
+
+	// Load font as face
+	if (FT_New_Face(ft, fontPath.c_str(), 0, &face)) {
+		spdlog::error("ERROR::FREETYPE: Failed to load font");
+		return false;
+	}
+
+	return true;
+}
+
+bool Backend::UpdateFontSize(float fontSize)
+{
+	spdlog::info(fmt::format("updating to x = {}, and y = {}", fontSize, fontSize));
+	if (!face) {
+		if (!InitializeFreeType(fontPath)) {
+			return false;
+		}
+	}
+	FT_Set_Pixel_Sizes(face, fontSize, fontSize);
+
+	// Clear existing characters
+	Characters.clear();
+
+	// Load new glyphs
+	for (unsigned char c = 0; c < 128; c++) {
+		if (FT_Load_Char(face, c, FT_LOAD_RENDER)) {
+			std::cout << "ERROR::FREETYPE: Failed to load Glyph" << std::endl;
+			continue;
+		}
+
+		unsigned int texture;
+		glGenTextures(1, &texture);
+		glBindTexture(GL_TEXTURE_2D, texture);
+		glTexImage2D(
+			GL_TEXTURE_2D,
+			0,
+			GL_RED,
+			face->glyph->bitmap.width,
+			face->glyph->bitmap.rows,
+			0,
+			GL_RED,
+			GL_UNSIGNED_BYTE,
+			face->glyph->bitmap.buffer
+		);
+
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+		Character character = {
+			texture,
+			glm::ivec2(face->glyph->bitmap.width, face->glyph->bitmap.rows),
+			glm::ivec2(face->glyph->bitmap_left, face->glyph->bitmap_top),
+			static_cast<unsigned int>(face->glyph->advance.x)
+		};
+		Characters.insert(std::pair<char, Character>(c, character));
+	}
+	glBindTexture(GL_TEXTURE_2D, 0);
+	return true;
+}
+
 void Backend::InitializeUserInterface()
 {
 	try
 	{
 		// FreeType
 	// --------
-		FT_Library ft;
-		// All functions return a value different than 0 whenever an error occurred
+		
+
 		if (FT_Init_FreeType(&ft))
 		{
 			std::cout << "ERROR::FREETYPE: Could not init FreeType Library" << std::endl;
@@ -944,33 +907,29 @@ void Backend::InitializeUserInterface()
 
 		if (fontPath.empty())
 		{
-			std::cout << "ERROR::FREETYPE: Failed to load font_name" << std::endl;
+			std::cout << "ERROR::FREETYPE: Failed to load font path" << std::endl;
 			return;
 		}
 
-		// load font as face
 		FT_Face face;
 		if (FT_New_Face(ft, fontPath.c_str(), 0, &face)) {
 			std::cout << "ERROR::FREETYPE: Failed to load font" << std::endl;
 			return;
 		}
 		else {
-			// set size to load glyphs as
-			FT_Set_Pixel_Sizes(face, 0, 48);
+			FT_Set_Pixel_Sizes(face, m_CurrentUI_FontSize, m_CurrentUI_FontSize); // Size creation of UI Text
 
-			// disable byte-alignment restriction
 			glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
-			// load first 128 characters of ASCII set
+			
 			for (unsigned char c = 0; c < 128; c++)
 			{
-				// Load character glyph 
 				if (FT_Load_Char(face, c, FT_LOAD_RENDER))
 				{
 					std::cout << "ERROR::FREETYTPE: Failed to load Glyph" << std::endl;
 					continue;
 				}
-				// generate texture
+				
 				unsigned int texture;
 				glGenTextures(1, &texture);
 				glBindTexture(GL_TEXTURE_2D, texture);
@@ -985,12 +944,12 @@ void Backend::InitializeUserInterface()
 					GL_UNSIGNED_BYTE,
 					face->glyph->bitmap.buffer
 				);
-				// set texture options
+				
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-				// now store character for later use
+				
 				Character character = {
 					texture,
 					glm::ivec2(face->glyph->bitmap.width, face->glyph->bitmap.rows),
@@ -1001,9 +960,8 @@ void Backend::InitializeUserInterface()
 			}
 			glBindTexture(GL_TEXTURE_2D, 0);
 		}
-		// destroy FreeType once we're finished
-		FT_Done_Face(face);
-		FT_Done_FreeType(ft);
+		
+		
 
 
 		// configure VAO/VBO for texture quads
@@ -1025,7 +983,7 @@ void Backend::InitializeUserInterface()
 	}
 }
 
-void PollInputs(GLFWwindow* window)
+void Backend::PollInputs(GLFWwindow* window)
 {
 
 	if (camera.GetFreeLook())
@@ -1043,291 +1001,33 @@ void PollInputs(GLFWwindow* window)
 		if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_RELEASE)
 			camera.SetMovementSpeed(camera.SPEED);
 	}
-	glfwSetKeyCallback(window, Input_Callback);
+	//glfwSetKeyCallback(window, Input_Callback);
 	
 }
 
-
-
-void OnMouseMove(double deltaX, double deltaY)
-{
-	const float sensitivity = 1.1f; 
-
-	if (camera.isOrbiting)
-	{
-		camera.OrbitAroundTarget(camera.OrbitTarget, 10.0f, sensitivity, deltaX, deltaY);
-		//camera.LookAtWithYaw(camera.OrbitTarget);
-	}
-}
-	
-
-
-void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
+void Backend::PollMouseMovement(float xpos, float ypos)
 {
 	
-	if (EditorWindow.m_SceneHovered)
-	{
-		yoffset *= camera.m_ZoomScrollFactor;
-		camera.ProcessMouseScroll((float)yoffset);
-	}
-
-}
-
-float lastX = 200, lastY = 400;
-void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
-float xoffset = 0.0f;
-float yoffset = 0.0f;
-	static bool firstMouse = true;
 	
-
-	if (firstMouse) {
+	if (m_FirstMouseSceneClick) {
 		lastX = xpos;
 		lastY = ypos;
-		firstMouse = false;
+		m_FirstMouseSceneClick = false;
+		return;
 	}
 
 
-	xoffset = xpos - lastX;
-	yoffset = lastY - ypos;
+	float xoffset = xpos - lastX;
+	float yoffset = lastY - ypos;
 
 	lastX = xpos;
 	lastY = ypos;
 
-	
-	
-	
-	
-	if (camera.isOrbiting)
-	{
-		camera.OrbitAroundTarget(camera.OrbitTarget, 5.0f, 0.1f, xoffset, yoffset);
-	}
 
 	if (camera.GetFreeLook())
-		camera.ProcessMouseMovement(xoffset, yoffset);
-
-}
-
-
-void OnMouseButton(int button, int action, GLFWwindow* window)
-{
-	if (EditorWindow.m_SceneHovered)
 	{
-		if (button == GLFW_MOUSE_BUTTON_LEFT)
-		{
-			if (action == GLFW_PRESS && glfwGetKey(window, GLFW_KEY_LEFT_ALT) == GLFW_PRESS)
-			{
-				camera.isOrbiting = true;
-				//OnMouseMove(glfwGetCursorPos.)
-			}
-			else if (action == GLFW_RELEASE)
-			{
-				camera.isOrbiting = false;
-			}
-		}
-	}
-}
-
-
-void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
-{
-	double x, y;
-
-	glfwGetCursorPos(window, &x, &y);
-
-	glm::vec4 viewport = glm::vec4(0, 0, Backend::m_Width, Backend::m_Height);
-	glm::vec3 winPos = glm::vec3(x, Backend::m_Height - y, 0.0f); 
-
-	OnMouseButton(button, action, window);
-
-	if (EditorWindow.m_SceneHovered)
-	{
-
-
-		if ((button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS) && !ImGui::IsAnyItemHovered())
-		{
-			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-			camera.SetFreeLook(true);
-		}
-		
-	}
-
-	 if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE)
-	{
-		camera.isOrbiting = false;
-	}
-
-	if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_RELEASE)
-	{
-		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-		camera.SetFreeLook(false);
-
-	}
-}
-
-void Input_Callback(GLFWwindow* window, int key, int scancode, int action, int mods)
-{
-	ImGuizmo::OPERATION tempOp = EditorWindow.myOperation;
-	switch (key)
-	{
-	case GLFW_KEY_W:
-		if (action == GLFW_PRESS && !ImGui::IsAnyItemActive())
-		{
-			EditorWindow.myOperation = ImGuizmo::OPERATION::TRANSLATE;
-		}
-		break;
-	case GLFW_KEY_R:
-		
-		if (action == GLFW_PRESS && !ImGui::IsAnyItemActive())
-		{
-			EditorWindow.myOperation = ImGuizmo::OPERATION::ROTATE;
-		}
-		
-		if (action == GLFW_PRESS && (mods & GLFW_MOD_CONTROL) && !ImGui::IsAnyItemActive())
-		{
-			EditorWindow.editingName = true;
-			EditorWindow.myOperation = tempOp;
-		}
-		break;
-	case GLFW_KEY_T:
-		if (action == GLFW_PRESS && !ImGui::IsAnyItemActive())
-		{
-			EditorWindow.myOperation = ImGuizmo::OPERATION::SCALE;
-		}
-		break;
-		// Enable/disable debug window
-	case GLFW_KEY_H:
-		if (action == GLFW_PRESS && !ImGui::IsAnyItemActive())
-		{
-			EditorWindow.DEBUG_MODE = !EditorWindow.DEBUG_MODE;
-		}
-		break;
-		
-	case GLFW_KEY_G:
-		
-
-		break;
-		// Stop the models from spinning 
-	case GLFW_KEY_SPACE:
-		if (action == GLFW_PRESS && !ImGui::IsAnyItemActive())
-		{
-			// Under revision
-		}
-		break;
-		// Fullscreen hotkey
-	case GLFW_KEY_F11:
-		if (action == GLFW_PRESS && !ImGui::IsAnyItemActive())
-		{
-			EditorWindow.ToggleFullscreen(window, EditorWindow.myBack);
-		}
-		break;
-		// Stop the models from spinning 
-	case GLFW_KEY_F:
-		if (action == GLFW_PRESS && !ImGui::IsAnyItemActive())
-		{
-			EditorWindow.Task_FocusObject();
-		}
-		break;
-	case GLFW_KEY_BACKSPACE:
-		if (action == GLFW_PRESS && ImGui::IsAnyItemActive())
-		{
-			// remove last character from text boxes
-		}
-		break;
-	case GLFW_KEY_ENTER:
-		if (action == GLFW_PRESS && ImGui::IsAnyItemActive())
-		{
-			if (EditorWindow.editingName)
-			{
-				EditorWindow.editingNameLoggingMsg = fmt::format("{}", EditorWindow.editingNameLoggingMsg);
-				EditorWindow.LoggingEntries.push_back(fmt::format("{} to \"{}\" ", EditorWindow.editingNameLoggingMsg, EditorWindow.editingTempName));
-				EditorWindow.editingNameLoggingMsg = "";
-				EditorWindow.DebugSelectedEntity->Name = EditorWindow.editingTempName;
-				EditorWindow.editingName = false;
-			}
-		}
-		break;
-	case GLFW_KEY_N:
-		if (action == GLFW_PRESS && !ImGui::IsAnyItemActive())
-		{
-			if (EditorWindow.DebugSelectedEntity->GetComponent<Model>().GetVisible())
-			{
-				if (EditorWindow.DebugSelectedEntity->GetComponent<Model>().RenderMode == RENDERTARGETS::NORMAL)
-				{
-					EditorWindow.DebugSelectedEntity->GetComponent<Model>().RenderMode = RENDERTARGETS::LIT;
-				}
-				else {
-					EditorWindow.DebugSelectedEntity->GetComponent<Model>().RenderMode = RENDERTARGETS::NORMAL;
-				}
-				
-				
-			}
-			else
-			{
-				EditorWindow.LoggingEntries.push_back("No object with shader selected!!");
-			}
-		}
-		break;
-	case GLFW_KEY_L:
-		if (action == GLFW_PRESS && !ImGui::IsAnyItemActive())
-		{
-			if (EditorWindow.DebugSelectedEntity != nullptr)
-			{
-				if (EditorWindow.DebugSelectedEntity->GetComponent<Model>().GetVisible())
-				{
-					if (EditorWindow.DebugSelectedEntity->GetComponent<Model>().RenderMode == RENDERTARGETS::LINES)
-					{
-						EditorWindow.DebugSelectedEntity->GetComponent<Model>().RenderMode = RENDERTARGETS::LIT;
-					}
-					else {
-						EditorWindow.DebugSelectedEntity->GetComponent<Model>().RenderMode = RENDERTARGETS::LINES;
-					}
-				}
-			}
-			else
-			{
-				EditorWindow.LoggingEntries.push_back("No object selected!!");
-			}
-		}
-		break;
-
-		case GLFW_KEY_DELETE:
-		if (action == GLFW_PRESS && !ImGui::IsAnyItemActive())
-		{
-			EditorWindow.Task_Delete();
-		}
-		break;
-		// Quit out of program
-	case GLFW_KEY_ESCAPE:
-		if (action == GLFW_PRESS && !ImGui::IsAnyItemActive())
-		{
-			EditorWindow.Exit_Application(window);
-		}
-		break;
-	case GLFW_KEY_O:
-		if (action == GLFW_PRESS && (mods & GLFW_MOD_CONTROL) && !ImGui::IsAnyItemActive())
-		{
-			EditorWindow.Task_ImportModel(*EditorWindow.DebugEntityList);
-		}
-		break;
-	case GLFW_KEY_F12:
-		if (action == GLFW_PRESS && !ImGui::IsAnyItemActive())
-		{
-			system("start https://learnopengl.com/");
-		}
-		break;
-	case GLFW_KEY_X:
-		if (action == GLFW_PRESS && !ImGui::IsAnyItemActive())
-		{
-			EditorWindow.renderUI = !EditorWindow.renderUI;
-		}
-		break;
-	case GLFW_KEY_M:
-		if (action == GLFW_PRESS && !ImGui::IsAnyItemActive())
-		{
-			camera.mode = static_cast<Camera_Mode>((camera.mode + 1) % 2);	
-		}
-		break;
+		if (std::abs(xoffset) > 0.1f || std::abs(yoffset) > 0.1f)
+			camera.ProcessMouseMovement(xoffset, yoffset);
 	}
 
 }
-

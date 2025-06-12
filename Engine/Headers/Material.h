@@ -26,6 +26,11 @@ public:
 		}
 	}
 
+	void CleanUp() override
+	{
+		return;
+	}
+
 	bool IsNormalMap(const std::filesystem::path& texturePath)
 	{
 		std::string filename = texturePath.filename().string();

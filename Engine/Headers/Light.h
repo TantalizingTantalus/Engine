@@ -20,6 +20,10 @@ public:
 		}
 		Separator();
 	}
+	void CleanUp() override
+	{
+		return;
+	}
 };
 
 enum LightType
@@ -74,4 +78,13 @@ public:
 		}
 		Separator();
 	}
+
+	void CleanUp() override
+	{
+		spdlog::warn("destroying light...");
+		LightColor = ImVec4(0.0f, 0.0f, 0.0f, 0.0f);
+		lightIntensity = 0.0f;
+		return;
+	}
+
 };

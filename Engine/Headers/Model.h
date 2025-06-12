@@ -54,7 +54,10 @@ public:
 
 	}
 
-
+	void CleanUp() override
+	{
+		return;
+	}
 	
 	Model()
 	{

@@ -83,20 +83,21 @@ void Mesh::Draw(Shader& shader)
     glBindVertexArray(VAO);
 
     // DrawElementsInstanced is important here for future instancing implementation
+    // may not be necessarily useful unless drawing vfx such as foliage or particles.
     switch (RenderMode)
     {
-    case RENDERTARGETS::LIT:
-        glUniform1i(glGetUniformLocation(shader.ID, "DEBUG_NORMAL"), false);
-        glDrawElementsInstanced(GL_TRIANGLES, static_cast<unsigned int>(indices.size()), GL_UNSIGNED_INT, 0, 1);
-        break;
-    case RENDERTARGETS::LINES:
-        glUniform1i(glGetUniformLocation(shader.ID, "DEBUG_NORMAL"), false);
-        glDrawElementsInstanced(GL_LINES, static_cast<unsigned int>(indices.size()), GL_UNSIGNED_INT, 0, 1);
-        break;
-    case RENDERTARGETS::NORMAL:
-        glUniform1i(glGetUniformLocation(shader.ID, "DEBUG_NORMAL"), true);
-        glDrawElementsInstanced(GL_TRIANGLES, static_cast<unsigned int>(indices.size()), GL_UNSIGNED_INT, 0, 1);
-        break;
+        case RENDERTARGETS::LIT:
+            glUniform1i(glGetUniformLocation(shader.ID, "DEBUG_NORMAL"), false);
+            glDrawElementsInstanced(GL_TRIANGLES, static_cast<unsigned int>(indices.size()), GL_UNSIGNED_INT, 0, 1);
+            break;
+        case RENDERTARGETS::LINES:
+            glUniform1i(glGetUniformLocation(shader.ID, "DEBUG_NORMAL"), false);
+            glDrawElementsInstanced(GL_LINES, static_cast<unsigned int>(indices.size()), GL_UNSIGNED_INT, 0, 1);
+            break;
+        case RENDERTARGETS::NORMAL:
+            glUniform1i(glGetUniformLocation(shader.ID, "DEBUG_NORMAL"), true);
+            glDrawElementsInstanced(GL_TRIANGLES, static_cast<unsigned int>(indices.size()), GL_UNSIGNED_INT, 0, 1);
+            break;
     }
     
 

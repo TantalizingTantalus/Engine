@@ -67,6 +67,11 @@ public:
 		Separator();
 	}
 
+	void CleanUp() override
+	{
+		return; 
+	}
+
 	bool DecomposeTransform()
 	{
 		// From glm::decompose in matrix_decompose.inl

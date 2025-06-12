@@ -1,4 +1,4 @@
-#version 410 core
+#version 330 core
 
 out vec4 FragColor;
 out vec4 PickingColor;
@@ -84,7 +84,7 @@ void main()
 
     for(int i = 0; i < NR_POINT_LIGHTS; i++)
     {
-        result += CalcPointLight(pointLights[i], norm, fs_in.FragPos, viewDir);    
+        //result += CalcPointLight(pointLights[i], norm, fs_in.FragPos, viewDir);    
     }
 
    float gamma = 2.2;

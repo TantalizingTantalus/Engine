@@ -4,6 +4,8 @@
 #include "imgui/imgui-master/backends/imgui_impl_opengl3.h"
 #include <windows.h>
 #include <commdlg.h>
+#include <cstdio>
+#include <cstdlib>
 #include <memory>
 #include <typeinfo>
 #include <type_traits>
@@ -25,7 +27,8 @@
 #include "Logging.h"
 #include "Light.h"
 #include "SystemIcons.h"
-
+#include <thread>
+#include <future>
 
 #include <filesystem>
 #include "spdlog/spdlog.h"
@@ -50,12 +53,6 @@ struct DirectionalLight
 	bool isActive = true;
 };
 
-void framebuffer_size_callback(GLFWwindow* window, int width, int height);
-void Input_Callback(GLFWwindow* window, int key, int scancode, int action, int mods);
-void mouse_callback(GLFWwindow* window, double xpos, double ypos);
-void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
-void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
-
 struct Time
 {
 public:
@@ -72,20 +69,36 @@ public:
 	}
 };
 
+
 class Backend
 {
 public:
 	static const int m_Height = 900, m_Width = 1400;
 	int m_FullHeight = 1080, m_FullWidth = 1920;
+	bool m_FirstMouseSceneClick = false;
 	float m_EditorSetting_FontSize = 24.0f;
+	float lastX = 0, lastY = 0;
+	float m_CurrentUI_FontSize = 48.0f;
 	std::string fontPath = "Fonts/arial.ttf";
+	std::string projectNamePath = "HelloWorld";
 	int m_SceneWidth, m_SceneHeight;
+	std::unordered_map<int, Entity> m_ModelMap;
+	std::vector<Entity> m_LoadedModelsList;
+	FT_Library ft;
+	FT_Face face;
+	Camera camera;
+	Time EditorTime;
+	GLFWwindow* m_Window;
 	
-	std::vector<Entity> m_PointLights;
+	//std::vector<Entity> m_PointLights;
+	std::unordered_map<int, Entity> m_PointLightsEntityMap;
+	//std::mutex m_ModelMapMutex;
 	DirectionalLight MyDirLight;
 
 	Backend();
+	~Backend();
 	int Initialize();
+	bool InitializeFreeType(const std::string& fontPath);
 	void InitializeUserInterface();
 	int Update();
 	
@@ -95,7 +108,10 @@ public:
 	bool StartImGui();
 	bool LoadEngineIcon();
 	bool UpdateDockingScene();
+	bool UpdateFontSize(float);
 	void HandleMouseClick(GLuint);
+	void PollInputs(GLFWwindow* window);
+	void PollMouseMovement(float, float);
 	void SelectEntity(int id);
 	int GetWindowWidth(GLFWwindow* window) { int height, width; glfwGetWindowSize(window, &width, &height); return width; }
 	int GetWindowHeight(GLFWwindow* window) { int height, width; glfwGetWindowSize(window, &width, &height); return height; }
@@ -111,10 +127,13 @@ private:
 	Shader m_ShadowShader;
 	
 
-	GLFWwindow* m_Window;
+	
 
 	// Base instance of ModelList
-	std::vector<Entity> ModelList;
+	//std::vector<Entity> ModelList;
 	int selectedDebugModelIndex = -1;
+
+	
+	
 
 };

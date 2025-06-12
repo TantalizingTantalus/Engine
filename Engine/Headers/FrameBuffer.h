@@ -6,6 +6,7 @@ class FrameBuffer
 {
 public:
 	unsigned int fbo;
+
 	FrameBuffer(float width, float height)
 	{
 		this->width = width;
@@ -94,8 +95,62 @@ public:
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	}
 
+	GLuint SetupMousePicking(float Height, float Width)
+	{
+		GLuint PickingTex;
+		glGenTextures(1, &PickingTex);
+		glGenTextures(1, &PickingTex);
+		glBindTexture(GL_TEXTURE_2D, PickingTex);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, Width, Height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glBindTexture(GL_TEXTURE_2D, 0);
+
+		// Attach picking texture to framebuffer
+		glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, PickingTex, 0);
+
+		if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+			spdlog::error("Picking texture setup in Framebuffer not complete!\n");
+		}
+
+		// Specify the draw buffers
+		GLenum drawBuffers[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
+		glDrawBuffers(2, drawBuffers);
+
+		
+
+		glBindFramebuffer(GL_FRAMEBUFFER, 1);
+		return PickingTex;
+	}
+
+	GLuint SetupDepthMap(float Height, float Width)
+	{
+		GLuint PickingTex;
+		glGenTextures(1, &PickingTex);
+		glGenTextures(1, &PickingTex);
+		glBindTexture(GL_TEXTURE_2D, PickingTex);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, Width, Height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glBindTexture(GL_TEXTURE_2D, 0);
+
+		// Attach picking texture to framebuffer
+		glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, PickingTex, 0);
+
+		// Specify the draw buffers
+		GLenum drawBuffers[] = { GL_COLOR_ATTACHMENT0};
+		glDrawBuffers(1, drawBuffers);
+
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		return PickingTex;
+	}
+
 	float GetWidth() { return width; }
 	float GetHeight() { return height; }
+
+
 
 private:
 	

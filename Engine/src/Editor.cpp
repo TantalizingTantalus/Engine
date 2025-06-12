@@ -5,6 +5,8 @@ void Editor::Init(Backend& backend)
 {
 
 	myBack = &backend;
+	myNavWindowPath = myBack->projectNamePath;
+	myPath = myBack->projectNamePath;
 }
 
 void Editor::WindowUpdate(Camera& in_camera, GLFWwindow& in_window)
@@ -12,7 +14,123 @@ void Editor::WindowUpdate(Camera& in_camera, GLFWwindow& in_window)
 	this->camera = &in_camera;
 	this->window = &in_window;
 
+}
 
+void Editor::PollEditorInput(GLFWwindow* window)
+{
+	if (!ImGui::IsAnyItemActive())
+	{
+		if (ImGui::IsKeyPressed(ImGuiKey_W))
+		{
+			EditorTransformationOperation = ImGuizmo::OPERATION::TRANSLATE;
+		}
+
+		if (ImGui::IsKeyPressed(ImGuiKey_R))
+		{
+			EditorTransformationOperation = ImGuizmo::OPERATION::ROTATE;
+		}
+
+		if (ImGui::IsKeyPressed(ImGuiKey_R) && ImGui::GetIO().KeyCtrl)
+		{
+			editingName = true;
+		}
+
+		if (ImGui::IsKeyPressed(ImGuiKey_T))
+		{
+			EditorTransformationOperation = ImGuizmo::OPERATION::SCALE;
+		}
+
+		if (ImGui::IsKeyPressed(ImGuiKey_H))
+		{
+			DEBUG_MODE = !DEBUG_MODE;
+		}
+
+		if (ImGui::IsKeyPressed(ImGuiKey_F11))
+		{
+			ToggleFullscreen(nullptr, myBack);
+		}
+
+		if (ImGui::IsKeyPressed(ImGuiKey_F))
+		{
+			Task_FocusObject();
+		}
+
+		if (ImGui::IsKeyPressed(ImGuiKey_N))
+		{
+			auto& model = DebugSelectedEntity->GetComponent<Model>();
+			if (model.GetVisible())
+			{
+				model.RenderMode = (model.RenderMode == RENDERTARGETS::NORMAL) ? RENDERTARGETS::LIT : RENDERTARGETS::NORMAL;
+			}
+			else
+			{
+				LoggingEntries.push_back("No object with shader selected!!");
+			}
+		}
+
+		if (ImGui::IsKeyPressed(ImGuiKey_L))
+		{
+			if (DebugSelectedEntity)
+			{
+				auto& model = DebugSelectedEntity->GetComponent<Model>();
+				if (model.GetVisible())
+				{
+					model.RenderMode = (model.RenderMode == RENDERTARGETS::LINES) ? RENDERTARGETS::LIT : RENDERTARGETS::LINES;
+				}
+			}
+			else
+			{
+				LoggingEntries.push_back("No object selected!!");
+			}
+		}
+
+		if (ImGui::IsKeyPressed(ImGuiKey_Delete))
+		{
+			Task_Delete();
+		}
+
+		if (ImGui::IsKeyPressed(ImGuiKey_Escape))
+		{
+			Exit_Application(nullptr);
+		}
+
+		if (ImGui::IsKeyPressed(ImGuiKey_O) && ImGui::GetIO().KeyCtrl)
+		{
+			Task_ImportModel(*m_DebugEntityMap);
+		}
+
+		if (ImGui::IsKeyPressed(ImGuiKey_F12))
+		{
+			system("start https://learnopengl.com/");
+		}
+
+		if (ImGui::IsKeyPressed(ImGuiKey_X))
+		{
+			renderUI = !renderUI;
+		}
+
+		if (ImGui::IsKeyPressed(ImGuiKey_M))
+		{
+			// camera.mode = static_cast<Camera_Mode>((camera.mode + 1) % 2);
+		}
+	}
+
+	// Handle input while editing text
+	if (ImGui::IsAnyItemActive())
+	{
+		
+		if (ImGui::IsKeyPressed(ImGuiKey_Enter))
+		{
+			if (editingName)
+			{
+				editingNameLoggingMsg = fmt::format("{}", editingNameLoggingMsg);
+				LoggingEntries.push_back(fmt::format("{} to \"{}\" ", editingNameLoggingMsg, editingTempName));
+				editingNameLoggingMsg = "";
+				DebugSelectedEntity->Name = editingTempName;
+				editingName = false;
+			}
+		}
+	}
 }
 
 void Editor::RecursiveDisplayChildren(const Entity& entity)
@@ -42,121 +160,177 @@ void Editor::RecursiveDisplayChildren(const Entity& entity)
 	}
 }
 
-void Editor::DebugWindow(ImGuiIO& io, std::vector<Entity>& ModelList)
+void Editor::UpdateEntities(std::unordered_map<int, Entity>& EntityMap)
+{
+	std::lock_guard<std::mutex> lock(m_DebugEntityMapMutex);
+
+	m_DebugEntityMap = &EntityMap;
+
+}
+
+void Editor::DebugWindow(ImGuiIO& io, std::unordered_map<int, Entity>& EntityMap)
 {
 	using namespace ImGui;
-	if (ImGui::BeginMenuBar())
+	if (BeginMenuBar())
 	{
-		if (ImGui::BeginMenu("File"))
+		if (BeginMenu("File"))
 		{
-			if (ImGui::MenuItem("Import Model..", "Ctrl+O"))
+			if (MenuItem("Import Model..", "Ctrl+O"))
 			{
-				Task_ImportModel(ModelList);
+				{
+					//std::async(std::launch::async, &Editor::Task_ImportModel, this, std::ref(EntityMap));
+					Task_ImportModel(EntityMap);
+				}
 			}
-			if (ImGui::MenuItem("Close", "'Esc'")) { Exit_Application(window); }
+			if (MenuItem("Close", "'Esc'")) { Exit_Application(window); }
 			ImGui::EndMenu();
 		}
-		if (ImGui::BeginMenu("Edit"))
+		if (BeginMenu("Edit"))
 		{
 			//if (ImGui::MenuItem("Set Light Position to Camera", "'G'")) { Task_AlignDirLight(); }
-			if (ImGui::MenuItem("Focus Camera to Selected", "'F'")) { Task_FocusObject(); }
-			if (ImGui::MenuItem("Rename Selected Object", "'CTRL+R'")) { editingName = true; }
+			if (MenuItem("Focus Camera to Selected", "'F'")) { Task_FocusObject(); }
+			if (MenuItem("Rename Selected Object", "'CTRL+R'")) { editingName = true; }
 			ImGui::EndMenu();
 		}
-		if (ImGui::BeginMenu("View"))
+		if (BeginMenu("View"))
 		{
-			if (ImGui::MenuItem("Hide Debug Window", "'H'")) { Toggle_UI(); }
-			if (ImGui::MenuItem("Hide/Show HUD", "'X'")) { renderUI = !renderUI; }
-			if (ImGui::MenuItem("Change Camera Mode", "'M'")) { camera->mode = static_cast<Camera_Mode>((camera->mode + 1) % 2); }
-			if (ImGui::MenuItem("Reset Window Layout", "'PG DN'")) { Task_LoadDefaultLayout(); }
+			
+			if (MenuItem("Hide Debug Window", "'H'")) { Toggle_UI(); }
+			if (MenuItem("Hide/Show HUD", "'X'")) { renderUI = !renderUI; }
+			if (MenuItem("Change Camera Mode", "'M'")) { camera->mode = static_cast<Camera_Mode>((camera->mode + 1) % 2); }
+			if (MenuItem("Reset Window Layout", "'PG DN'")) { Task_LoadDefaultLayout(); }
 
 			ImGui::EndMenu();
 		}
-		if (ImGui::BeginMenu("Docs"))
+		if (BeginMenu("Docs"))
 		{
-			if (ImGui::MenuItem("OpenGL Docs", "'F12'")) { system("start https://learnopengl.com/"); }
-			if (ImGui::MenuItem("ImGui Docs", "'F12+1'")) { system("start https://github.com/ocornut/imgui/wiki"); }
-			if (ImGui::MenuItem("Guizmo Docs", "'F12+2'")) { system("start https://github.com/CedricGuillemet/ImGuizmo"); }
-			if (ImGui::MenuItem("GitHub Page", "'F12+3'")) { system("start https://github.com/TantalizingTantalus/Engine"); }
+			if (MenuItem("OpenGL Docs", "'F12'")) { system("start https://learnopengl.com/"); }
+			if (MenuItem("ImGui Docs", "'F12+1'")) { system("start https://github.com/ocornut/imgui/wiki"); }
+			if (MenuItem("Guizmo Docs", "'F12+2'")) { system("start https://github.com/CedricGuillemet/ImGuizmo"); }
+			if (MenuItem("GitHub Page", "'F12+3'")) { system("start https://github.com/TantalizingTantalus/Engine"); }
 			ImGui::EndMenu();
 		}
+
 		ImGui::EndMenuBar();
 	}
 	ImGui::End();
 
 	if (DEBUG_MODE)
 	{
-		
 		// Properties Panel
 		{
 			std::string PanelTitle = "Properties";
 
 			ImGui::Begin(PanelTitle.c_str(), nullptr);
 
-			for (int i = 0; i < ModelList.size(); i++)
+			if (ImGui::IsWindowHovered())
 			{
-				Entity& model = ModelList[i];
-				glm::vec3 modelPosition = model.transform->getLocalPosition();
-				glm::vec3 modelScale = model.transform->getLocalScale();
-				glm::vec3 displayModelRotation = model.transform->rotation;
-				glm::vec3 modelRotation = model.transform->getLocalRotation();
-				if (ModelList[i].GetEntity() == DebugSelectedEntity)
+				m_InspectorHovered = true;
+			}
+			else {
+				m_InspectorHovered = false;
+			}
+
+			for (auto& ent : EntityMap)
+			{
+				glm::vec3 modelPosition = ent.second.transform->getLocalPosition();
+				glm::vec3 modelScale = ent.second.transform->getLocalScale();
+				glm::vec3 displayModelRotation = ent.second.transform->rotation;
+				glm::vec3 modelRotation = ent.second.transform->getLocalRotation();
+				if (ent.second.GetEntity() == DebugSelectedEntity)
 				{
-					DebugSelectedEntity = model.GetEntity();
+					DebugSelectedEntity = ent.second.GetEntity();
 
 					// Display ALL contents of Components list
-					model.ShowComponents();
+					ent.second.ShowComponents();
 
-
-					// Debug Buttons **** Ignore for now *****
-					ImGui::SeparatorText("Debug Testing");
-					ImGui::PushTextWrapPos(ImGui::GetWindowContentRegionMax().x);
-					if (ImGui::Button("Parent", ImVec2((ImGui::GetWindowContentRegionMax().x * .8f) / 2.0f, 50)))
-					{
-						if (ModelList.size() > 2)
-						{
-							ModelList[1].AddChild(ModelList[2].GetEntity());
-							
-						}
-					}
-					ImGui::SameLine();
-					if (ImGui::Button("Update MM", ImVec2((ImGui::GetWindowContentRegionMax().x * .8f) / 2.0f, 50)))
-					{
-						if (ModelList.size() > 2)
-						{
-							for (auto&& child : DebugSelectedEntity->children)
-							{
-								child->transform->m_modelMatrix = DebugSelectedEntity->transform->m_modelMatrix * child->transform->m_modelMatrix;
-							}
-						}
-					}
-					ImGui::PopTextWrapPos();
+					// Debug quick info
 					ImGui::Text(fmt::format("Entity ID: {}", DebugSelectedEntity->ID).c_str());
+					Text(fmt::format("Scene Objects: {}", m_DebugEntityMap->size()).c_str());
 				}
 			}
 
 			ImGui::End();
 		}
 
+		// Free look in the scene window
+		{
+			
+			ImVec2 mousePos = ImGui::GetMousePos();
+
+			// m_SceneCursor here is just the x, y of the mouse over the scene window specifically.
+			// current window mouse position x and y minus the scene window position gives correct x and y offsets.
+			m_SceneCursorPosition = ImVec2(mousePos.x - m_SceneWindowPosition.x, mousePos.y - m_SceneWindowPosition.y);
+			
+			if (m_DebugEditorTrackMouse)
+			{
+				if (Begin("Debug Track Mouse"))
+				{
+					ImGui::Text(fmt::format("Mouse X: {}   Mouse Y: {}", mousePos.x, mousePos.y).c_str());
+					ImGui::Text(fmt::format("Window X: {}   Window Y: {}", m_SceneWindowPosition.x, m_SceneWindowPosition.y).c_str());
+					ImGui::Text(fmt::format("Scene Mouse X: {}   Scene Mouse Y: {}", m_SceneCursorPosition.x, m_SceneCursorPosition.y).c_str());
+					End();
+				}
+				
+			}
+
+			/*std::cout << m_SceneHovered << std::endl;*/
+			if (m_SceneHovered)
+			{
+				ImGui::FocusItem();
+
+				 
+				if (ImGui::IsMouseClicked(1))
+				{
+					m_PanningScene = true;
+					myBack->m_FirstMouseSceneClick = true;
+				}
+
+
+			}
+			if (m_PanningScene)
+			{
+				glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+				myBack->camera.SetFreeLook(true);
+				myBack->PollInputs(myBack->m_Window);
+
+
+
+				myBack->PollMouseMovement(m_SceneCursorPosition.x, m_SceneCursorPosition.y);
+			}
+
+			if (ImGui::IsMouseReleased(1))
+			{
+				glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+				myBack->camera.SetFreeLook(false);
+				m_PanningScene = false;
+			}
+
+		}
+
 		// Object selection/ object viewer 
 		{
 			ImGui::Begin("Object Viewer", nullptr);
-			for (int i = 0; i < ModelList.size(); i++)
+
+			for (auto& ent : EntityMap)
 			{
-				bool isSelected = (i == selectedDebugModelIndex);
+				bool isSelected = (ent.first == selectedDebugModelIndex);
 				bool isOpened = false;
-				if (!ModelList[i].children.empty())
+				if (!ent.second.children.empty())
 				{
-					isOpened = (ImGui::TreeNodeEx(ModelList[i].Name.c_str(), ImGuiTreeNodeFlags_OpenOnArrow));
+					isOpened = (ImGui::TreeNodeEx(ent.second.Name.c_str(), ImGuiTreeNodeFlags_OpenOnArrow));
 				}
 				else
 				{
-					if (ModelList[i].parent == nullptr)
+					if (ent.second.parent == nullptr)
 					{
-						if (ImGui::Selectable(ModelList[i].Name.c_str()))
+						if (ImGui::Selectable(ent.second.Name.c_str()))
 						{
-							DebugSelectedEntity = ModelList[i].GetEntity();
-							camera->OrbitTarget = DebugSelectedEntity->GetComponent<Transform>().position;
+							DebugSelectedEntity = ent.second.GetEntity();
+							if (DebugSelectedEntity->HasComponent<Transform>())
+							{
+								camera->OrbitTarget = DebugSelectedEntity->GetComponent<Transform>().position;
+							}
 						}
 					}
 				}
@@ -164,14 +338,13 @@ void Editor::DebugWindow(ImGuiIO& io, std::vector<Entity>& ModelList)
 				if (ImGui::IsItemClicked())
 				{
 					//selectedDebugModelIndex = i;
-					DebugSelectedEntity = ModelList[i].GetEntity();
+					DebugSelectedEntity = ent.second.GetEntity();
 					camera->OrbitTarget = DebugSelectedEntity->GetComponent<Transform>().position;
 				}
 
-
 				if (isOpened)
 				{
-					RecursiveDisplayChildren(*ModelList[i].GetEntity());
+					RecursiveDisplayChildren(*ent.second.GetEntity());
 					ImGui::TreePop();
 				}
 
@@ -180,7 +353,7 @@ void Editor::DebugWindow(ImGuiIO& io, std::vector<Entity>& ModelList)
 					ImGui::OpenPopup("ContextMenu");
 				}
 
-				if (editingName && selectedDebugModelIndex == i)
+				if (editingName && selectedDebugModelIndex == ent.first)
 				{
 					char test[12];
 					strcpy_s(test, DebugSelectedEntity->GetComponent<Model>().GetModelName().c_str());
@@ -195,19 +368,33 @@ void Editor::DebugWindow(ImGuiIO& io, std::vector<Entity>& ModelList)
 				}
 			}
 
+			
+
 			if (ImGui::BeginPopup("ContextMenu")) {
 				if (ImGui::BeginMenu("Add")) {
 					if (ImGui::BeginMenu("Object")) {
 						if (ImGui::MenuItem("Cube")) {
-							Model newCube("../Engine/Models/Light_Cube.fbx");
+							Model newCube("Models/Light_Cube.fbx");
 							Entity newCubeEntity;
 							if (newCube.GetModelName() != "null_model")
 							{
+								// Transform Component
 								newCubeEntity.transform->setLocalPosition(glm::vec3(0.0f));
 								newCubeEntity.AddComponent(newCubeEntity.transform);
-								ModelList.push_back(newCubeEntity);
-								selectedDebugModelIndex = ModelList.size() - 1;
-								DebugSelectedEntity = &ModelList[selectedDebugModelIndex];
+
+								// Model Component
+								std::shared_ptr<Model> newCubeModelComp = std::make_shared<Model>(newCube);
+								newCubeEntity.AddComponent(newCubeModelComp);
+
+								// Material Component
+								Material newMat(&newCubeEntity);
+								std::shared_ptr<Material> myMatComp = std::make_shared<Material>(newMat);
+								newCubeEntity.AddComponent(myMatComp);
+
+								// Ship it
+								newCubeEntity.ID = EntityMap.size() + 1;
+								//EntityMap.emplace(newCubeEntity.ID, &newCubeEntity);
+								myBack->SelectEntity(newCubeEntity.ID);
 							}
 						}
 						ImGui::EndMenu();
@@ -263,25 +450,6 @@ void Editor::DebugWindow(ImGuiIO& io, std::vector<Entity>& ModelList)
 				ImGui::Separator();
 				if (ImGui::MenuItem("Duplicate")) {
 
-					//Model DuplicateItem(DebugSelectedEntity->GetModel().fullFilePath); // error due to ECS, needs DebugSelectedEntity
-					//													 // instead of DebugSelectedObj
-					//int numDupes = 0;
-					//LoggingEntries.push_back("Keep in mind this duplicate is not instanced :(");
-					//for (int i = 0; i < ModelList.size(); i++)
-					//{
-					//	if (ModelList[i].GetModelFileName() == DuplicateItem.GetModelFileName())
-					//	{
-					//		numDupes++;
-					//	}
-					//}
-					//if (numDupes > 0)
-					//	DuplicateItem.SetModelName(fmt::format("{}({})", DuplicateItem.GetModelName(), numDupes));
-					//DuplicateItem.AddComponent(DuplicateItem.transform);
-					//ModelList.push_back(DuplicateItem);
-					///*selectedDebugModelIndex = ModelList.size() - 1;
-					//DebugSelectedObj = &ModelList[selectedDebugModelIndex];*/
-					//DebugSelectedEntity = ModelList[ModelList.size() - 1].GetEntity();
-
 					LoggingEntries.push_back("Under Construction");
 				}
 				ImGui::Separator();
@@ -300,9 +468,39 @@ void Editor::DebugWindow(ImGuiIO& io, std::vector<Entity>& ModelList)
 		// Debug properties 
 		{
 			Begin("Debug", nullptr);
+			
+			ImVec2 DebugPos = ImGui::GetWindowPos();
+			ImVec2 sceneSize = ImGui::GetWindowSize();
+
+			ImVec2 mousePos = ImGui::GetIO().MousePos;
+
+			if (ImGui::IsWindowHovered())
+			{
+				m_DebugHovered = true;
+			}
+			else
+			{
+				m_DebugHovered = false;
+			}
+
+			SeparatorText("Window Info");
+			Text("Scene hovered: ");
+			SameLine();
+			Checkbox(" ", &m_SceneHovered);
+			Text("File Viewer hovered: ");
+			SameLine();
+			Checkbox(" ", &m_FileViewerHovered);
+			Text("Debug hovered: ");
+			SameLine();
+			Checkbox(" ", &m_DebugHovered);
+			Text("Inspector hovered: ");
+			SameLine();
+			Checkbox(" ", &m_InspectorHovered);
+
 			if (Button("Toggle Fullscreen Mode"))
 				ToggleFullscreen(window, myBack);
 
+			Checkbox("Track Mouse Position: ", &m_DebugEditorTrackMouse);
 
 			// Camera Position
 			SeparatorText("Camera:");
@@ -325,15 +523,28 @@ void Editor::DebugWindow(ImGuiIO& io, std::vector<Entity>& ModelList)
 			// Near clipping
 			SeparatorText("Camera near clipping: ");
 			InputFloat("##nearClipping", &camera->NearClippingPlane);
+
 			// Far clipping
 			SeparatorText("Camera far clipping: ");
 			InputFloat("##farClipping", &camera->FarClippingPlane);
+
 			// Adjust camera Speed
 			SeparatorText("Camera Speed: ");
 			SliderFloat("##CameraSpeed", &camera->MovementSpeed, camera->Min_MoveSpeed, camera->Max_MoveSpeed);
 
+			// Object Border Outline
 			SeparatorText("Outline Thickness");
 			SliderFloat("##linethickness", &OutlineThickness, 1.0, 1.5);
+
+			// UI Font Size
+			SeparatorText("UI Font Size");
+			if (SliderFloat("##UI_FontSize", &myBack->m_CurrentUI_FontSize, 1.0f, 72.0f))
+			{
+				if (!myBack->UpdateFontSize(myBack->m_CurrentUI_FontSize))
+				{
+					spdlog::warn(fmt::format("Unable to update font size to {}", myBack->m_CurrentUI_FontSize));
+				}
+			}
 
 			// Color picker
 			SeparatorText("Directional Color");
@@ -374,19 +585,32 @@ void Editor::DebugWindow(ImGuiIO& io, std::vector<Entity>& ModelList)
 
 		// To do implement content file browser
 		{
-			char buffer[100]; // 100 can be reduced if needed
-
+			char buffer[100]; 
+			
 			ImGui::Begin("File Viewer");
+
+
+			if (ImGui::IsWindowHovered())
+			{
+				m_FileViewerHovered = true;
+			}
+			else
+			{
+				m_FileViewerHovered = false;
+			}
 
 			ImGui::Columns(2, "split", true);
 
-
 			ImGui::SetColumnWidth(0, ImGui::GetWindowWidth() * 0.2f);
 			ImGui::SameLine();
-			ImGui::Text("Project Files");
+			ImGui::Text(myBack->projectNamePath.c_str());
 			ImGui::BeginChild("NavigationPanel");
 			ImGui::Separator();
 			ImGui::Spacing();
+			if (!std::filesystem::exists(myNavWindowPath))
+			{
+				std::filesystem::create_directory(myNavWindowPath);
+			}
 			for (auto& p : std::filesystem::directory_iterator(myNavWindowPath))
 			{
 				if (p.is_directory())
@@ -409,8 +633,6 @@ void Editor::DebugWindow(ImGuiIO& io, std::vector<Entity>& ModelList)
 				{
 					myNavWindowPath = tempPath;
 				}
-				// to do:
-				//  make editable text input
 			}
 			ImGui::SameLine();
 			ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x);
@@ -418,74 +640,12 @@ void Editor::DebugWindow(ImGuiIO& io, std::vector<Entity>& ModelList)
 			ImGui::PopItemWidth();
 
 			ImGui::BeginChild("ChildFileViewer");
-
-			if (ImGui::BeginTable("##FileViewTable", 8))
-			{
-				float spacing = 5.0f;
-				ImGui::SetCursorPosY(ImGui::GetCursorPosY() + spacing);
-				ImGui::TableNextColumn();
-				if (ImGui::ImageButton("../", SystemIcons::GetBackButtonIcon(), ImVec2(currentIconSize, currentIconSize)))
-				{
-					// Go up a directory
-					if (myPath.has_parent_path())
-					{
-						myPath = myPath.parent_path();
-					}
-				}
-				ImGui::TableNextColumn();
-
-				if (std::filesystem::exists(myPath))
-				{
-					for (auto& p : std::filesystem::directory_iterator(myPath))
-					{
-						auto& p_path = p.path();
-						std::string fileNames;
-						ImGui::SetCursorPosY(ImGui::GetCursorPosY() + spacing);
-						std::string s = p_path.filename().string();
-						if (p.is_directory())
-						{
-							fileNames = p_path.filename().string();
-							if (ImGui::ImageButton(s.c_str(),SystemIcons::GetFolderIcon(), ImVec2(currentIconSize, currentIconSize)))
-							{
-								myPath /= p_path.filename();
-							}
-							ImGui::Spacing();
-
-
-
-							ImGui::TextWrapped(fmt::format("{}", fileNames.c_str()).c_str()); // may be a point of contention with const char* and 
-
-
-
-						}
-						else
-						{
-							fileNames = p_path.filename().string();
-							ImGui::ImageButton(s.c_str(), SystemIcons::GetFileIcon(), ImVec2(currentIconSize, currentIconSize));
-							ImGui::Spacing();
-							ImGui::SetCursorPosY(ImGui::GetCursorPosY() + spacing);
-
-
-							ImGui::TextWrapped(fmt::format("{}", fileNames.c_str()).c_str());
-
-						}
-
-
-						ImGui::TableNextColumn();
-					}
-				}
-				else
-				{
-					spdlog::error("Directory {} does not exist!", myPath.string());
-				}
-
-				ImGui::EndTable();
-			}
-
+			
 			ImGui::EndChild();
 
 			ImGui::End();
 		}
+
 
 		// Prepare render to draw
 		ImGui::Render();
@@ -509,7 +669,8 @@ void Editor::RecursiveDisplayFolders(const std::filesystem::path& directoryPath)
 
 	bool isOpened = ImGui::TreeNodeEx(directoryPath.filename().string().c_str(), ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanFullWidth);
 
-	if (ImGui::IsItemClicked())
+	
+	if (ImGui::IsItemClicked(ImGuiMouseButton_Left) && !ImGui::IsItemToggledOpen())
 	{
 		myPath = directoryPath;
 	}
@@ -525,7 +686,6 @@ void Editor::RecursiveDisplayFolders(const std::filesystem::path& directoryPath)
 		}
 		ImGui::TreePop();
 	}
-
 }
 
 // Quick hide function for debug ui elements
@@ -595,45 +755,24 @@ void Editor::Task_FocusObject()
 	}
 	else
 	{
-		/*glm::vec3 ObjPosition = DebugSelectedEntity->transform->getLocalPosition();
-		if (camera->Position != ObjPosition)
-		{
-			glm::vec3 ObjPosition = DebugSelectedEntity->transform->getLocalPosition();
-			LookAtObject(ObjPosition);
-			std::string message = std::format("Focused '{}' Object", DebugSelectedEntity->Name);
-			LoggingEntries.push_back(message);
-		}*/
 		LoggingEntries.push_back("Focused object");
-		
-		//camera->m_ViewMatrix = glm::lookAt(camera->Position, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 		camera->LookAtWithYaw(DebugSelectedEntity->GetComponent<Transform>().position);
-		//camera->updateCameraVectors();
 	}
 }
 
 void Editor::Task_DebugNormals(bool& flag, GLuint sId)
 {
 	flag = !flag;
-
 }
 
 void Editor::Task_Delete()
 {
 	if (DebugSelectedEntity != nullptr)
 	{
-		if (!DebugEntityList->empty())
+		if (!m_DebugEntityMap->empty())
 		{
-			for (auto iModel = DebugEntityList->begin(); iModel != DebugEntityList->end(); )
-			{
-				if (iModel->Name == DebugSelectedEntity->Name)
-				{
-					iModel = DebugEntityList->erase(iModel);
-				}
-				else
-				{
-					++iModel;
-				}
-			}
+			m_DebugEntityMap->erase(DebugSelectedEntity->ID);
+			DebugSelectedEntity = m_DebugEntityMap->begin()->second.GetEntity();
 		}
 	}
 	else
@@ -642,11 +781,11 @@ void Editor::Task_Delete()
 	}
 }
 
-void Editor::Task_ImportModel(std::vector<Entity>& ModelList)
+void Editor::Task_ImportModel(std::unordered_map<int, Entity>& EntityMap)
 {
 	std::filesystem::path originalWorkingDir = std::filesystem::current_path();
 
-	Model newModel = OpenModelFileDialog(ModelList);
+	Model newModel = OpenModelFileDialog(EntityMap);
 	Entity newEntity(newModel.GetModelName().c_str());
 	Material material(&newEntity);
 
@@ -658,23 +797,27 @@ void Editor::Task_ImportModel(std::vector<Entity>& ModelList)
 		
 
 		// add components
-		newEntity.AddComponent(newEntity.transform); // Transform Component
-		newEntity.AddComponent(modelComp); // Model Component
-		newEntity.AddComponent(matComp); // Material Component
+		newEntity.AddComponent(newEntity.transform); 
+		newEntity.AddComponent(modelComp); 
+		newEntity.AddComponent(matComp);
 
 		// Initialize components
 		matComp->Initialize(newEntity.GetComponent<Model>()); // bug bc newModel goes out of scope
 
 		// Send it
-		ModelList.push_back(newEntity); 
-		DebugSelectedEntity = ModelList[ModelList.size() - 1].GetEntity();
-		DebugSelectedEntity->ID = ModelList.size();
+		{
+			newEntity.ID = EntityMap.size() + 1;
+			std::lock_guard<std::mutex> lock(m_DebugEntityMapMutex);
+			EntityMap.emplace(newEntity.ID, newEntity);
+			myBack->SelectEntity(newEntity.ID);
+		}
+		//EntityMap.emplace(newEntity.ID, newEntity); 
 	}
 
 	std::filesystem::current_path(originalWorkingDir);
 }
 
-Model Editor::OpenModelFileDialog(std::vector<Entity>& ModelList)
+Model Editor::OpenModelFileDialog(std::unordered_map<int, Entity>& EntityMap)
 {
 	// Buffer to hold the file name
 	wchar_t fileName[MAX_PATH] = L"";
@@ -708,21 +851,6 @@ Model Editor::OpenModelFileDialog(std::vector<Entity>& ModelList)
 
 		// extName example value: "Backpack", "Cube"
 		extName = extName.substr(0, extName.length() - 4);
-
-		//Check for duplicates
-		{
-			int numDupes = 0;
-			for (int i = 0; i < ModelList.size(); i++)
-			{
-				if (ModelList[i].Name == extName || ModelList[i].Name == (fmt::format("{}({})", extName, i)))
-				{
-					numDupes++;
-				}
-			}
-			if (numDupes > 0)
-				extName = fmt::format("{}({})", extName, numDupes);
-		}
-
 
 		logMsg = fmt::format("Successfully loaded file: {}{}", extName, extTemp);
 		spdlog::info(logMsg);

@@ -29,6 +29,19 @@ public:
 
 	}
 
+	~Entity()
+	{
+		spdlog::warn("deleting entity");
+		CleanUp();
+	}
+
+	void CleanUp()
+	{
+		for (auto& component : components)
+		{
+			component->CleanUp();
+		}
+	}
 	void AddChild(Entity*);
 	Entity* GetEntity() { return this; }
 
